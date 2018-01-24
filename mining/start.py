@@ -1,17 +1,18 @@
 import os
 import re
 import sys
+from pip._vendor.distlib.util import chdir
 
 def process(self, config, coin):
+    if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
 
     Clients = config.client_dict
     arguments = config.arguments
 
     miner = coin['Miner']
-    if 'Options' in coin and not coin['Options'] is None:
+    options = ''
+    if 'Options' in coin and coin['Options'] != None:
         options = coin['Options']
-    else:
-        options = ''
 
     ### Translate built-in miner operations (if coin['Miner'] is a mnemonic)
     cdDir = None
@@ -19,9 +20,8 @@ def process(self, config, coin):
     if miner in Clients:
         client = Clients[miner]
         miner = client['Executable']
-
-    if options is '' and client['Options'] != None:
-        options = client['Options']
+        if options is '' and client['Options'] != None:
+            options = client['Options']
 
     # Replace $URL_PORT, and/or $URL and $PORT, with configured value(s)
     options = options.replace('$URL_PORT', coin['UrlPort'])
@@ -109,7 +109,7 @@ def process(self, config, coin):
     # 'nohup' will protect you from the simple exit of the parent, but not from ctrl-C.
     #
     # So here we go ...
-    if config.DRYRUN: 
+    if config.DRYRUN:
         print 'cd '+cdDir+' ; nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
         return 0
     else:
@@ -143,5 +143,9 @@ def process(self, config, coin):
             sys.exit(1)
 
 
+def initialize(self, config, coin):
+    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+
 def finalize(self, config, coin):
+    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
     return 0

@@ -8,6 +8,8 @@ import sys
 ###   https://[<coin_name>.]miningpoolhub.com/index.php?page=api&action=<method>&api_key=<user_api_key>[&<argument>=<value>]
 
 def process(self, config, coin):
+    if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
+
     StatsUrls = config.StatsUrls
     
     if coin['Coin'] is None or not coin['Coin'] in StatsUrls:
@@ -69,5 +71,9 @@ def process(self, config, coin):
 
     return None
 
+def initialize(self, config, coin):
+    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+
 def finalize(self, config, coin):
+    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
     return 0

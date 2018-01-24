@@ -23,17 +23,12 @@ Options:
                  a local file (it's name will be listed on console)
 """
 
+from __future__ import print_function
 import sys
 sys.path.insert(0,'/opt/mining/mining')
-sys.path.insert(0,'/opt/git/miners/mining')
 
 import config
-#import list
-import start
-import stats
-import status
-import balances
-import textmsg
+import importlib
 
 ### Ref: http://docopt.org/
 ### Ref: https://github.com/docopt/docopt
@@ -44,47 +39,45 @@ arguments = config.arguments
 
 ALL_MEANS_ONCE={'balances':1, 'textmsg':1}
 
-
-##################################################################################
-### MAIN #########################################################################
-
-### Loop over all OPERATIONs, applying each to all COINs
-for OP in arguments['OPERATION'].split(','):
+###
+### Iterate over all COINs (from commandline)
+### Execute the given method (METH) of the given module (MOD)
+def exec_operation_method(OP, METH):
     try:
         for ticker_ in arguments['COIN']:
             ticker = ticker_.upper()
             if ticker not in config.coin_dict:
-                print "Coin '" + ticker + "' is unknown."
+                print ("Coin '" + ticker + "' is unknown.", file=sys.stderr)
+                return False
             else:
   
                 if config.coin_dict[ticker]['Miner'].strip(): 
                     config.WORKER_NAME = ticker + '-miner'
-                module = __import__(OP)
-                method = getattr(module, 'process')
+                module =  importlib.import_module(OP)
+                method = getattr(module, METH)
                 method(module, config, config.coin_dict[ticker])
       
-        if OP in ALL_MEANS_ONCE: break
+                if OP in ALL_MEANS_ONCE: break
 
     except AttributeError:
-        print "Module '"+OP+"' has no process() method."
+        print ("Module '"+OP+"' has no "+METH+"() method.", file=sys.stderr)
         sys.exit(1)
+        return False
+    
+    return True
+##################################################################################
 
 
-### Repeat that loop, to finalize each process
-for OP in arguments['OPERATION'].split(','):
+##################################################################################
+### MAIN #########################################################################
 
-    try:
-        for ticker_ in arguments['COIN']:
-            ticker = ticker_.upper()
-            if ticker in config.coin_dict:
-                config.WORKER_NAME = ticker + '-miner'
-                module = __import__(OP)
-                method = getattr(module, 'finalize')
-                method(module, config, config.coin_dict[ticker])
- 
-        if OP in ALL_MEANS_ONCE: break
+### Execute finalize() on each COIN
+for OP in arguments['OPERATION'].split(','): exec_operation_method(OP, 'initialize')
 
-    except AttributeError:
-        if config.VERBOSE: print "Module '"+OP+"' has no finalize() method."
+### Loop over all OPERATIONs, applying each to all COINs
+for OP in arguments['OPERATION'].split(','): exec_operation_method(OP, 'process')
+
+### Execute finalize() on each COIN
+for OP in arguments['OPERATION'].split(','): exec_operation_method(OP, 'finalize')
 
 ### EOF ##########################################################################

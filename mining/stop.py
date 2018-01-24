@@ -2,6 +2,7 @@ import os
 import signal
 
 def process(self, config, coin):
+    if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
 
     pinfo = config.get_status(coin)
     if pinfo is None:
@@ -14,5 +15,9 @@ def process(self, config, coin):
             os.kill(pinfo['pid'], signal.SIGKILL)
     return None
 
+def initialize(self, config, coin):
+    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+
 def finalize(self, config, coin):
+    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
     return 0

@@ -1,8 +1,8 @@
+from __future__ import print_function
 import subprocess
 import json
 import time
 import sys
-from __future__ import print_function
 
 ### Ref: https://github.com/miningpoolhub/php-mpos/wiki/API-Reference
 ###   https://[<coin_name>.]miningpoolhub.com/index.php?page=api&action=<method>&api_key=<user_api_key>[&<argument>=<value>]
@@ -13,6 +13,7 @@ from __future__ import print_function
 ###    https://miningpoolhubstats.com/USD/$MININGPOOLHUB_APIKEY
 
 BalanceUrls = [
+'cryptopia',
 'https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=d874359501d77ee4fabdb57d50c33f89c031018bc3262bb962f8c9294727f9cb',
 'https://www.unimining.net/api/walletEx?address=GQfzRW76zJX9DKg3mbmqqZpxRNh25TUUSo',
 'https://www.unimining.net/api/walletEx?address=TbsMq8Woobty7dbyYFQFDrDZiPja52QDQc'
@@ -28,6 +29,8 @@ COMMON_TO_SYMBOL = {
 
 
 def process(self, config, coin):
+    if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
+
     UNIMINING_THROTTLE=False
 
     for balanceUrl in BalanceUrls:
@@ -37,7 +40,7 @@ def process(self, config, coin):
 
         if 'unimining' in balanceUrl and UNIMINING_THROTTLE:
             for t in xrange(0,65):
-                print('\rPausing to accommodate unimining\'s throttling...'+str(65-t)+' '),;sys.stdout.flush()
+                print('\rPausing to accommodate unimining\'s throttling...'+str(65-t)+' ',end=''),;sys.stdout.flush()
                 time.sleep(1)
                 print ('\r'),;sys.stdout.flush()
         UNIMINING_THROTTLE=False
@@ -46,7 +49,7 @@ def process(self, config, coin):
         if config.VERBOSE: print('curl '+balanceUrl)
         proc = subprocess.Popen(['curl', balanceUrl], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
         jsonStr, err = proc.communicate(None)
-        if err: print(err, sep=' ', end='\n', file=sys.stderr)
+        #if err: print(err, sep=' ', end='\n', file=sys.stderr)
         
         if config.PRINT:
             encoding = 'html'
@@ -81,10 +84,17 @@ def process(self, config, coin):
                   
                 print(balances['currency']+': total ='+str(total)+' pending ='+str(unsold)+' unpaid ='+str(unpaid)+' balance ='+str(balance))
   
+        elif 'cryptopia' in balanceUrl:
+            print("balance/cryptopia is NYI")
+            
         else:
             print("Don't know how to process balanceUrl="+balanceUrl)
   
     return None
 
+def initialize(self, config, coin):
+    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+
 def finalize(self, config, coin):
+    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
     return 0

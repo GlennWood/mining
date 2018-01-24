@@ -1,6 +1,7 @@
 import re
 
 def process(self, config, coin):
+    if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
 
     pinfo = config.get_status(coin)
     if pinfo is None:
@@ -18,5 +19,9 @@ def process(self, config, coin):
     print coin['Coin'] + ': ' + cmdline
     return 0
 
+def initialize(self, config, coin):
+    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+
 def finalize(self, config, coin):
+    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
     return 0

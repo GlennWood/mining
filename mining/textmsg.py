@@ -23,6 +23,7 @@ TEXTBELT_KEY='33ff033886383072e3e7e5402a7da3988dcb01b2Y6COAJsTjjNm9sK3w2ws86jDq'
 TEXTBELT_PHN='6502799436'
 
 def process(self, config, coin):
+    if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
 
     inp = sys.stdin.readlines()
     message = "\n".join(inp)
@@ -38,5 +39,9 @@ def process(self, config, coin):
     
     return None
 
+def initialize(self, config, coin):
+    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+
 def finalize(self, config, coin):
+    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
     return 0

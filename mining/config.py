@@ -71,25 +71,27 @@ class Config(object):
             self.stats_dict[key] = d
       
         # Put Coin sheet into coin_dict
-        sheet = workbook.sheet_by_name('coin-miners')
+        sheet = workbook.sheet_by_name('CoinMiners')
         # read header values into the keys list    
         keys = [sheet.cell(0, col_index).value for col_index in xrange(sheet.ncols)]
+        pd = {}
         for row_index in xrange(1, sheet.nrows):
           
             d = {keys[col_index]: sheet.cell(row_index, col_index).value 
                  for col_index in xrange(sheet.ncols)}
         
-            pd = None
-            if not d['Coin'].strip():
+            d['Options']=''
+            if not d['Coin'].strip() :
                 pd['Options'] = d['Miner']
+                self.coin_dict[pd['Coin']] = pd
             else:
                 key = d['Coin']
                 self.coin_dict[key.upper()] = d
                 pd = d
-      
+
         if self.ALL_COINS: 
-            self.arguments['COIN'] = [x.upper() for x in sorted(list(self.coin_dict.keys()))]
-      
+            self.arguments['COIN'] = [x.upper() for x in sorted(list(self.coin_dict.keys()))]   
+        
         # Put Client mnemonics sheet into client_dict
         sheet = workbook.sheet_by_name('Clients')
         keys = [sheet.cell(0, col_index).value for col_index in xrange(sheet.ncols)]
@@ -99,5 +101,5 @@ class Config(object):
                  for col_index in xrange(sheet.ncols)}
             key = d['Mnemonic']
             self.client_dict[key] = d
-      
+
         return [self.stats_dict,self.StatsUrls,self.ConvertUrls,self.coin_dict,self.client_dict]
