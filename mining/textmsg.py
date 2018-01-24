@@ -1,8 +1,5 @@
-import config
-import os
 import subprocess
-import re
-import json
+import sys
 
 ### Ref: https://textbelt.com/#
 ### Ref: https://github.com/ksdme/py-textbelt
@@ -27,19 +24,19 @@ TEXTBELT_PHN='6502799436'
 
 def process(self, config, coin):
 
-  inp = sys.stdin.readlines()
-  message = "\n".join(inp)
-
-  proc = subprocess.Popen(['curl', '-X', 'POST', 'https://textbelt.com/text', \
-         '--data-urlencode', 'phone='+TEXTBELT_PHN, \
-         '--data-urlencode', "message='"+message+"'", '-d', 'key='+TEXTBELT_KEY], \
-          stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-  jsonStr, err = proc.communicate(None)
-
-  print jsonStr
-  if not err is None: print 'ERR: '+err
-
-  return None
+    inp = sys.stdin.readlines()
+    message = "\n".join(inp)
+    
+    proc = subprocess.Popen(['curl', '-X', 'POST', 'https://textbelt.com/text', \
+           '--data-urlencode', 'phone='+TEXTBELT_PHN, \
+           '--data-urlencode', "message='"+message+"'", '-d', 'key='+TEXTBELT_KEY], \
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    jsonStr, err = proc.communicate(None)
+    
+    print jsonStr
+    if not err is None: print 'ERR: '+err
+    
+    return None
 
 def finalize(self, config, coin):
-	return 0
+    return 0

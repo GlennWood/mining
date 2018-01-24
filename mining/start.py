@@ -3,8 +3,7 @@ import re
 import sys
 
 def process(self, config, coin):
-    args = []
-    env = {}
+
     Clients = config.client_dict
     arguments = config.arguments
 
@@ -94,8 +93,8 @@ def process(self, config, coin):
     environment = {}
     if coin['Environment'] != None:
         for envKeyVal in coin['Environment'].split():
-          envKeyVal = envKeyVal.split('=',1)
-          environment[envKeyVal[0]] = envKeyVal[1]
+            envKeyVal = envKeyVal.split('=',1)
+            environment[envKeyVal[0]] = envKeyVal[1]
 
 
     # And now we go for it, dryrun, or fork and exec
@@ -111,39 +110,38 @@ def process(self, config, coin):
     #
     # So here we go ...
     if config.DRYRUN: 
-      print 'cd '+cdDir+' ; nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
-      return 0
+        print 'cd '+cdDir+' ; nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
+        return 0
     else:
-      try:
-          newpid = os.fork()
-          if newpid == 0:
-              return 0
-          else:
-              if client != None and 'chdir' in client and client['chdir'] != None: os.chdir(cdDir)
-              # 'fork of './ccminer' failed: 1 (Operation not permitted)' 
-              #  due to python's exception when you are already the group-leader ... 
-              try:
-              	os.setsid()
-              except OSError, e:
-                harmless = 1
-              os.umask(0)
+        try:
+            newpid = os.fork()
+            if newpid == 0:
+                return 0
+            else:
+                if client != None and 'chdir' in client and client['chdir'] != None: os.chdir(cdDir)
 
-              open('/var/log/mining/'+WORKER_NAME+'.in', 'w').close()
-              sys.stdin  = open('/var/log/mining/'+WORKER_NAME+'.in',  'r')
-              sys.stdout = open('/var/log/mining/'+WORKER_NAME+'.out', 'w')
-              sys.stderr = open('/var/log/mining/'+WORKER_NAME+'.err', 'w')
-              # Ref: https://stackoverflow.com/questions/8500047/how-to-inherit-stdin-and-stdout-in-python-by-using-os-execv/8500169#8500169
-              os.dup2(sys.stdin.fileno(),  0)
-              os.dup2(sys.stdout.fileno(), 1)
-              os.dup2(sys.stderr.fileno(), 2)
-
-              os.execve(miner, options.split(), environment)
-              # and we're done; execve does not return
-
-      except OSError, e:
-          print >> sys.stderr, "fork of '"+miner+"' failed: %d (%s)" % (e.errno, e.strerror)
-          sys.exit(1)
+                try:
+                    os.setsid()
+                except OSError, e:# 'fork of './ccminer' failed: 1 (Operation not permitted)' 
+                    newpid = newpid#  due to python's exception when you are already the group-leader ... 
+                os.umask(0)
+    
+                open('/var/log/mining/'+WORKER_NAME+'.in', 'w').close()
+                sys.stdin  = open('/var/log/mining/'+WORKER_NAME+'.in',  'r')
+                sys.stdout = open('/var/log/mining/'+WORKER_NAME+'.out', 'w')
+                sys.stderr = open('/var/log/mining/'+WORKER_NAME+'.err', 'w')
+                # Ref: https://stackoverflow.com/questions/8500047/how-to-inherit-stdin-and-stdout-in-python-by-using-os-execv/8500169#8500169
+                os.dup2(sys.stdin.fileno(),  0)
+                os.dup2(sys.stdout.fileno(), 1)
+                os.dup2(sys.stderr.fileno(), 2)
+    
+                os.execve(miner, options.split(), environment)
+                # and we're done; execve does not return
+    
+        except OSError, e:
+            print >> sys.stderr, "fork of '"+miner+"' failed: %d (%s)" % (e.errno, e.strerror)
+            sys.exit(1)
 
 
 def finalize(self, config, coin):
-	return 0
+    return 0

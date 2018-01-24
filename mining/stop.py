@@ -1,4 +1,3 @@
-import config
 import os
 import signal
 
@@ -16,4 +15,4 @@ def process(self, config, coin):
     return None
 
 def finalize(self, config, coin):
-	return 0
+    return 0
