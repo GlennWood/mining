@@ -1,6 +1,5 @@
 import openpyxl
 import xlrd
-import psutil
 
 class Config(object):
 
@@ -9,12 +8,19 @@ class Config(object):
   
     def __init__(self, argumentsIn):
         self.arguments = argumentsIn
+
+        # Constants
         self.MINERS_XLSX = '/opt/mining/miners.xlsx'
+        self.ALL_MEANS_ONCE = -11111
+
+        # Command line options
         self.VERBOSE = self.arguments['-v']
         self.PRINT = self.arguments['--print']
         self.ALL_COINS = self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0
-        self.TAIL_LOG_FILES=''
-        self.DRYRUN = ''
+        #self.DRYRUN = ''
+        self.DRYRUN = self.arguments['--dryrun']
+
+        # Variables
         self.WORKER_NAME = ''
         self.stats_dict = {}
         self.StatsUrls = {}
@@ -23,23 +29,8 @@ class Config(object):
         self.client_dict = {}
         self.stats_sheet = {}
     
-        if self.arguments['--dryrun']: self.DRYRUN = 'echo ' 
         self.setup_stats_dict()
         return
-  
-    def get_status(self,coin):
-  
-        name = coin['Coin'].upper()
-        for proc in psutil.process_iter():
-            try:
-                pinfo = proc.as_dict(attrs=['pid', 'name', 'cmdline'])
-                cmdline = ' '.join(pinfo['cmdline'])
-                if cmdline.find(name+'-miner') >= 0 or cmdline.find('c='+name) >= 0:
-                    return pinfo
-            except psutil.NoSuchProcess:
-                pass
-        return None
-      
   
   
     def setup_stats_dict(self):

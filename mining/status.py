@@ -1,9 +1,26 @@
 import re
+import psutil
+
+def get_status(coin):
+
+    name = coin['Coin'].upper()
+    for proc in psutil.process_iter():
+        try:
+            pinfo = proc.as_dict(attrs=['pid', 'name', 'cmdline'])
+            cmdline = ' '.join(pinfo['cmdline'])
+            if 'tail -f' in cmdline: continue
+            if cmdline.find(name+'-miner') >= 0 or cmdline.find('c='+name) >= 0:
+                return pinfo
+        except psutil.NoSuchProcess:
+            pass
+    return None
+      
+  
 
 def process(self, config, coin):
     if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
 
-    pinfo = config.get_status(coin)
+    pinfo = get_status(coin)
     if pinfo is None:
         if not config.ALL_COINS or config.VERBOSE:
             print(coin['Coin']+": There is no process mining "+coin['Coin'])

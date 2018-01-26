@@ -1,10 +1,11 @@
 import os
 import signal
+import status
 
 def process(self, config, coin):
     if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
 
-    pinfo = config.get_status(coin)
+    pinfo = status.get_status(coin)
     if pinfo is None:
         print coin['Coin']+": There is no process mining "+coin['Coin']
         return 1

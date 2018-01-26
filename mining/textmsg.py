@@ -44,4 +44,4 @@ def initialize(self, config, coin):
 
 def finalize(self, config, coin):
     if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
-    return 0
+    return config.ALL_MEANS_ONCE

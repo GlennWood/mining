@@ -37,8 +37,6 @@ from docopt import docopt
 config = config.Config(docopt(__doc__, argv=None, help=True, version=None, options_first=False))
 arguments = config.arguments
 
-ALL_MEANS_ONCE={'balances':1, 'textmsg':1}
-
 ###
 ### Iterate over all COINs (from commandline)
 ### Execute the given method (METH) of the given module (MOD)
@@ -55,14 +53,14 @@ def exec_operation_method(OP, METH):
                     config.WORKER_NAME = ticker + '-miner'
                 module =  importlib.import_module(OP)
                 method = getattr(module, METH)
-                method(module, config, config.coin_dict[ticker])
+                RC = method(module, config, config.coin_dict[ticker])
       
-                if OP in ALL_MEANS_ONCE: break
+                if RC == config.ALL_MEANS_ONCE: break
 
-    except AttributeError:
+    except AttributeError as ex:
+        if config.VERBOSE: print(ex)
         print ("Module '"+OP+"' has no "+METH+"() method.", file=sys.stderr)
         sys.exit(1)
-        return False
     
     return True
 ##################################################################################
@@ -71,13 +69,13 @@ def exec_operation_method(OP, METH):
 ##################################################################################
 ### MAIN #########################################################################
 
-### Execute finalize() on each COIN
+### Execute finalize() on each OPERATION/COIN
 for OP in arguments['OPERATION'].split(','): exec_operation_method(OP, 'initialize')
 
 ### Loop over all OPERATIONs, applying each to all COINs
 for OP in arguments['OPERATION'].split(','): exec_operation_method(OP, 'process')
 
-### Execute finalize() on each COIN
+### Execute finalize() on each OPERATION/COIN
 for OP in arguments['OPERATION'].split(','): exec_operation_method(OP, 'finalize')
 
 ### EOF ##########################################################################

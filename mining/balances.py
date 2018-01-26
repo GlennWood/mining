@@ -1,4 +1,3 @@
-from __future__ import print_function
 import subprocess
 import json
 import time
@@ -24,6 +23,7 @@ COMMON_TO_SYMBOL = {
   'expanse': 'EXP',
   'zcash': 'ZEC',
   'musicoin': 'MUSIC',
+  'zclassic': 'ZCL',
   'zencash': 'ZEN'
 }
 
@@ -40,7 +40,7 @@ def process(self, config, coin):
 
         if 'unimining' in balanceUrl and UNIMINING_THROTTLE:
             for t in xrange(0,65):
-                print('\rPausing to accommodate unimining\'s throttling...'+str(65-t)+' ',end=''),;sys.stdout.flush()
+                print('\rPausing to accommodate unimining\'s throttling...'+str(65-t)+' '),;sys.stdout.flush()
                 time.sleep(1)
                 print ('\r'),;sys.stdout.flush()
         UNIMINING_THROTTLE=False
@@ -90,11 +90,12 @@ def process(self, config, coin):
         else:
             print("Don't know how to process balanceUrl="+balanceUrl)
   
-    return None
+    return config.ALL_MEANS_ONCE
 
 def initialize(self, config, coin):
     if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+    return config.ALL_MEANS_ONCE
 
 def finalize(self, config, coin):
     if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
-    return 0
+    return config.ALL_MEANS_ONCE

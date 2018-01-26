@@ -1,7 +1,8 @@
 import os
 import re
 import sys
-from pip._vendor.distlib.util import chdir
+#?from pip._vendor.distlib.util import chdir
+import time
 
 def process(self, config, coin):
     if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
@@ -118,30 +119,42 @@ def process(self, config, coin):
             if newpid == 0:
                 return 0
             else:
-                if client != None and 'chdir' in client and client['chdir'] != None: os.chdir(cdDir)
+                if cdDir != None: os.chdir(cdDir)
+                print 'FORK-0: cd '+cdDir
 
                 try:
                     os.setsid()
-                except OSError, e:# 'fork of './ccminer' failed: 1 (Operation not permitted)' 
+                except OSError as ex:# 'fork of './ccminer' failed: 1 (Operation not permitted)' 
                     newpid = newpid#  due to python's exception when you are already the group-leader ... 
                 os.umask(0)
     
-                open('/var/log/mining/'+WORKER_NAME+'.in', 'w').close()
-                sys.stdin  = open('/var/log/mining/'+WORKER_NAME+'.in',  'r')
+                cmd = 'nohup ' + miner + ' '+options+' >/var/log/mining/'+WORKER_NAME+'.out 2>'+'/var/log/mining/'+WORKER_NAME+'.err &'
+                if config.DRYRUN:
+                    print cmd
+                else:
+                    os.system(cmd)
+                    '''
+                print 'FORK-A: cd '+cdDir+' ; nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
+                #open('/var/log/mining/'+WORKER_NAME+'.in', 'w').close()
+                sys.stdin  = open('/dev/null',  'r')
                 sys.stdout = open('/var/log/mining/'+WORKER_NAME+'.out', 'w')
                 sys.stderr = open('/var/log/mining/'+WORKER_NAME+'.err', 'w')
                 # Ref: https://stackoverflow.com/questions/8500047/how-to-inherit-stdin-and-stdout-in-python-by-using-os-execv/8500169#8500169
+                print 'FORK-B: cd '+cdDir+' ; nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
                 os.dup2(sys.stdin.fileno(),  0)
                 os.dup2(sys.stdout.fileno(), 1)
                 os.dup2(sys.stderr.fileno(), 2)
-    
+   
+                print 'FORK-C: cd '+cdDir+' ; nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
                 os.execve(miner, options.split(), environment)
                 # and we're done; execve does not return
-    
-        except OSError, e:
-            print >> sys.stderr, "fork of '"+miner+"' failed: %d (%s)" % (e.errno, e.strerror)
+'''
+        except OSError, ex:
+            print >> sys.stderr, "fork of '"+miner+"' failed: %d (%s)" % (ex.errno, ex.strerror)
             sys.exit(1)
-
+        except: # catch *all* exceptions
+            ex = sys.exc_info()[0]
+            print ( ex )
 
 def initialize(self, config, coin):
     if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
