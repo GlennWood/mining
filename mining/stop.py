@@ -14,6 +14,16 @@ def process(self, config, coin):
             print "kill SIGKILL " + str(pinfo['pid'])
         else:
             os.kill(pinfo['pid'], signal.SIGKILL)
+            '''
+Traceback (most recent call last):
+  File "/usr/local/bin/miners", line 76, in <module>
+    for OP in arguments['OPERATION'].split(','): exec_operation_method(OP, 'process')
+  File "/usr/local/bin/miners", line 56, in exec_operation_method
+    RC = method(module, config, config.coin_dict[ticker])
+  File "/opt/mining/mining/stop.py", line 16, in process
+    os.kill(pinfo['pid'], signal.SIGKILL)
+OSError: [Errno 1] Operation not permitted
+'''
     return None
 
 def initialize(self, config, coin):

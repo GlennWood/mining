@@ -1,8 +1,15 @@
 import os
 import re
 import sys
-#?from pip._vendor.distlib.util import chdir
-import time
+
+MINER_TO_CHDIR = {
+    'optiminer-zcash': '/opt/optiminer-zcash',
+    'nsgminer': '/opt/nsgminer',
+    'ccminer-KlausT': '/opt/ccminer-KlausT',
+    'optiminer-equihash': '/opt/optiminer/optiminer-equihash',
+    'zecminer64': '/opt/zecminer64',
+    'ethdcrminer64': '/opt/ethdcrminer64'
+    }
 
 def process(self, config, coin):
     if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
@@ -23,6 +30,12 @@ def process(self, config, coin):
         miner = client['Executable']
         if options is '' and client['Options'] != None:
             options = client['Options']
+    if cdDir is None:
+        for miner_key in MINER_TO_CHDIR:
+            if miner.find(miner_key) >= 0:
+                cdDir = MINER_TO_CHDIR[miner_key]
+                if not miner.startswith('/') and not miner.startswith('.'): miner = './' + miner
+                break
 
     # Replace $URL_PORT, and/or $URL and $PORT, with configured value(s)
     options = options.replace('$URL_PORT', coin['UrlPort'])
@@ -61,10 +74,12 @@ def process(self, config, coin):
 
     # Some miners require cd: e.g., optiminer-equihash, zecminer64, ethdcrminer64
     # We also convert --platform into each miner's format for their parameter
+
     if arguments['--platform']:
         PLATFORM_ARG = '-platform ' + arguments['--platform']
     else:
         PLATFORM_ARG = ''
+    '''
     if miner == 'ethdcrminer64':
         if cdDir is None: cdDir = '/opt/ethdcrminer64'
         miner = './'+miner
@@ -87,74 +102,48 @@ def process(self, config, coin):
         #./optiminer-zcash -s us-east.equihash-hub.miningpoolhub.com:20570 -u albokiadt.ZEC-miner -p RLaA58k3PmwjcLGZ 
     else:
         PLATFORM_ARG = ''
+'''
     options = options.replace('$PLATFORM', PLATFORM_ARG)
 
-
     # Transpose Environment settings to a environment map
-    environment = {}
-    if coin['Environment'] != None:
-        for envKeyVal in coin['Environment'].split():
+    environ = {}
+    environment = coin['Environment']
+    if environment != None:
+        for envKeyVal in environment.split():
             envKeyVal = envKeyVal.split('=',1)
-            environment[envKeyVal[0]] = envKeyVal[1]
-
-
-    # And now we go for it, dryrun, or fork and exec
-    # We could have used just os.subprocess(nohup...), but consider the following scenario:
-    #
-    #     # miners start,logs eth
-    #
-    # You watch the logs for a bit, everything is fine, then you ctrl-C and move on to other things.
-    #
-    # Hours later you learn that the ctrl-C killed the miner!
-    #
-    # 'nohup' will protect you from the simple exit of the parent, but not from ctrl-C.
-    #
-    # So here we go ...
-    if config.DRYRUN:
-        print 'cd '+cdDir+' ; nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
-        return 0
+            environ[envKeyVal[0]] = envKeyVal[1]
     else:
-        try:
-            newpid = os.fork()
-            if newpid == 0:
-                return 0
-            else:
-                if cdDir != None: os.chdir(cdDir)
-                print 'FORK-0: cd '+cdDir
+        environment = ''
 
-                try:
-                    os.setsid()
-                except OSError as ex:# 'fork of './ccminer' failed: 1 (Operation not permitted)' 
-                    newpid = newpid#  due to python's exception when you are already the group-leader ... 
-                os.umask(0)
-    
-                cmd = 'nohup ' + miner + ' '+options+' >/var/log/mining/'+WORKER_NAME+'.out 2>'+'/var/log/mining/'+WORKER_NAME+'.err &'
-                if config.DRYRUN:
-                    print cmd
-                else:
-                    os.system(cmd)
-                    '''
-                print 'FORK-A: cd '+cdDir+' ; nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
-                #open('/var/log/mining/'+WORKER_NAME+'.in', 'w').close()
-                sys.stdin  = open('/dev/null',  'r')
-                sys.stdout = open('/var/log/mining/'+WORKER_NAME+'.out', 'w')
-                sys.stderr = open('/var/log/mining/'+WORKER_NAME+'.err', 'w')
-                # Ref: https://stackoverflow.com/questions/8500047/how-to-inherit-stdin-and-stdout-in-python-by-using-os-execv/8500169#8500169
-                print 'FORK-B: cd '+cdDir+' ; nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
-                os.dup2(sys.stdin.fileno(),  0)
-                os.dup2(sys.stdout.fileno(), 1)
-                os.dup2(sys.stderr.fileno(), 2)
-   
-                print 'FORK-C: cd '+cdDir+' ; nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
-                os.execve(miner, options.split(), environment)
-                # and we're done; execve does not return
-'''
-        except OSError, ex:
-            print >> sys.stderr, "fork of '"+miner+"' failed: %d (%s)" % (ex.errno, ex.strerror)
-            sys.exit(1)
-        except: # catch *all* exceptions
-            ex = sys.exc_info()[0]
-            print ( ex )
+    cmd = 'cd '+cdDir+' ; '+environment+' nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
+
+    if config.DRYRUN:
+        print cmd
+        return 0
+
+    try:
+        # Fork this!
+        newpid = os.fork()
+        if newpid == 0: return 0
+
+        # Make sure we're in the right working directory for the miner
+        if cdDir != None: os.chdir(cdDir)
+        
+        try:
+            os.setsid()
+        except OSError as ex:# 'fork of './ccminer' failed: 1 (Operation not permitted)' 
+            newpid = newpid#  due to python's exception when you are already the group-leader ... 
+        os.umask(0)
+             
+        os.system(cmd)
+
+    except OSError, ex:
+        print >> sys.stderr, "fork of '"+miner+"' failed: %d (%s)" % (ex.errno, ex.strerror)
+        sys.exit(1)
+    except:
+        ex = sys.exc_info()[0]
+        print ( ex )
+
 
 def initialize(self, config, coin):
     if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
