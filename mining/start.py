@@ -89,6 +89,8 @@ def process(self, config, coin):
             environ[envKeyVal[0]] = envKeyVal[1]
     else:
         environment = ''
+    
+    if miner is 'ccminer-KlausT': miner = 'ccminer'
 
     cmd = 'cd '+cdDir+' ; '+environment+' nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
 
