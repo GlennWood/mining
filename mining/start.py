@@ -72,37 +72,12 @@ def process(self, config, coin):
     else:
         options = options.replace('$GPUS', '')
 
-    # Some miners require cd: e.g., optiminer-equihash, zecminer64, ethdcrminer64
-    # We also convert --platform into each miner's format for their parameter
-
+    # TODO: Convert --platform into each miner's format for their parameter
     if arguments['--platform']:
         PLATFORM_ARG = '-platform ' + arguments['--platform']
     else:
         PLATFORM_ARG = ''
-    '''
-    if miner == 'ethdcrminer64':
-        if cdDir is None: cdDir = '/opt/ethdcrminer64'
-        miner = './'+miner
-    elif miner.find('zecminer64') >= 0:
-        if cdDir is None: cdDir = '/opt/zecminer64'
-        miner = './'+miner
-    elif miner.find('optiminer-equihash') >= 0:
-        if cdDir is None: cdDir = '/opt/optiminer/optiminer-equihash'
-        miner = './'+miner
-        PLATFORM_ARG = ''
-    elif miner.find('ccminer-KlausT') >= 0:
-        if cdDir is None: cdDir = '/opt/ccminer-KlausT'
-        miner = miner.replace('ccminer-KlausT', './ccminer')
-    elif miner.find('nsgminer') >= 0:
-        if cdDir is None: cdDir = '/opt/nsgminer'
-        miner = './'+miner
-    elif miner.find('optiminer-zcash') >= 0:
-        if cdDir is None: cdDir = '/opt/optiminer-zcash'
-        miner = './'+miner
-        #./optiminer-zcash -s us-east.equihash-hub.miningpoolhub.com:20570 -u albokiadt.ZEC-miner -p RLaA58k3PmwjcLGZ 
-    else:
-        PLATFORM_ARG = ''
-'''
+
     options = options.replace('$PLATFORM', PLATFORM_ARG)
 
     # Transpose Environment settings to a environment map
@@ -147,6 +122,7 @@ def process(self, config, coin):
 
 def initialize(self, config, coin):
     if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+    return 0
 
 def finalize(self, config, coin):
     if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")

@@ -11,9 +11,12 @@ def process(self, config, coin):
         return 1
     else:
         if config.arguments['--dryrun']:
-            print "kill SIGKILL " + str(pinfo['pid'])
+            print "sudo kill SIGKILL " + str(pinfo['pid'])
         else:
-            os.kill(pinfo['pid'], signal.SIGKILL)
+            try:
+                os.kill(pinfo['pid'], signal.SIGKILL)
+            except OSError:
+                print "You must be root to stop a miner; e.g. 'sudo kill SIGKILL " + str(pinfo['pid'])+"'"
             '''
 Traceback (most recent call last):
   File "/usr/local/bin/miners", line 76, in <module>
