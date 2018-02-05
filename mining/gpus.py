@@ -1,6 +1,6 @@
 
-def process(self, coin):
-	if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
+def process(self, config, coin):
+	if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
 
 	# nvidia-smi|grep '[|]\s\{2,3\}[0-9]\{1,2\} ' -A 1|grep '[0-9]\{1,3\}[%]'
 	# nvidia-smi|grep '[0-9]\{1,5\}MiB'|grep -v '%'
@@ -8,8 +8,8 @@ def process(self, coin):
 	return None
 
 def initialize(self, config, coin):
-    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+	if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
 
 def finalize(self, config, coin):
-    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
-    return 0
+	if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
+	return 0

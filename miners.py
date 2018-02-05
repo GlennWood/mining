@@ -2,8 +2,7 @@
 
 """Usage: miners.py OPERATION [-vqrhgXP] [--gpus GPUS | --platform N] [--dryrun] [COIN] ...
 
-Process FILE and optionally apply correction to either left-hand side or
-right-hand side.
+Apply OPERATION to the mining of designated COINs w
 
 Arguments:
   OPERATION  start | stop | status | list | logs
@@ -49,7 +48,7 @@ def exec_operation_method(OP, METH):
                 return False
             else:
   
-                if config.coin_dict[ticker]['Miner'].strip(): 
+                if config.coin_dict[ticker]['MINER'].strip(): 
                     config.WORKER_NAME = ticker + '-miner'
                 module =  importlib.import_module(OP)
                 method = getattr(module, METH)
@@ -69,13 +68,13 @@ def exec_operation_method(OP, METH):
 ##################################################################################
 ### MAIN #########################################################################
 
-### Execute finalize() on each OPERATION/COIN
-for OP in arguments['OPERATION'].split(','): exec_operation_method(OP, 'initialize')
+OPS = arguments['OPERATION'].split(',')
 
+### Execute finalize() on each OPERATION/COIN
+for OP in OPS: exec_operation_method(OP, 'initialize')
 ### Loop over all OPERATIONs, applying each to all COINs
-for OP in arguments['OPERATION'].split(','): exec_operation_method(OP, 'process')
-
+for OP in OPS: exec_operation_method(OP, 'process')
 ### Execute finalize() on each OPERATION/COIN
-for OP in arguments['OPERATION'].split(','): exec_operation_method(OP, 'finalize')
+for OP in OPS: exec_operation_method(OP, 'finalize')
 
 ### EOF ##########################################################################

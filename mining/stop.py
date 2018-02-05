@@ -3,11 +3,11 @@ import signal
 import status
 
 def process(self, config, coin):
-    if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
 
     pinfo = status.get_status(coin)
     if pinfo is None:
-        print coin['Coin']+": There is no process mining "+coin['Coin']
+        print coin['COIN']+": There is no process mining "+coin['COIN']
         return 1
     else:
         if config.arguments['--dryrun']:
@@ -30,8 +30,8 @@ OSError: [Errno 1] Operation not permitted
     return None
 
 def initialize(self, config, coin):
-    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
 
 def finalize(self, config, coin):
-    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
     return 0

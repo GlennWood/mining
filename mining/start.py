@@ -11,51 +11,56 @@ MINER_TO_CHDIR = {
     'ethdcrminer64': '/opt/ethdcrminer64'
     }
 
+MINER_TO_BINARY = {
+    'ccminer-KlausT': 'ccminer'
+}
+
 def process(self, config, coin):
-    if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
 
     Clients = config.client_dict
     arguments = config.arguments
 
-    miner = coin['Miner']
+    miner = coin['MINER']
     options = ''
-    if 'Options' in coin and coin['Options'] != None:
-        options = coin['Options']
+    if 'OPTIONS' in coin and coin['OPTIONS'] != None:
+        options = coin['OPTIONS']
 
-    ### Translate built-in miner operations (if coin['Miner'] is a mnemonic)
+    ### Translate built-in miner operations (if coin['MINER'] is a mnemonic)
     cdDir = None
     client = None
     if miner in Clients:
         client = Clients[miner]
-        miner = client['Executable']
-        if options is '' and client['Options'] != None:
-            options = client['Options']
+        miner = client['EXECUTABLE']
+        if options is '' and client['OPTIONS'] != None: options = client['OPTIONS']
+        if client['CHDIR'] != None: cdDir = client['CHDIR']
     if cdDir is None:
         for miner_key in MINER_TO_CHDIR:
             if miner.find(miner_key) >= 0:
                 cdDir = MINER_TO_CHDIR[miner_key]
-                if not miner.startswith('/') and not miner.startswith('.'): miner = './' + miner
                 break
+    if miner in MINER_TO_BINARY: miner = MINER_TO_BINARY[miner]
+    if not miner.startswith('/') and not miner.startswith('.'): miner = './' + miner
 
     # Replace $URL_PORT, and/or $URL and $PORT, with configured value(s)
-    options = options.replace('$URL_PORT', coin['UrlPort'])
+    options = options.replace('$URL_PORT', coin['URL_PORT'])
     regex = re.compile(r'(.*)[:]([0-9]{4,5})', re.DOTALL)
-    match = regex.match(coin['UrlPort'])
+    match = regex.match(coin['URL_PORT'])
     if match != None:
         options = options.replace('$URL', match.group(1)).replace('$PORT', match.group(2))
 
     # Replace $USER_PSW, and/or $USER and $PSW, with configured value(s)
-    USER_PSW = coin['UserPassword'].split(':')
+    USER_PSW = coin['USER_PSW'].split(':')
     if len(USER_PSW) > 1:
         options = options.replace('$USER', USER_PSW[0]).replace('$PASSWORD', USER_PSW[1])
     else:
-        options = options.replace('$PASSWORD', coin['UserPassword'])
+        options = options.replace('$PASSWORD', coin['USER_PSW'])
 
     # Replace $WALLET and $COIN with configured values
-    options = options.replace('$WALLET', coin['Wallet']).replace('$COIN', coin['Coin'])
+    options = options.replace('$WALLET', coin['WALLET']).replace('$COIN', coin['COIN'])
 
     # Replace $WORKER_NAME with calculated value
-    WORKER_NAME = coin['Coin'].upper() + '-miner'
+    WORKER_NAME = coin['COIN'].upper() + '-miner'
     options = options.replace('$WORKER_NAME', WORKER_NAME)
 
     # Replace $GPUS, etc., with option (from command line argument) appropriate to mining client
@@ -82,22 +87,28 @@ def process(self, config, coin):
 
     # Transpose Environment settings to a environment map
     environ = {}
-    environment = coin['Environment']
-    if environment != None:
+    environment = coin['ENVIRONMENT']
+    if environment != None and len(environment) > 0:
         for envKeyVal in environment.split():
             envKeyVal = envKeyVal.split('=',1)
             environ[envKeyVal[0]] = envKeyVal[1]
     else:
         environment = ''
-    
-    if miner is 'ccminer-KlausT': miner = 'ccminer'
 
-    cmd = 'cd '+cdDir+' ; '+environment+' nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
-
+    if cdDir is None:
+        minerDir = miner.split('/')
+        miner = './' + minerDir.pop()
+        cdDir = '/'.join(minerDir)
     if config.DRYRUN:
+        if environment is None: environment = ''
+        if miner is None: miner = '<None>'
+        if options is None: options = '<None>'
+        cmd = 'cd '+cdDir+' ; '+environment+' nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
+
         print cmd
         return 0
 
+    cmd = 'cd '+cdDir+' ; '+environment+' nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
     try:
         # Fork this!
         newpid = os.fork()
@@ -123,9 +134,9 @@ def process(self, config, coin):
 
 
 def initialize(self, config, coin):
-    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
     return 0
 
 def finalize(self, config, coin):
-    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
     return 0

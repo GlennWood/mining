@@ -29,7 +29,7 @@ COMMON_TO_SYMBOL = {
 
 
 def process(self, config, coin):
-    if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
 
     UNIMINING_THROTTLE=False
 
@@ -45,7 +45,7 @@ def process(self, config, coin):
                 print ('\r'),;sys.stdout.flush()
         UNIMINING_THROTTLE=False
         
-        #balanceUrl = statsUrl.replace('$WALLET', str(coin['Wallet'])).replace('$COIN', coin['Coin'].lower())
+        #balanceUrl = statsUrl.replace('$WALLET', str(coin['Wallet'])).replace('$COIN', coin['COIN'].lower())
         if config.VERBOSE: print('curl '+balanceUrl)
         proc = subprocess.Popen(['curl', balanceUrl], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
         jsonStr, err = proc.communicate(None)
@@ -93,9 +93,9 @@ def process(self, config, coin):
     return config.ALL_MEANS_ONCE
 
 def initialize(self, config, coin):
-    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
     return config.ALL_MEANS_ONCE
 
 def finalize(self, config, coin):
-    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
     return config.ALL_MEANS_ONCE

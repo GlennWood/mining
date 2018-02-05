@@ -3,7 +3,7 @@ import subprocess
 
 def process(self, config, coin):
     global TAIL_LOG_FILES
-    if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
 
     for ext in ['.log','.err','.out']:
         logName = '/var/log/mining/'+config.WORKER_NAME+ext
@@ -14,12 +14,12 @@ def process(self, config, coin):
 def initialize(self, config, coin):
     global TAIL_LOG_FILES
     TAIL_LOG_FILES = ['tail', '-f']
-    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
     return config.ALL_MEANS_ONCE
 
 def finalize(self, config, coin):
     global TAIL_LOG_FILES
-    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
     cmd = '/usr/bin/tail -f ' + ' '.join(TAIL_LOG_FILES)
     if config.DRYRUN:
         print cmd

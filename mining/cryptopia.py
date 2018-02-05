@@ -49,7 +49,7 @@ curl 'https://www.cryptopia.co.nz/api/GetMarket/100/&market=GBX_ETH'
 }'''
 
 def process(self, config, coin):
-    if config.VERBOSE: print(__name__+".process("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
 
     cryptopia = cryptopia_api.Api(key='', secret='')
     
@@ -60,8 +60,8 @@ def process(self, config, coin):
         print ('Request successful. Balance in ',coin['COIN'],' = %f' % balance)
 
 def initialize(self, config, coin):
-    COIN = coin['Coin'].upper()
-    if config.VERBOSE: print(__name__+".initialize("+coin['Coin']+")")
+    COIN = coin['COIN'].upper()
+    if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
 
     url = 'https://www.cryptopia.co.nz/api/GetMarket/100/&market=$COIN_ETH'.replace('$COIN', COIN)
     proc = subprocess.Popen(['curl', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
@@ -76,5 +76,5 @@ def initialize(self, config, coin):
     print(COIN+" / ETH =")
 
 def finalize(self, config, coin):
-    if config.VERBOSE: print(__name__+".finalize("+coin['Coin']+")")
+    if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
     return 0
