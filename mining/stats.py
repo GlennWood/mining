@@ -1,7 +1,7 @@
+from __future__ import print_function
 import subprocess
 import re
 import json
-from __future__ import print_function
 import sys
 
 ### Ref: https://github.com/miningpoolhub/php-mpos/wiki/API-Reference

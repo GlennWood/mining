@@ -43,16 +43,16 @@ def exec_operation_method(OP, METH):
     try:
         for ticker_ in arguments['COIN']:
             ticker = ticker_.upper()
-            if ticker not in config.coin_dict:
+            if ticker not in config.SHEETS['CoinMiners']:
                 print ("Coin '" + ticker + "' is unknown.", file=sys.stderr)
                 return False
             else:
   
-                if config.coin_dict[ticker]['MINER'].strip(): 
+                if config.SHEETS['CoinMiners'][ticker]['MINER'].strip(): 
                     config.WORKER_NAME = ticker + '-miner'
                 module =  importlib.import_module(OP)
                 method = getattr(module, METH)
-                RC = method(module, config, config.coin_dict[ticker])
+                RC = method(module, config, config.SHEETS['CoinMiners'][ticker])
       
                 if RC == config.ALL_MEANS_ONCE: break
 

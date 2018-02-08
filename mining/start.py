@@ -1,5 +1,4 @@
 import os
-import re
 import sys
 
 MINER_TO_CHDIR = {
@@ -18,7 +17,7 @@ MINER_TO_BINARY = {
 def process(self, config, coin):
     if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
 
-    Clients = config.client_dict
+    Clients = config.SHEETS['Clients']
     arguments = config.arguments
 
     miner = coin['MINER']
@@ -40,24 +39,13 @@ def process(self, config, coin):
                 cdDir = MINER_TO_CHDIR[miner_key]
                 break
     if miner in MINER_TO_BINARY: miner = MINER_TO_BINARY[miner]
-    if not miner.startswith('/') and not miner.startswith('.'): miner = './' + miner
+    ##if not miner.startswith('/') and not miner.startswith('.'): miner = './' + miner
 
-    # Replace $URL_PORT, and/or $URL and $PORT, with configured value(s)
-    options = options.replace('$URL_PORT', coin['URL_PORT'])
-    regex = re.compile(r'(.*)[:]([0-9]{4,5})', re.DOTALL)
-    match = regex.match(coin['URL_PORT'])
-    if match != None:
-        options = options.replace('$URL', match.group(1)).replace('$PORT', match.group(2))
-
-    # Replace $USER_PSW, and/or $USER and $PSW, with configured value(s)
-    USER_PSW = coin['USER_PSW'].split(':')
-    if len(USER_PSW) > 1:
-        options = options.replace('$USER', USER_PSW[0]).replace('$PASSWORD', USER_PSW[1])
-    else:
-        options = options.replace('$PASSWORD', coin['USER_PSW'])
+    # Replace $VARNAME, and <VARNAME>, variables with configured value(s)
+    options = config.substitute(coin['COIN'], options)
 
     # Replace $WALLET and $COIN with configured values
-    options = options.replace('$WALLET', coin['WALLET']).replace('$COIN', coin['COIN'])
+    #options = options.replace('$WALLET', coin['WALLET']).replace('$COIN', coin['COIN'])
 
     # Replace $WORKER_NAME with calculated value
     WORKER_NAME = coin['COIN'].upper() + '-miner'
@@ -78,6 +66,7 @@ def process(self, config, coin):
         options = options.replace('$GPUS', '')
 
     # TODO: Convert --platform into each miner's format for their parameter
+    # FIXME: fix this in config.substitution() ...
     if arguments['--platform']:
         PLATFORM_ARG = '-platform ' + arguments['--platform']
     else:
@@ -86,6 +75,7 @@ def process(self, config, coin):
     options = options.replace('$PLATFORM', PLATFORM_ARG)
 
     # Transpose Environment settings to a environment map
+    # FIXME: SHEET['Clients'] has multiple rows per ENVIRONMENT - needs coalescing somehow
     environ = {}
     environment = coin['ENVIRONMENT']
     if environment != None and len(environment) > 0:
@@ -97,18 +87,20 @@ def process(self, config, coin):
 
     if cdDir is None:
         minerDir = miner.split('/')
-        miner = './' + minerDir.pop()
-        cdDir = '/'.join(minerDir)
-    if config.DRYRUN:
-        if environment is None: environment = ''
-        if miner is None: miner = '<None>'
-        if options is None: options = '<None>'
-        cmd = 'cd '+cdDir+' ; '+environment+' nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
+        if len(minerDir) > 1:
+            miner = './' + minerDir.pop()
+            cdDir = '/'.join(minerDir)
 
+    if cdDir != None:
+        cdDir = 'cd '+cdDir+' ; '
+    else: 
+        cdDir = ''
+
+    cmd = cdDir+environment+' nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
+    if config.DRYRUN:
         print cmd
         return 0
 
-    cmd = 'cd '+cdDir+' ; '+environment+' nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
     try:
         # Fork this!
         newpid = os.fork()
