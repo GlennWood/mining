@@ -11,7 +11,7 @@ MINER_TO_CHDIR = {
     }
 
 MINER_TO_BINARY = {
-    'ccminer-KlausT': 'ccminer'
+    'ccminer-KlausT': '/opt/ccminer-KlausT/ccminer'
 }
 
 def process(self, config, coin):
@@ -91,17 +91,14 @@ def process(self, config, coin):
             miner = './' + minerDir.pop()
             cdDir = '/'.join(minerDir)
 
-    if cdDir != None:
-        cdDir = 'cd '+cdDir+' ; '
-    else: 
-        cdDir = ''
-
-    cmd = cdDir+environment+' nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
+    cmd = environment+' nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
+    if cdDir: cmd = 'cd '+cdDir+' ; '+cmd
     if config.DRYRUN:
         print cmd
         return 0
 
     try:
+        if config.VERBOSE: print cmd
         # Fork this!
         newpid = os.fork()
         if newpid == 0: return 0
