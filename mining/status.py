@@ -1,7 +1,7 @@
 import re
 import psutil
 
-def get_status(coin):
+def get_status(coin,exclude_pids=[]):
 
     result = []
 
@@ -14,7 +14,8 @@ def get_status(coin):
         try:
             pinfo = proc.as_dict(attrs=['pid', 'name', 'cmdline'])
             cmdline = ' '.join(pinfo['cmdline'])
-            if 'tail -f' in cmdline or 'bin/miners' in cmdline: continue
+            if pinfo['pid'] in exclude_pids: continue
+            if 'tail -f' in cmdline: continue
             if cmdline.find(name+'-miner') >= 0 or cmdline.find('c='+name) >= 0:
                 result.append(pinfo)
         except psutil.NoSuchProcess:

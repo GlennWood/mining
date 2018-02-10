@@ -81,7 +81,7 @@ class Config(object):
                         row['PASSWORD'] = USER_PSW[1]
 
                 prev_key = row[keys[0]].upper()
-                self.SHEETS[sheet_name][prev_key] = row
+                if prev_key: self.SHEETS[sheet_name][prev_key] = row
 
         if self.ALL_COINS: 
             self.arguments['COIN'] = [x.upper() for x in sorted(list(self.SHEETS['CoinMiners'].keys()))]   
