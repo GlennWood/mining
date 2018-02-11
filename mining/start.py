@@ -30,6 +30,10 @@ def process(self, config, coin):
     client = None
     if miner in Clients:
         client = Clients[miner]
+        platform = client['PLATFORM']
+        if platform != 'ALL' and platform != os.getenv('PLATFORM','NONE'):
+            print >>sys.stderr, "Mining client "+client['MNEMONIC']+" does not work on this $PLATFORM="+os.getenv('PLATFORM','NONE')
+            sys.exit(3)
         miner = client['EXECUTABLE']
         if options is '' and client['OPTIONS'] != None: options = client['OPTIONS']
         if client['CHDIR'] != None: cdDir = client['CHDIR']
@@ -39,17 +43,13 @@ def process(self, config, coin):
                 cdDir = MINER_TO_CHDIR[miner_key]
                 break
     if miner in MINER_TO_BINARY: miner = MINER_TO_BINARY[miner]
-    ##if not miner.startswith('/') and not miner.startswith('.'): miner = './' + miner
 
     # Replace $VARNAME, and <VARNAME>, variables with configured value(s)
+    WORKER_NAME = config.SHEETS['CoinMiners'][coin['COIN']]['WORKER_NAME'] = coin['COIN'].upper() + '-miner'
     options = config.substitute(coin['COIN'], options)
 
     # Replace $WALLET and $COIN with configured values
     #options = options.replace('$WALLET', coin['WALLET']).replace('$COIN', coin['COIN'])
-
-    # Replace $WORKER_NAME with calculated value
-    WORKER_NAME = coin['COIN'].upper() + '-miner'
-    options = options.replace('$WORKER_NAME', WORKER_NAME)
 
     # Replace $GPUS, etc., with option (from command line argument) appropriate to mining client
     if arguments['--gpus']:
@@ -91,7 +91,7 @@ def process(self, config, coin):
             miner = './' + minerDir.pop()
             cdDir = '/'.join(minerDir)
 
-    cmd = environment+' nohup '+miner+' '+options+' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
+    cmd = environment + ' nohup ' + miner + ' ' + options + ' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
     if cdDir: cmd = 'cd '+cdDir+' ; '+cmd
     if config.DRYRUN:
         print cmd
@@ -104,17 +104,23 @@ def process(self, config, coin):
         if newpid == 0: return 0
 
         # Make sure we're in the right working directory for the miner
-        if cdDir != None: os.chdir(cdDir)
+        if cdDir != None: 
+            try:
+                os.chdir(cdDir)
+            except OSError, ex:
+                print >> sys.stderr, "change directory to '"+cdDir+"' failed: %d (%s)" % (ex.errno, ex.strerror)
+                sys.exit(ex.errno)
         
-        try:
-            os.setsid()
+        try: os.setsid()
         except OSError as ex:# 'fork of './ccminer' failed: 1 (Operation not permitted)' 
             newpid = newpid#  due to python's exception when you are already the group-leader ... 
         os.umask(0)
              
         os.system(cmd)
 
-    except OSError, ex:
+    except SystemExit as ex:
+        print "Exiting"
+    except OSError as ex:
         print >> sys.stderr, "fork of '"+miner+"' failed: %d (%s)" % (ex.errno, ex.strerror)
         sys.exit(1)
     except:

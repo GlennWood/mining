@@ -1,17 +1,10 @@
+# FiboMeter is a gadget that returns True less and less frequently with each iteration.
+# We use it to send reminder textmsgs less and less frequently as time goes by
+def FiboMeter(fibA,fibB,current):
 
-class FiboMeter:
-
-    fibA,fibB = 0,1
-
-    def FiboMeter(self):
-
-        while True:
-            self.fibA, self.fibB = self.fibB, self.fibA+self.fibB
-            yield self.fibA
-    
-    def fibo_next(self, current):
-        if current > self.fibB:
-            self.next()
-            return True
-        else:
-            return False
+    while True:
+        current += 1
+        if current > fibB:
+            fibA, fibB = fibB, fibA+fibB
+            yield True
+        yield False
