@@ -23,7 +23,9 @@ Options:
 """
 
 from __future__ import print_function
+import os
 import sys
+import socket
 sys.path.insert(0,'/opt/mining/mining')
 
 import config
@@ -47,9 +49,9 @@ def exec_operation_method(OP, METH):
                 print ("Coin '" + ticker + "' is unknown.", file=sys.stderr)
                 return False
             else:
-  
-                if config.SHEETS['CoinMiners'][ticker]['MINER'].strip(): 
-                    config.WORKER_NAME = ticker + '-miner'
+                if config.SHEETS['CoinMiners'][ticker]['MINER'].strip():
+                    hostN = socket.gethostname()
+                    config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1]
                 module =  importlib.import_module(OP)
                 method = getattr(module, METH)
                 RC = method(module, config, config.SHEETS['CoinMiners'][ticker])
@@ -69,6 +71,7 @@ def exec_operation_method(OP, METH):
 ### MAIN #########################################################################
 
 OPS = arguments['OPERATION'].split(',')
+# TODO: Idea - make 'miners <coin>' behave like 'miners status <coin>'
 
 ### Execute finalize() on each OPERATION/COIN
 for OP in OPS: exec_operation_method(OP, 'initialize')

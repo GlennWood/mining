@@ -1,6 +1,8 @@
 import re
 import psutil
 
+### TODO: ls -1stoh /var/log/mining/ETH-miner.*
+
 def get_status(coin,exclude_pids=[],exclude_cmdlines=[]):
 
     result = []

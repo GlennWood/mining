@@ -1,9 +1,27 @@
 import os
 import signal
 import status
+import start
 
 def process(self, config, coin):
     if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
+
+    # We have this way of handing all this off to SystemD ...
+    miner = coin['MINER']
+    client = None
+    if miner in config.SHEETS['Clients']:
+        client = config.SHEETS['Clients'][miner]
+        miner = client['EXECUTABLE']
+    if miner in start.MINER_TO_BINARY: miner = start.MINER_TO_BINARY[miner]
+    if miner.endswith('.service'):
+        miner = miner.replace('.service','')
+        cmd = 'sudo service '+miner+' stop'
+        if config.DRYRUN:
+            print cmd
+        else:
+            os.system(cmd)
+        return 0
+    
 
     pinfo = status.get_status(coin)
     if pinfo is None:

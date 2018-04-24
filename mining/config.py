@@ -17,11 +17,12 @@ class Config(object):
         conf = self.SHEETS['CoinMiners'][row_id]
         # Substitute in reverse sequence of name's length
         keys = conf.keys() ; keys.sort(key=lambda item: (-len(item), item))
-        for key in keys:
-            val = conf[key]
-            if val == '': continue
-            # Substitute both '$NAME" and '<NAME>'
-            rslt = rslt.replace('$'+key,val).replace('<'+key+'>',val)
+        for trans in xrange(0,2): # loop thrice to enable transitive substitutions
+            for key in keys:
+                val = conf[key]
+                if val == '': continue
+                # Substitute both '$NAME" and '<NAME>'
+                rslt = rslt.replace('$'+key,val).replace('<'+key+'>',val)
         return rslt
 
     def get_arguments(self):
