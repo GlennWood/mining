@@ -1,0 +1,31 @@
+#!/bin/bash
+
+apt-get -y install automake autotools-dev pkg-config libtool libcurl4-openssl-dev libjansson-dev \
+                   libssl-dev libcurl4-openssl-dev libssl-dev libjansson-dev build-essential
+
+[ -f /etc/profile.d/cuda.sh ] || /opt/mining/install/install-cuda
+
+pushd /opt
+  git clone https://github.com/KlausT/ccminer.git ccminer-KlausT
+  cd ccminer-KlausT
+  ### TODO: does this fix some bugs, and when should we return to branch 'windows'? 2018-01-18
+  git checkout cuda9
+### Ref: https://github.com/aria2/aria2/issues/120
+### AUTOMAKE_OPTIONS or AM_INIT_AUTOMAKE([subdir-objects])
+  ./autogen.sh
+  ./configure
+  ./build.sh
+# FIXME: groestl_functions_quad.cu:243:18: error: macro "SHFL" passed 3 arguments, but takes just 2
+  ./ccminer --ndevs
+  [ -n "$RUN_ALL_TESTS" ] && ./ccminer --algo=neoscrypt --benchmark
+
+# [2018-02-11 05:13:04] Total: 4283.85 kH/s (four 1070s)
+
+popd
+
+cat >> /etc/profile.d/ccminer_klaust.sh << CCMINER_KLAUST_SH
+export INSTALL_CCMINER_KLAUST_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+CCMINER_KLAUST_SH
+
+# --ndevs
+# --benchmark

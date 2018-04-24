@@ -1,0 +1,33 @@
+#!/bin/bash
+
+### Ref: https://help.ubuntu.com/community/How%20to%20Create%20a%20Network%20Share%20Via%20Samba%20Via%20CLI%20%28Command-line%20interface/Linux%20Terminal%29%20-%20Uncomplicated%2C%20Simple%20and%20Brief%20Way%21
+
+  if [[ $EUID -ne 0 ]]
+  then
+		echo "$0 requires elevated privileges."
+		sudo $0 $*
+		exit;
+	fi
+
+RIG_TAG=${RIG_TAG:-$1}
+
+apt-get update
+apt-get -y install samba
+
+smbpasswd -a albokiadt
+#> type new password twice
+
+mkdir /opt/mining 2>/dev/null ; chown albokiadt /opt/mining
+
+cat >> /etc/samba/smb.conf <<SMB_CONF
+[mining-${RIG_TAG}]
+path = /opt/mining
+available = yes
+valid users = albokiadt
+read only = no
+browseable = yes
+public = yes
+writable = yes
+SMB_CONF
+
+service smbd restart

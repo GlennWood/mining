@@ -1,0 +1,35 @@
+#!/bin/bash
+
+### Ref: https://steemit.com/zencash/@masterdubs/mining-zencash-with-ubuntu-linux-and-gtx-1070
+EWBF_VER=0.3.4b
+
+mkdir /opt/ewbf
+pushd /opt/ewbf
+  wget https://github.com/nanopool/ewbf-miner/releases/download/v${EWBF_VER}/Zec.miner.${EWBF_VER}.Linux.Bin.tar.gz
+  tar xvzf Zec.miner.${EWBF_VER}.Linux.Bin.tar.gz
+  chmod 0755 * ; chmod 0754 miner ; chown $MINERS_USER *
+  ln -sf /opt/ewbf/miner /usr/local/bin/ewbf-miner
+
+: echo << IGNORE
+### NEEDS ETH-PROXY
+root@rigA:/opt/ewbf# ./miner --server stratum+tcp://us-east.equihash-hub.miningpoolhub.com --port 20575 --user albokiadt --pass RLaA58k3PmwjcLGZ                            
++-------------------------------------------------+
+|         EWBFs Zcash CUDA miner. 0.3.4b         |
++-------------------------------------------------+
+INFO: Current pool: stratum+tcp://us-east.equihash-hub.miningpoolhub.com:20575
+INFO: Selected pools: 1
+INFO: Solver: Auto.
+INFO: Devices: All.
+INFO: Temperature limit: 90
+INFO: Api: Disabled
+---------------------------------------------------
+ERROR: Cannot resolve hostname
+
+#./miner --server us.zclmine.pro --user t1gshUXiCn9okytzYZzbeuQ8AGdevmYyYyu.ZCL-miner --pass x --port 9009
+#./miner --server us.hushmine.pro --user YOUR_HUSH_T-ADDR.HUSH-miner --pass x --port 9009
+IGNORE
+popd
+
+cat >> /etc/profile.d/ewbf.sh << EWBF_SH
+export INSTALL_EWBF_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+EWBF_SH

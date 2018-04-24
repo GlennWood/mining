@@ -1,0 +1,41 @@
+#!/bin/bash
+
+    if [[ $EUID -ne 0 ]]
+    then
+		echo "$0 requires elevated privileges."
+		sudo -H $0 $*
+		exit;
+	fi
+
+### Ref: https://www.saltycrane.com/blog/2010/02/how-install-pip-ubuntu/
+apt-get -y install python-pip python-dev build-essential 
+pip install --upgrade pip 
+
+pip install docopt
+#does not work reliably pip install openpyxl
+pip install xlrd
+pip install python-daemon
+pip install lockfile
+pip install python-pidfile
+pip install schedule
+pip install psutil
+
+### Ref: http://pycurl.io/docs/latest/install.html
+#apt-get -y install libcurl4-openssl-dev libssl-dev libcurl4-gnutls-dev libgcrypt20-dev
+apt-get -y install libssl-dev libcurl4-gnutls-dev libgcrypt20-dev libgnutls28-dev
+pip install pycurl
+
+#cat >/dev/null <IF_APPLE
+##pip install subprocess32
+##MacOS xcodebuild -license
+#cd /tmp
+#curl http://www.opensource.apple.com/source/curl/curl-57.2/curl-7.19.7.tar.bz2 | tar xz
+#cd curl-7.19.7
+#./configure --prefix=/opt/local/
+#make
+#make install
+#cd /tmp
+#curl http://pycurl.sourceforge.net/download/pycurl-7.19.0.tar.gz | tar xz
+#cd pycurl-7.19.0
+#python setup.py install --curl-config=/opt/local/bin/curl-config
+#IF_APPLE

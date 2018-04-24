@@ -1,0 +1,11 @@
+#!/bin/bash
+
+### Ref: https://steemit.com/zencash/@masterdubs/mining-zencash-with-ubuntu-linux-and-gtx-1070
+DSTM_VER=0.3.4b
+
+mkdir /opt/dstm
+pushd /opt/dstm
+  tar -zxf /opt/Downloads/zm_0.6.tar.gz
+  ln -sf /opt/dstm/zm /usr/local/bin/zm
+popd
+zm --version

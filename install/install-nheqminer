@@ -1,0 +1,71 @@
+#!/bin/bash
+
+apt-get -y install nvidia-cuda-dev libboost-all-dev
+which cmake || /opt/mining/install/install-cmake || exit 1
+[ -f /etc/profile.d/cuda.sh  ] || /opt/mining/install/install-cuda || exit 1
+source /etc/profile.d/cuda.sh
+
+pushd /opt
+### Ref: https://github.com/nicehash/nheqminer/issues/341
+### old- git clone https://github.com/nicehash/nheqminer || exit 1
+git clone https://github.com/aayanl/nheqminer.git || exit 1
+
+pushd nheqminer/cpu_xenoncat/asm_linux/
+chmod +x fasm
+sh assemble.sh
+
+### bundeled fasm not compatible:
+### delete/replace (inside nheqminer/cpu_xenoncat/asm_linux/ directory) with fasm binary compatible with your distro
+# cd nheqminer/cpu_xenoncat/asm_linux/
+# sh assemble.sh
+
+popd
+mkdir build ; pushd build
+### Ref: https://github.com/nicehash/nheqminer/issues/341 (this problem fixed by aayanl)
+### export BOOST_ROOT=/usr/lib/x86_64-linux-gnu
+#set-in /etc/profile.d/cuda.sh: export CUDA_CUDART_LIBRARY=/usr/local/cuda-9.1/lib64
+### Ref: https://github.com/nicehash/nheqminer/issues/228
+cmake -DCUDA_CUDART_LIBRARY=CUDA_CUDART_LIBRARY ../nheqminer
+### Ref: https://github.com/nicehash/nheqminer/issues/341 (this problem fixed by aayanl)
+### touch ../nheqminer/cuda_djezo/device_functions_decls.h
+make -j $(nproc)
+cp -f nheqminer /usr/local/bin/
+popd
+rm -rf /opt/build
+popd
+
+### Ref: https://coinad.info/bwl-knowledge-base/equihash-zcash-mining/
+### Also: https://www.nicehash.com/help/zcash-mining
+## AMD GPU mining instructions
+#./nheqminer -l equihash.[LOCATION].nicehash.com:3357 -u [YOUR-BTC-ADDRESS.WORKER-NAME] -t 0 -od [AMD GPU OpenCL devices 0 1 ..]
+## NVIDIA GPU mining instructions
+#nheqminer -l equihash.[LOCATION].nicehash.com:3357 -u [YOUR-BTC-ADDRESS.WORKER-NAME] -t 0 -cd [NVIDIA GPU CUDA devices 0 1 ..]
+#[
+#nheqminer -l us-east.equihash-hub.miningpoolhub.com:20570 -u albokiadt.ZEC-nh-miner -p x -t 0 -od 0 1 2 3
+#nheqminer -l us.zclmine.pro:9009 -u YOUR_ZCL_T-ADDR.ZCL-miner -p x 
+#ssl://us.zclmine.pro:9999
+
+[ -d /home/$MINERS_USER/systemd/system ] || mkdir -p /home/$MINERS_USER/systemd/system && chown $MINERS_USER /home/$MINERS_USER/systemd/system
+cat > /home/$MINERS_USER/systemd/system/nicehash-equihash.service << ETHMINER_SERVICE
+[Unit]
+Description=nicehash-equihash miner
+
+[Service]
+Environment=GPU_FORCE_64BIT_PTR=0
+Environment=GPU_MAX_HEAP_SIZE=100
+Environment=GPU_USE_SYNC_OBJECTS=1
+Environment=GPU_MAX_ALLOC_PERCENT=100
+Environment=GPU_SINGLE_ALLOC_PERCENT=100
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/var/run/lightdm/root/:0
+WorkingDirectory=/home/albokiadt/
+
+ExecStart=/usr/local/bin/gatelessgate
+#/usr/local/bin/nheqminer -l equihash.usa.nicehash.com:3357 -u 346u4oMvACtZQK9RASzcgYoZwX4JaAd3Pi.EQUIHASH_miner -t 0 -e 0 
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+ETHMINER_SERVICE
+ln -sf /home/$MINERS_USER/systemd/system/nicehash-equihash.service /etc/systemd/system/nicehash-equihash.service
+# sudo journalctl -f

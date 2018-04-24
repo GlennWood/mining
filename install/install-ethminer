@@ -1,0 +1,42 @@
+#!/bin/bash
+
+### Ref: https://github.com/ethereum-mining/ethminer#building-from-source
+
+apt-get -y install mesa-common-dev cmake
+
+pushd /opt
+
+git clone https://github.com/ethereum-mining/ethminer.git
+
+cd ethminer
+git submodule update --init --recursive
+
+mkdir build; cd build
+cmake .. -DETHASHCUDA=ON -DETHASHCL=ON
+make install
+
+popd
+
+[ -d /home/$MINERS_USER/systemd/system ] || mkdir -p /home/$MINERS_USER/systemd/system && chown $MINERS_USER /home/$MINERS_USER/systemd/system
+cat > /home/$MINERS_USER/systemd/system/nicehash-ethmine.service << ETHMINER_SERVICE
+[Unit]
+Description=nicehash-ethash miner
+
+[Service]
+Environment=GPU_FORCE_64BIT_PTR=0
+Environment=GPU_MAX_HEAP_SIZE=100
+Environment=GPU_USE_SYNC_OBJECTS=1
+Environment=GPU_MAX_ALLOC_PERCENT=100
+Environment=GPU_SINGLE_ALLOC_PERCENT=100
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/var/run/lightdm/root/:0
+WorkingDirectory=/home/albokiadt/
+
+ExecStart=/usr/local/bin/ethminer --verbosity 3 -SP 2 -U -S daggerhashimoto.usa.nicehash.com:3353 -O 346u4oMvACtZQK9RASzcgYoZwX4JaAd3Pi.ETHMINER-miner:x
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+ETHMINER_SERVICE
+ln -sf /home/$MINERS_USER/systemd/system/nicehash-ethmine.service /etc/systemd/system/nicehash-ethmine.service
+# sudo journalctl -f

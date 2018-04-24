@@ -1,0 +1,14 @@
+#!/bin/bash
+
+### Ref: https://isotope11.com/blog/manage-your-services-with-daemontools
+### Ref: http://cr.yp.to/daemontools/
+mkdir -p /package
+chmod 1755 /package
+pushd /package
+  wget http://cr.yp.to/daemontools/daemontools-0.76.tar.gz
+  tar -xzpf daemontools-0.76.tar.gz
+  rm -f daemontools-0.76.tar
+  cd admin/daemontools-0.76
+  sed -i.bak 's|-Wwrite-strings|-Wwrite-strings -include /usr/include/errno.h|' src/conf-cc    
+  package/install
+popd

@@ -1,0 +1,117 @@
+#!/bin/bash
+
+  if [[ $EUID -ne 0 ]]
+  then
+		echo "$0 requires elevated privileges."
+		sudo -H $0 $*
+		exit;
+	fi
+
+### Ref: https://github.com/zawawawa/gatelessgate.git
+### A newer fork exists, but only for Windows (in .Net/cs): https://github.com/zawawawa/GatelessGateSharp
+
+apt-get -y install libcurl4-openssl-dev pkg-config libtool libncurses5-dev
+pushd /opt
+
+git clone https://github.com/zawawawa/gatelessgate.git
+cd gatelessgate
+
+git submodule init
+git submodule update
+
+cd Core
+autoreconf -i
+CFLAGS="-O2 -Wall -march=native -std=gnu99 -ggdb" ./configure --without-curses
+make
+make install
+
+##echo 'export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH' > /etc/profile.d/sgminer.sh
+
+gatelessgate --version
+#> gatelessgate 0.1.3-pre6
+
+echo "USAGE: gatelessgate --url stratum+tcp://equihash.usa.nicehash.com:3357 -u 346u4oMvACtZQK9RASzcgYoZwX4JaAd3Pi.EQUIHASH_miner -p x --gpu-platform 1"
+
+
+'''
+[04:03:43] No servers were found that could be used to get work from.                    
+[04:03:43] Please check the details from the list below of the servers you have input                    
+[04:03:43] Most likely you have input the wrong URL, forgotten to add a port, or have not set up workers                    
+[04:03:43] Pool: 0  URL: stratum+tcp://equihash.usa.nicehash.com:3357  User: 346u4oMvACtZQK9RASzcgYoZwX4JaAd3Pi.EQUIHASH_miner  Password: x                    
+[04:03:43] No servers could be used! Exiting.                    
+
+'''
+
+'''
+
+root@rig-A:/opt/gatelessgate/Core# ./gatelessgate -o us-east.equihash-hub.miningpoolhub.com:20575 -u albokiadt.ZCL-gg-miner -p x
+[18:56:20] Started gatelessgate 0.1.3-pre6                    
+[18:56:20] * using Jansson 2.9                    
+[18:56:23] Probing for an alive pool                    
+[18:56:25] us-east.equihash-hub.miningpoolhub.com slow/down or URL or credentials invalid                    
+^C[18:56:33] Shutdown signal received.                    
+
+gatelessgate -k equihash --gpu-threads 2 -o stratum+tcp://eu1-zcash.flypool.org:3333 -u t1MgLJ7K8N6zBvN1KSgx3f8v947drYEcJwj.cryptomkd1 -p z
+'''
+
+
+'''
+cat > VIVO.conf << CONF
+{
+"algorithm": "neoscrypt",
+"intensity": "13",
+"worksize": "256",
+"gpu-threads": "1",
+"load-balance": true,
+
+"auto-fan": true,
+"temp-cutoff": "90",
+"temp-overheat": "85",
+"temp-target": "75",
+
+"pools": [
+{
+"name": "VIVO-gg-miner",
+"user": "VH8UaPYmDEHgFuyPyGKdkseytnfZvPmqwm",
+"pass": "c=VIVO",
+"quota": "99;stratum+tcp://us.cryptopool.xyz:10000"
+},
+{
+"__comment": "Please keep this entry. Otherwise, I will not be able to continue open-source development. - zawawa",
+"name":"DEVFEE",
+"user": "zawawa.gatelessgate",
+"pass": "x",
+"quota": "1;s1.theblocksfactory.com:3333"
+}
+]
+}
+CONF
+
+'''
+
+{
+"name": "VIVO-gg-miner",
+"user": "VZDdT5oZpVF4jn3urhNjmKtAJm7vE68Jzn",
+"pass": "c=VIVO",
+"quota": "99;stratum+tcp://pool.unimining.net:4233"
+},
+'''
+
+
+'''
+USAGE:
+
+export GPU_FORCE_64BIT_PTR=1
+export GPU_MAX_HEAP_SIZE=100
+export GPU_USE_SYNC_OBJECTS=1
+export GPU_MAX_ALLOC_PERCENT=100
+export GPU_SINGLE_ALLOC_PERCENT=100
+./gatelessgate --gpu-platform 0 --default-config gatelessgate-Vivo.conf
+
+
+curl http://cryptopool.xyz/api/walletEx?address=VH8UaPYmDEHgFuyPyGKdkseytnfZvPmqwm
+curl http://cryptopool.xyz/api/wallet?address=VH8UaPYmDEHgFuyPyGKdkseytnfZvPmqwm
+
+'''
+
+popd

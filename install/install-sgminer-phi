@@ -1,0 +1,95 @@
+#!/bin/bash
+
+'''
+FIXME:
+  ...
+  CCLD     sgminer
+submodules/jansson/src/.libs/libjansson.a(value.o): In function `json_sprintf':
+value.c:(.text+0xa20): multiple definition of `json_sprintf'
+sgminer-config_parser.o:config_parser.c:(.text+0x6d0): first defined here
+collect2: error: ld returned 1 exit status
+Makefile:854: recipe for target 'sgminer' failed
+'''
+exit 1
+
+    if [[ $EUID -ne 0 ]]
+    then
+		echo "$0 requires elevated privileges."
+		sudo -H $0 $*
+		exit;
+	fi
+
+
+### TODO: won't build for Nvidia, conflicting guidance on whether sginer-phi works with Nvidia or not.
+'''
+CFLAGS="-O2 -Wall -march=native -std=gnu99" ./configure --without-curses
+
+Configuration Options Summary:
+
+  Use git version......: yes
+  libcurl(GBT+getwork).: Enabled: -lcurl
+  curses.TUI...........: User specified --without-curses. TUI support DISABLED
+  OpenCL...............: NOT FOUND. GPU mining support DISABLED
+configure: error: OpenCL not found
+'''
+
+apt-get -y install libcurl4-openssl-dev pkg-config libtool libncurses5-dev
+pushd /opt
+git clone https://github.com/216k155/sgminer-phi1612-Implemented/ sgminer-phi1612
+cd sgminer-phi1612
+git submodule init
+git submodule update
+# For some reason, submodule update didn't
+pushd submodules
+git clone https://github.com/akheron/jansson.git
+popd
+autoreconf -i
+CFLAGS="-O2 -Wall -march=native -std=gnu99" ./configure --without-curses
+# strange how so many of these builds will misspell 'true' only once
+sed -i.bak 's/pool->backup = TRUE;/pool->backup = true;/' sgminer.c
+
+make
+
+popd
+
+
+### Ref: https://github.com/216k155/sgminer-phi1612-Implemented/blob/master/doc/configuration.md
+cat > sgminer-phi.conf << 'SGMINER_PHI_CONF'
+{
+  "pools": [
+    {
+      "url":"poolA:8334",
+      "algorithm":"darkcoin-mod",
+      "intensity":"19",
+      "gpu-engine":"1050"
+    },
+    {
+      "url":"poolB:8334",
+      "algorithm":"darkcoin-mod",
+      "intensity":"19",
+      "gpu-engine":"1000"
+    },
+    {
+      "url":"poolC:8334",
+      ...
+      "algorithm":"ckolivas"
+      "intensity":"13"
+      "gpu-engine":"1100"
+    }
+  ]
+}
+SGMINER_PHI_CONF
+
+export DISPLAY=:0
+export GPU_MAX_ALLOC_PERCENT=100
+export GPU_USE_SYNC_OBJECTS=1
+
+'''
+
+--gpu-platform
+--auto-gpu
+
+### If you start sgminer with the --sharelog option, you can get detailed information for each share found.
+### Events? https://github.com/216k155/sgminer-phi1612-Implemented/blob/master/doc/configuration.md#events
+
+'''

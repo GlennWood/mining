@@ -1,0 +1,52 @@
+#!/bin/bash
+
+    if [[ $EUID -ne 0 ]]
+    then
+		echo "$0 requires elevated privileges."
+		sudo -H $0 $*
+		exit;
+	fi
+
+apt-get -y install build-essential autoconf automake libtool pkg-config libcurl3-dev libudev-dev libcurl4-openssl-dev
+
+pushd /opt
+
+wget http://ck.kolivas.org/apps/cgminer/4.9/cgminer-4.9.2.tar.lrz || exit 1
+cd cgminer-4.9.2
+  CFLAGS="-O2 -Wall -march=native" ./configure
+  make && make install
+
+
+# more README ...
+---
+BUILDING CGMINER FOR YOURSELF
+DEPENDENCIES:
+Mandatory:
+        pkg-config              http://www.freedesktop.org/wiki/Software/pkg-config
+        libtool                 http://www.gnu.org/software/libtool/
+Optional:
+        curl dev library        http://curl.haxx.se/libcurl/
+        (libcurl4-openssl-dev - Must tell configure --disable-libcurl otherwise
+        it will attempt to compile it in)
+
+        curses dev library
+        (libncurses5-dev or libpdcurses on WIN32 for text user interface)
+
+        libudev dev library (libudev-dev)
+        (This is only required for USB device support and is linux only)
+
+If building from git:
+        autoconf
+        automake
+
+If building on Red Hat:
+        sudo yum install autoconf automake autoreconf libtool openssl-compat-bitcoin-devel.x86_64 \
+                         curl libcurl libcurl-devel openssh
+
+If building on Ubuntu:
+        sudo apt-get install build-essential autoconf automake libtool pkg-config \
+                             libcurl3-dev libudev-dev
+
+CGMiner specific configuration options:
+  --enable-ants1          Compile support for Antminer S1 Bitmain (default
+--More--(7%)

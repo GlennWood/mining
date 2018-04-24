@@ -1,0 +1,30 @@
+#!/bin/bash
+
+export CUDA_VERSION=9.1.85
+
+export CUDA_VER=$(echo $CUDA_VERSION|cut -f1 -d.).$(echo $CUDA_VERSION|cut -f2 -d.)
+export CUDA_PATCH=$(echo $CUDA_VERSION|cut -f3 -d.)
+export CUDA_WTF=$(echo $CUDA_VERSION|cut -f1 -d.)-$(echo $CUDA_VERSION|cut -f2 -d.)
+cat >> /etc/profile.d/cuda.sh <<CUDA_ENV
+CUDA_VERSION=$CUDA_VERSION
+CUDA_VER=$CUDA_VER
+CUDA_PATCH=$CUDA_PATCH
+CUDA_WTF=$CUDA_WTF
+export PATH=/usr/local/cuda-${CUDA_VER}/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda-${CUDA_VER}/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+export CUDA_CUDART_LIBRARY=/usr/local/cuda-9.1/lib64
+CUDA_ENV
+source /etc/profile.d/cuda.sh
+
+### The RUN-method wget https://developer.nvidia.com/compute/cuda/${CUDA_VER}/Prod/local_installers/cuda_${CUDA_VERSION}_${NVIDIA_VERSION}.81_linux-run
+
+wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_${CUDA_VERSION}-1_amd64.deb
+dpkg -i cuda-repo-ubuntu1604_${CUDA_VERSION}-1_amd64.deb
+apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
+apt-get update
+apt-get -y install cuda-${CUDA_WTF}
+
+
+### TEST
+/usr/local/cuda-9.1/extras/demo_suite/deviceQuery 
+cat /usr/local/cuda-9.1/version.txt

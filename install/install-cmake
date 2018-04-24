@@ -1,0 +1,10 @@
+#!/bin/bash
+
+sudo apt-get install software-properties-common
+# These builds were created by taking the packages for CMake 3.x from Debian releases and backporting them and are considered stable.
+#  More info: https://launchpad.net/~george-edison55/+archive/ubuntu/cmake-3.x
+# Press [ENTER] to continue or ctrl-c to cancel adding it
+echo | sudo add-apt-repository ppa:george-edison55/cmake-3.x
+sudo apt-get update
+
+apt-get -y install cmake

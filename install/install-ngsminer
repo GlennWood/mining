@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [[ $EUID -ne 0 ]]
+then
+    printf "%s\n" "This script must be run as root" 
+    exit 1
+fi
+
+AMD_APP_SDK_VERSION=3.0.130.136
+
+[ ! -f /opt/Downloads/AMD-APP-SDKInstaller-v${AMD_APP_SDK_VERSION}-GA-linux64.tar.bz2 ] && \
+    echo "You must manually fetch 'AMD-APP-SDKInstaller-v${AMD_APP_SDK_VERSION}-GA-linux64.tar.bz2' into /opt/Downloads from https://developer.amd.com/amd-accelerated-parallel-processing-app-sdk/#appsdkdownloads" && exit 1
+
+### Ref: https://github.com/ghostlander/nsgminer
+
+#apt-get -y install autoconf automake libtool pkg-config libcurl4-gnutls-dev
+#apt-get -y install libncurses5-dev libncursesw5-dev libpdcurses
+apt-get -y install build-essential autoconf automake libtool pkg-config libcurl4-gnutls-dev uthash-dev libncursesw5-dev
+
+pushd /opt >/dev/null
+
+git clone https://github.com/ghostlander/nsgminer.git
+cd nsgminer
+
+### Download AMD-APP-SDKInstaller manually from 
+###   browser: https://developer.amd.com/amd-accelerated-parallel-processing-app-sdk/#appsdkdownloads
+AMD_APP_SDK_VERSION=3.0.130.136
+tar -xvjf /opt/Downloads/AMD-APP-SDKInstaller-v${AMD_APP_SDK_VERSION}-GA-linux64.tar.bz2
+./AMD-APP-SDK-v${AMD_APP_SDK_VERSION}-GA-linux64.sh
+# 1. Read and accept the license ('y')
+# 2. Enter the Installation directory ( /opt )
+# 3. Log out/in for the environment variable updates to take effect.
+#   a. Perhaps just `source /etc/profile` will be sufficient
+
+rm ./AMD-APP-SDK-v${AMD_APP_SDK_VERSION}-GA-linux64.sh
+
+./autogen.sh    # only needed if building from git repo
+#./configure     # NOT needed if autogen.sh used
+make
+make install
+
+popd >/dev/null
+
+echo `which nsgminer` is installed; see 'nsgminer -h'

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+### Ref: https://github.com/Optiminer/OptiminerEquihash
+
+OPTIMINER_EQUIHASH_VERSION=2.1.2
+mkdir /opt/optiminer
+pushd /opt/optiminer
+  wget http://download.optiminer.pl/optiminer-equihash-${OPTIMINER_EQUIHASH_VERSION}.tar.gz
+  # optiminer-equihash-2.1.2.tar.gz sha256sum d932abacdcf4a20f4fbe383be0aec9106f513ae5170c7c073d43ecb0b88213ad
+  tar -xzf optiminer-equihash-${OPTIMINER_EQUIHASH_VERSION}.tar.gz
+  cd optiminer-equihash
+  /opt/optiminer/optiminer-equihash/optiminer-equihash --list-devices
+popd
+
+echo 'USAGE: /opt/optiminer/optiminer-equihash/optiminer-equihash -s zstratum+tls://zcl.suprnova.cc:4142 -u cryptomkd.1 -p x'

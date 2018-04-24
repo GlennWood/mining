@@ -1,0 +1,73 @@
+#!/bin/bash
+
+if [[ $EUID -ne 0 ]]
+then
+    printf "%s\n" "This script must be run as root" 
+    exit 1
+fi
+pushd /opt
+
+#NVIDIA_VER=387
+#NVIDIA_PATCH=34
+#NVIDIA_VER=384
+#NVIDIA_PATCH=111
+
+NVIDIA_VER=390
+NVIDIA_PATCH=25
+
+cat >> /etc/profile.d/nvidia.sh << NVIDIA_SH
+export INSTALL_NVIDIA=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+export NVIDIA_VER=$NVIDIA_VER
+export NVIDIA_PATCH=$NVIDIA_PATCH
+export PATH=/usr/lib/nvidia-\$NVIDIA_VER/bin\${PATH:+:\$PATH}
+export LD_LIBRARY_PATH=/usr/lib/nvidia-\$NVIDIA_VER${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}
+NVIDIA_SH
+source /etc/profile
+
+### Ref: https://github.com/pearsonlab/pearsonlab.github.io/wiki/Things-to-know-when-installing-NVIDIA-drivers
+apt-get -y remove --purge nvidia* nouveau* && apt-get -y autoremove
+cat > /etc/modprobe.d/disable-nouveau.conf << EOT
+blacklist nouveau
+options nouveau modeset=0
+blacklist lbm-nouveau
+blacklist nvidia-173
+blacklist nvidia-96
+blacklist nvidia-current
+blacklist nvidia-173-updates
+blacklist nvidia-96-updates
+alias nvidia nvidia_current_updates
+alias nouveau off
+alias lbm-nouveau off
+EOT
+update-initramfs -u
+
+cat > /etc/modprobe.d/nvidia-installer-disable-nouveau.conf << NOUVEAU_OFF
+blacklist nouveau
+options nouveau modeset=0
+NOUVEAU_OFF
+
+[ -n "$REBOOT_WHEN_NEEDED" ] && reboot || source /etc/profile.d/nvidia.sh
+
+wget https://us.download.nvidia.com/XFree86/Linux-x86_64/${NVIDIA_VER}.${NVIDIA_PATCH}/NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_PATCH}.run
+### When will we ever need X server?
+service lightdm stop
+sh NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_PATCH}.run
+service lightdm start
+### See /usr/share/doc/NVIDIA_GLX-1.0/README.txt
+
+## gpustat works only for Nvidia GPUs
+pip install gpustat
+gpustat --no-color --show-cmd --show-power --json
+
+### TEST
+cat /proc/driver/nvidia/version
+lsmod | grep nvidia
+nvidia-smi -L
+lspci|grep VGA
+
+[ -n "$VERBOSE" ] && nvidia-smi -a 
+
+
+cat >> /etc/profile.d/nvidia.sh << NVIDIA_SH
+export INSTALL_NVIDIA_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+NVIDIA_SH

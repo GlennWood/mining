@@ -1,0 +1,52 @@
+#!/bin/bash
+
+    if [[ $EUID -ne 0 ]]
+    then
+		echo "$0 requires elevated privileges."
+		sudo -H $0 $*
+		exit;
+	fi
+
+#=================== nVidia, claymore dual gpu miner ===============
+### REF: https://steemit.com/ethereum/@virtualcoin/ethereum-claymore-dual-ethereum-gpu-miner-for-linux-geforce-gtx
+### Ref: https://www.bminer.me/references/
+
+ETHDCRMINER_VERSION=10.0
+
+mkdir /opt/ethdcrminer64 ; chown $MINERS_USER /opt/ethdcrminer64
+pushd /opt/ethdcrminer64 >/dev/null
+  wget https://github.com/nanopool/Claymore-Dual-Miner/releases/download/v${ETHDCRMINER_VERSION}/Claymore.s.Dual.Ethereum.Decred_Siacoin_Lbry_Pascal.AMD.NVIDIA.GPU.Miner.v${ETHDCRMINER_VERSION}.-.LINUX.tar.gz
+  tar -xzf Claymore.s.Dual.Ethereum.Decred_Siacoin_Lbry_Pascal.AMD.NVIDIA.GPU.Miner.v${ETHDCRMINER_VERSION}.-.LINUX.tar.gz
+  rm Claymore.s.Dual.Ethereum.Decred_Siacoin_Lbry_Pascal.AMD.NVIDIA.GPU.Miner.v${ETHDCRMINER_VERSION}.-.LINUX.tar.gz
+  echo "USAGE: cd /opt/ethdcrminer64 ; ./ethdcrminer64 [ options ... ]"
+popd >/dev/null
+
+[ -d /home/$MINERS_USER/systemd/system ] || mkdir -p /home/$MINERS_USER/systemd/system && chown $MINERS_USER /home/$MINERS_USER/systemd/system
+cat > /home/$MINERS_USER/systemd/system/nicehash-ethash.service << ETHMINER_SERVICE
+[Unit]
+Description=nicehash-ethash miner
+
+[Service]
+Environment=GPU_FORCE_64BIT_PTR=0
+Environment=GPU_MAX_HEAP_SIZE=100
+Environment=GPU_USE_SYNC_OBJECTS=1
+Environment=GPU_MAX_ALLOC_PERCENT=100
+Environment=GPU_SINGLE_ALLOC_PERCENT=100
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/var/run/lightdm/root/:0
+WorkingDirectory=/home/albokiadt
+
+ExecStart=/usr/local/bin/ethminer --verbosity 3 -SP 2 -U -S daggerhashimoto.usa.nicehash.com:3353 -O 346u4oMvACtZQK9RASzcgYoZwX4JaAd3Pi.NICEHASH-ETHASH-miner:x
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+ETHMINER_SERVICE
+ln -sf /home/$MINERS_USER/systemd/system/nicehash-ethash.service /etc/systemd/system/nicehash-ethash.service
+
+cat >> /etc/profile.d/ethdcrminer64.sh << ETHDCRMINER64_SH
+export INSTALL_ETHDCRMINER64_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+ETHDCRMINER64_SH
+
+
+# sudo journalctl -f

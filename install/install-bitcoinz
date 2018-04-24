@@ -1,0 +1,55 @@
+#!/bin/bash
+
+### Ref: https://github.com/bitcoinz-pod/bitcoinz
+
+apt-get -y install \
+      build-essential pkg-config libc6-dev m4 g++-multilib \
+      autoconf libtool ncurses-dev unzip git python \
+      zlib1g-dev wget bsdmainutils automake
+
+pushd /opt
+	# Clone Bitcoinz Repository
+	git clone https://github.com/bitcoinz-pod/bitcoinz
+	# Build
+	cd bitcoinz/
+	./zcutil/build.sh -j$(nproc)
+	# fetch key
+	./zcutil/fetch-params.sh
+	# Run
+	./src/zcashd
+	# Test getting information about the network
+	cd src/
+	./zcash-cli getmininginfo
+	# Test creating new transparent address
+	./zcash-cli getnewaddress
+	# Test creating new private address
+	./zcash-cli z_getnewaddress
+	# Test checking transparent balance
+	./zcash-cli getbalance
+	# Test checking total balance 
+	./zcash-cli z_gettotalbalance
+	# Check all available wallet commands
+	./zcash-cli help
+	# Get more info about a single wallet command
+	./zcash-cli help "The-command-you-want-to-learn-more-about"
+	./zcash-cli help "getbalance"
+popd
+
+
+
+: <<'EOM'
+### Ref: https://ruclip.com/video/XdWr9pB5p_Q/how-to-mine-vertcoin-on-linux-with-a-nvidia-gpu-ccminer.html
+#'''
+#Carcarlo Pravettoni Месяц назад +1
+#I also found this comment in GitHub page of tpruvot ccminer:
+#https://github.com/tpruvot/ccminer/pull/25
+#"Delete the code that include header file device_functions_decls.h, which is useless for ccminer and is not supported by cuda9.1 any more. ccminer should not generate any NVVM IR or use libdevice.
+#I remove '#include < device_functions_decl.h >' from equi/eqcuda.hpp, ccminer builds fine"
+#'''
+sed -i.bak 's|#include <device_functions_decls.h>|//#include <device_functions_decls.h>|' equi/eqcuda.hpp
+sed -i.bak 's|sm_21,compute_20|sm_52,compute_52|g' Makefile.am
+sed -i.bak 's|compute_20|compute_52|g' Makefile.am
+
+### Ref: 
+
+EOM

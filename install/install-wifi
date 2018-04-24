@@ -1,0 +1,158 @@
+#!/bin/bash
+
+### TODO: FIXME: I STILL DON'T KNOW WHICH PIECE(S) OF THIS IS THE MAGIC PEICE THAT MAKES IT WORK!!!
+
+
+
+### Ref: https://help.ubuntu.com/community/NetworkConfigurationCommandLine/Automatic
+
+WIFI_SSID=$1
+WIFI_PSW=$2
+
+WIFI_IFC=$(iwlist scan 2>&1 | grep 'Scan completed' | cut -f1 -d' ')
+
+[ -z "$WIFI_SSID" ] && WIFI_SSID=$(iwlist $WIFI_IFC scan | grep 'ESSID:' | grep -v 'Guest' | grep NETGEAR | cut -f2 -d'"')
+[ -z "$WIFI_PSW" ]  && WIFI_PSW=greenspider374
+WIFI_PSK=$(echo $WIFI_PSW | wpa_passphrase "'$WIFI_SSID'" $WIFI_IFC | grep 'psk=' | cut -f2 -d'=' | tail -1)
+wpa_passphrase $WIFI_SSID $WIFI_PSW > /etc/wpa.conf
+
+
+
+### Ref: https://askubuntu.com/questions/16584/how-to-connect-and-disconnect-to-a-network-manually-in-terminal
+wpa_supplicant -Dwext -i$WIFI_IFC -c /etc/wpa_supplicant.conf
+
+
+
+
+### Ref: https://askubuntu.com/questions/16584/how-to-connect-and-disconnect-to-a-network-manually-in-terminal
+### worked on rig-L, now fix this to execute automatically.
+
+wpa_passphrase $WIFI_SSID $WIFI_PSW > /etc/wpa_supplicant.conf
+wpa_supplicant -B -Dwext -i$WIFI_IFC -c /etc/wpa_supplicant.conf
+
+ifconfig $WIFI_IFC up
+
+
+WIFI_PSK=$(wpa_passphrase "'$WIFI_SSID'" $WIFI_IFC | grep 'psk=' | cut -f2 -d'=' | tail -1)
+#network={
+#        ssid="Fios-JOVUO"
+#        #psk="wlx4ce6761a022f"
+#        psk=a172990dd6fb6b6470cdf15dacda9381fbcddae979abbca297c9a66dc1a4994c
+#}
+
+cat > /etc/wpa_supplicant.conf << WPA_CONF
+ctrl_interface=/var/run/wpa_supplicant
+ctrl_interface_group=0
+
+eapol_version=2
+ap_scan=1
+fast_reauth=1
+country=US
+
+### Associate with any open access point
+network={
+  ssid=""
+  key_mgmt=NONE
+  priority=1
+}
+
+# WPA/WPA2
+network={
+  ssid="$WIFI_SSID"
+  scan_ssid=1
+  psk=$WIFI_PSK
+  priority=5
+}
+WPA_CONF
+
+cat >/etc/init.d/wpa.sh << WPA_SH
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          wpa
+# Required-Start:    \$network \$syslog \$local_fs
+# Required-Stop:     \$network \$syslog \$local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start/stop script for wpa supplicant
+# Description:       Custom start/stop script for wpa_supplicant.
+### END INIT INFO
+
+SELF=\$(basename \$0)
+WPA=wpa_supplicant
+PROGRAM=/sbin/\${WPA}
+CONF=/etc/\${WPA}.conf
+INTERFACE=$WIFI_IFC
+DRIVER=wext
+DAEMONMODE="-B"
+LOGFILE=/var/log/\$WPA.log
+
+function start() {
+
+    # TODO: Support multiple interfaces and drivers
+    OPTIONS="-c \$CONF -i \$INTERFACE -D \$DRIVER \$DAEMONMODE"
+
+    # Log to a file
+    [ -n "\$LOGFILE" ] && OPTIONS="\$OPTIONS -f \$LOGFILE"
+
+    echo " * Starting wpa supplicant"
+    eval \$PROGRAM \$OPTIONS
+}
+
+function stop() {
+    echo " * Stopping wpa supplicant"
+    wpa_cli -i \$INTERFACE terminate
+    #pkill \$PROGRAM ## alternative method 
+}
+
+function debug() {
+    stop
+    DAEMONMODE="-ddd"
+    start
+}
+
+function restart() {
+    stop
+    start
+}
+
+function status() {
+    pgrep -lf \$PROGRAM
+}
+
+function usage() {
+    echo "Usage: \$SELF <start|stop|status|debug>"
+    return 2
+}
+
+case \$1 in
+    start|stop|debug|restart|status) \$1 ;;
+    *) usage ;;
+esac
+WPA_SH
+chmod +x /etc/init.d/wpa.sh
+# Service
+/etc/init.d/wpa.sh start
+# Debugging
+#/etc/init.d/wpa.sh debug
+update-rc.d wpa.sh defaults
+
+
+cat >> /etc/network/interfaces << WIFI_IFC
+
+auto $WIFI_IFC
+iface $WIFI_IFC inet dhcp
+pre-up  /etc/init.d/wpa.sh start
+post-down /etc/init.d/wpa.sh stop
+WIFI_IFC
+
+/etc/init.d/networking restart
+
+
+
+
+
+
+iwconfig wlan0 essid "Network name" key s:"key" (Error for wireless request "Set Encode" (8B2A)) SET failed on device wlan0 ; Invalid argument
+
+wpa_passphrase essid password > /etc/wpa_supplicant.conf
+wpa_supplicant -B -Dwext -iwlan0 -c/etc/wpa_supplicant.conf

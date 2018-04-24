@@ -1,0 +1,127 @@
+#!/bin/bash
+
+  if [[ $EUID -ne 0 ]]
+  then
+		echo "$0 requires elevated privileges."
+		sudo $0 $*
+		exit;
+	fi
+
+### Ref: http://support.amd.com/en-us/kb-articles/Pages/AMDGPU-PRO-Install.aspx
+
+apt-get update
+apt-get -y dist-upgrade
+apt-get -y install clinfo
+### reboot
+
+AMDGPU_VERSION=17.50
+AMDGPU_PATCH=511655
+
+mkdir /opt/amdgpu-pro
+pushd /opt/amdgpu-pro >/dev/null
+
+  wget --referer http://support.amd.com https://www2.ati.com/drivers/linux/ubuntu/amdgpu-pro-${AMDGPU_VERSION}-${AMDGPU_PATCH}.tar.xz
+  tar -Jxvf amdgpu-pro-${AMDGPU_VERSION}-${AMDGPU_PATCH}.tar.xz
+  cd amdgpu-pro-${AMDGPU_VERSION}-${AMDGPU_PATCH}/
+	### Not in our repo; is it still needed?
+	### apt-get install mesa-amdgpu-omx-drivers mesa-utils
+	### Not in our repo; is it still needed?
+	### apt-get install gst-omx-amdgpu
+	
+	### Ref: https://math.dartmouth.edu/~sarunas/amdgpu.html
+	###      The "--compute" eliminated the dreaded "and will not be installed" failure!
+  ###        The following packages have unmet dependencies:
+  ###          mesa-opencl-icd : Depends: libclc-r600 (>= 0.2.0+git20170330-3) but it is not going to be installed
+  ###                            Depends: libclc-amdgcn (>= 0.2.0+git20170330-3) but it is not going to be installed
+  ### Ref: http://support.amd.com/en-us/kb-articles/Pages/AMDGPU-PRO-Driver-for-Linux-Release-Notes.aspx	
+  apt-get -y install libclc-r600 libclc-amdgcn
+  ./amdgpu-pro-install -y --compute
+  # option -px is suppose to do something, but it's not working
+  apt-get -y install rocm-amdgpu-pro
+  echo 'export LLVM_BIN=/opt/amdgpu-pro/bin' >> /etc/profile.d/amdgpu-pro.sh
+
+popd >/dev/null
+
+### amdgpu.vm_fragment_size=9 is recommended on latest AMDGPU-PRO version
+GRUB_AMDGPU=$(grep 'amdgpu.vm_fragment_size' /etc/default/grub)
+if [ -z "$GRUB_AMDGPU" ]; then
+  cp /etc/default/grub /etc/default/grub.bak
+  cat /etc/default/grub.bak | \
+  sed 's/GRUB_CMDLINE_LINUX_DEFAULT="\([^"]*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 amdgpu.vm_fragment_size=9"/' > /etc/default/grub
+  update-grub
+fi
+
+# Install ROCm Kernel, Ref: https://rocm.github.io/ROCmInstall.html
+usermod -a -G video root ; usermod -a -G video albokiadt
+apt dist-upgrade
+wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | sudo apt-key add -
+sh -c 'echo deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main > /etc/apt/sources.list.d/rocm.list'
+apt-get update
+apt-get -y install libnuma-dev
+apt-get -y install rocm-dkms rocm-opencl-dev
+### And now we also have /opt/rocm/bin/rocm-smi !
+ln -sf /opt/rocm/bin/rocm-smi /usr/local/bin/rocm-smi
+rocm-smi -t -c -g -P -s
+# unfortunately -o and -f fail with "int() argument must be a string, a bytes-like object or a number, not 'NoneType'"
+# rocm-smi -a
+
+# reboot
+
+### Ref: https://help.ubuntu.com/community/SensorInstallHowto
+apt-get -y install lm-sensors
+### Run sensors-detect, which takes a long time and requires lots of "yes"es from you.
+sensors-detect
+'''
+Some south bridges, CPUs or memory controllers contain embedded sensors.
+Do you want to scan for them? This is totally safe. (YES/no): 
+...
+Some Super I/O chips contain embedded sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no): 
+...
+Some systems (mainly servers) implement IPMI, a set of common interfaces
+through which system health data may be retrieved, amongst other things.
+We first try to get the information from SMBIOS. If we don''t find it
+there, we have to read from arbitrary I/O ports to probe for such
+interfaces. This is normally safe. Do you want to scan for IPMI
+interfaces? (YES/no): 
+...
+Some hardware monitoring chips are accessible through the ISA I/O ports.
+We have to write to arbitrary I/O ports to probe them. This is usually
+safe though. Yes, you do have ISA I/O ports even if you do not have any
+ISA slots! Do you want to scan the ISA I/O ports? (YES/no): 
+...
+Lastly, we can probe the I2C/SMBus adapters for connected hardware
+monitoring devices. This is the most risky part, and while it works
+reasonably well on most systems, it has been reported to cause trouble
+on some systems.
+Do you want to probe the I2C/SMBus adapters now? (YES/no): 
+...
+Next adapter: i915 gmbus dpc (i2c-0)
+Do you want to scan it? (yes/NO/selectively): 
+***
+...
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue: 
+...
+Do you want to add these lines automatically to /etc/modules? (yes/NO)
+(yes)
+'''
+/etc/init.d/kmod start
+### And now, FINALLY, we can get the running temperature of AMD cards
+sensors|grep amdgpu -A 4
+
+cat /sys/kernel/debug/dri/*/amdgpu_pm_info | grep 'GFX Clocks and Power:' -A9
+
+### amdmeminfo Ref: https://wiki.lexruee.ch/amd-gpus/
+pushd /opt
+apt-get -y install build-essential ocl-icd-opencl-dev libpci-dev git
+git clone https://github.com/ystarnaud/amdmeminfo
+cd amdmeminfo
+make
+
+cat >> /etc/profile.d/amdgpu-pro.sh << AMDGPU_PRO_SH
+export INSTALL_AMDGPU_PRO_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+AMDGPU_PRO_SH
+
+[ -n "$REBOOT_WHEN_NEEDED" ] && reboot

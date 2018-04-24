@@ -1,0 +1,71 @@
+#!/bin/bash
+
+mkdir /opt/amd 2>/dev/null ; chown $MINERS_USER /opt/amd ; pushd /opt/amd
+
+wget http://bios.ethosdistro.com/atiflash-linux/atiflash
+#sha256sum atiflash
+#           48461724bb755f57e51f397ae09d81d6f203332a0c64da395b2faef07e5e8f98  atiflash
+#sha256sum: 48461724bb755f57e51f397ae09d81d6f203332a0c64da395b2faef07e5e8f98
+chmod 0744 /opt/amd/atiflash 
+ln -sf /opt/amd/atiflash /usr/local/bin/atiflash
+
+### Backup BIOS image of the adapter 0 to a file called amd-rx-580-8g-hynix-default-bios.rom:
+pushd /opt/roms
+#[ -f gpu0.amd-rx-580-4g-elpida-default-bios.rom ] || atiflash -s 1 gpu0.amd-rx-580-4g-elpida-default-bios.rom
+#[ -f gpu1.amd-rx-580-4g-elpida-default-bios.rom ] || atiflash -s 3 gpu1.amd-rx-580-4g-elpida-default-bios.rom
+[ -f gpu0.amd-rx-580-8g-hynix-default-bios.rom ]  || atiflash -s 0 gpu0.amd-rx-580-8g-hynix-default-bios.rom
+[ -f gpu1.amd-rx-580-8g-hynix-default-bios.rom ]  || atiflash -s 1 gpu1.amd-rx-580-8g-hynix-default-bios.rom
+### Compare ROM content of adapter 0 to rom file amd-rx-580-8g-hynix-default-bios.rom:
+#atiflash -v 3 /opt/roms/gpu3.amd-rx-580-8g-elpida-default-bios.rom
+### Write BIOS image in file amd-rx-580-8g-hynix-default-bios.rom to flash ROM in Adapter 0:
+
+## This ROM speeds it up by 14%
+## ETH: GPU0 22.119 Mh/s, GPU1 22.163 Mh/s, GPU2 22.103 Mh/s, GPU3 25.110 Mh/s
+atiflash -p 0 EllesmereRx580-G1200-M2250.rom
+atiflash -p 1 EllesmereRx580-G1200-M2250.rom
+
+atiflash -p 0 'Anoraks_Sapphire RX 580 Nitro(plus) 8GB Samsung Hynix_memshift-1750.rom'
+atiflash -p 1 'Anoraks_Sapphire RX 580 Nitro(plus) 8GB Samsung Hynix_memshift-1750.rom'
+## This ROM speeds it up by ??%
+## ETH: GPU0 22.119 Mh/s, GPU1 22.163 Mh/s, GPU2 22.103 Mh/s, GPU3 25.110 Mh/s
+##atiflash -p 0 'Sapphire_RX580_8Gb_modovan.rom'
+popd
+
+### TODO: See https://github.com/OhGodACompany/OhGodATool
+###  Ref: https://www.reddit.com/r/gpumining/comments/6s9873/how_to_undervolt_amd_for_linux/
+### ohgodatool -i 0 --core-state 7 --core-vddc-idx 9
+###                 --core-vddc-idx 9 --core-vddc-off 0
+
+
+git clone https://github.com/matszpk/amdcovc.git
+cd amdcovc
+make
+cp amdcovc /usr/local/bin/
+cd ..
+rm -rf amdcovc
+
+amdcovc memclk:0=2000
+amdcovc memclk:1=1750
+amdcovc memclk:2=2000
+amdcovc memclk:3=2000
+
+git clone https://github.com/OhGodACompany/OhGodATool.git
+cd OhGodATool
+make install
+cd ..
+rm -Rf OhGodATool
+
+ohgodatool -i 2 --core-state 7 --core-vddc-idx 9
+
+
+### Ref: https://anorak.tech/t/anoraks-vbios-collection-optimized-settings-for-performance-power-saving/13
+###      https://anorak.tech/c/downloads
+###      https://anorak.tech/uploads/default/original/1X/cef87c5289d4998a837b92f520bf856ab73916f3.rom
+https://anorak.tech/uploads/default/original/1X/20d4af4f8ba3b720c8f21d61763bf4ca6888d928.rom
+https://anorak.tech/uploads/default/original/1X/03a35eaf6812d3d4fd93489000b5edb4a976f4ef.rom
+
+albokiadt:kKwkSvLx6hFpVABhbz
+
+popd
+
+reboot

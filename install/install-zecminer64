@@ -1,0 +1,29 @@
+#!/bin/bash
+
+    if [[ $EUID -ne 0 ]]
+    then
+		echo "$0 requires elevated privileges."
+		sudo -H $0 $*
+		exit;
+	fi
+
+#=================== Claymore dual gpu miner ===============
+
+ZECMINER64_VERSION=12.6
+
+[ ! -f /opt/Downloads/Claymore\'s\ ZCash\ AMD\ GPU\ Miner\ v${ZECMINER64_VERSION}\ -\ LINUX.tar.gz ] && \
+    echo "You must manually fetch '"Claymore\'s\ ZCash\ AMD\ GPU\ Miner\ v${ZECMINER64_VERSION}\ -\ LINUX.tar.gz"' into /opt/Downloads from https://mega.nz/#F!P0ZjFDjC!Cmb-ZRqlbAnNrajRtp4zvA" && exit 1
+### Get Claymore\'s\ ZCash\ AMD\ GPU\ Miner\ v12.6\ -\ LINUX.tar.gz from 
+###    https://mega.nz/#F!P0ZjFDjC!Cmb-ZRqlbAnNrajRtp4zvA
+###  into /opt/Downloads (wget won't work there ...)
+mkdir /opt/zecminer64 2>/dev/null ; chown $MINERS_USER /opt/zecminer64
+pushd /opt/zecminer64
+  tar -xzf /opt/Downloads/Claymore\'s\ ZCash\ AMD\ GPU\ Miner\ v${ZECMINER64_VERSION}\ -\ LINUX.tar.gz
+  mv Claymore\'s\ ZCash\ AMD\ GPU\ Miner\ v${ZECMINER64_VERSION}\ -\ LINUX/* ./
+  rm -r Claymore\'s\ ZCash\ AMD\ GPU\ Miner\ v${ZECMINER64_VERSION}\ -\ LINUX*
+  echo "USAGE: cd /opt/zecminer64 ; ./zecminer64 [ options ... ]"
+popd
+
+cat >> /etc/profile.d/ethdcrminer64.sh << ZECMINER64_SH
+export INSTALL_ZECMINER64_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+ZECMINER64_SH

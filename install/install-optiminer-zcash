@@ -1,0 +1,13 @@
+#!/bin/bash
+
+### Ref: https://github.com/Optiminer/OptiminerZcash
+OPTIMINER_ZCASH_VERSION=1.7.0
+
+pushd /opt
+
+wget https://github.com/Optiminer/OptiminerZcash/raw/master/optiminer-zcash-${OPTIMINER_ZCASH_VERSION}.tar.gz
+tar -xzf optiminer-zcash-${OPTIMINER_ZCASH_VERSION}.tar.gz
+/opt/optiminer-zcash/optiminer-zcash --list-devices
+popd
+
+echo 'USAGE: /opt/optiminer-zcash/optiminer-zcash -h'

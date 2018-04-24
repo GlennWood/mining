@@ -1,0 +1,100 @@
+
+ETH: 03/03/18-19:08:18 - New job from us-east.ethash-hub.miningpoolhub.com:20535
+ETH - Total Speed: 52.831 Mh/s, Total Shares: 2, Rejected: 0, Time: 00:02
+ETH: GPU0 30.690 Mh/s, GPU1 22.141 Mh/s
+GPU0 t=66C fan=23%, GPU1 t=66C fan=24%
+ETH: 03/03/18-19:08:30 - New job from us-east.ethash-hub.miningpoolhub.com:20535
+ETH - Total Speed: 52.738 Mh/s, Total Shares: 2, Rejected: 0, Time: 00:02
+ETH: GPU0 30.596 Mh/s, GPU1 22.141 Mh/s
+ETH: 03/03/18-19:08:31 - New job from us-east.ethash-hub.miningpoolhub.com:20535
+ETH - Total Speed: 52.425 Mh/s, Total Shares: 2, Rejected: 0, Time: 00:02
+ETH: GPU0 30.240 Mh/s, GPU1 22.185 Mh/s
+
+ETH: 03/03/18-19:40:54 - New job from us-east.ethash-hub.miningpoolhub.com:20535
+ETH - Total Speed: 83.608 Mh/s, Total Shares: 8, Rejected: 0, Time: 00:13
+ETH: GPU0 30.704 Mh/s, GPU1 22.152 Mh/s, GPU2 30.752 Mh/s
+ETH: 03/03/18-19:40:59 - New job from us-east.ethash-hub.miningpoolhub.com:20535
+ETH - Total Speed: 83.739 Mh/s, Total Shares: 8, Rejected: 0, Time: 00:13
+ETH: GPU0 30.726 Mh/s, GPU1 22.162 Mh/s, GPU2 30.851 Mh/s
+ETH: 03/03/18-19:41:06 - New job from us-east.ethash-hub.miningpoolhub.com:20535
+ETH - Total Speed: 83.617 Mh/s, Total Shares: 8, Rejected: 0, Time: 00:13
+ETH: GPU0 30.709 Mh/s, GPU1 22.148 Mh/s, GPU2 30.760 Mh/s
+GPU0 t=74C fan=27%, GPU1 t=74C fan=26%, GPU2 t=74C fan=22%
+
+
+Razor.AMD - ETH: 0x791e7bb8cc37a97a0850e8befce94f21d2f86051
+
+
+also added to claymore " -cclock 1145 -cvddc 840 -mclock 2200 -mvddc 865 -dcri 33"
+
+ETH+LBRY
+-cclock 1240 -cvddc 875 -mclock 2200 -mvddc 875
+
+With 4GB stock mem timings is at 1750MHz, 
+so you should first try with 1900MHz and see how it goes. 
+Core clock 1150-1200MHz, voltages 850mV-875mV.
+
+-cclock 1150 -cvddc 875 -mclock 1900 -mvddc 875
+
+-cclock 1240 -cvddc 875 -mclock 2099 -mvddc 875
+
+-tstop 85 -fanmin 50 -cclock 1240 -mclock 2150 -cvddc 850 -mvddc 865
+
+-cvddc 950 -mvddc 950
+
+
+
+
+
+
+
+  ‚Ñπ  05:33:47|stratum |  Received new job #6e98a77c‚Ä¶ from daggerhashimoto.usa.nicehash.com
+  ‚úò  05:33:49|cuda-6  |  Fatal GPU error: CUDA error in func search at line 504 unspecified launch failure
+  ‚úò  05:33:49|cuda-6  |  Terminating.
+  ‚úò  05:33:49|cuda-11 |  Fatal GPU error: CUDA error in func search at line 504 unspecified launch failure
+root@rig-19X:/opt/ethminer/build# 
+root@rig-19X:/opt/ethminer/build# ethminer -SP 2 -U -S daggerhashimoto.usa.nicehash.com:3353 -O 346u4oMvACtZQK9RASzcgYoZwX4JaAd3Pi.NICEHASH-ETHASH-miner:x
+
+
+
+https://api.nicehash.com/api?method=balance&id=8&key=3583b1df-5e93-4ba0-96d7-7d621fe15a17
+
+
+  m  05:31:54|ethminer|  Speed 252.65 Mh/s    gpu/0 31.15  gpu/1 31.28  gpu/2 31.28  gpu/3 31.87  gpu/4 31.93  gpu/5 31.93  gpu/6 31.28  gpu/7 31.93  [A636+7:R12+0:F0] Time: 02:58
+  ‚úò  05:31:56|cuda-0  |  Fatal GPU error: CUDA error in func search at line 504 an illegal memory access was encountered
+  ‚úò  05:31:56|cuda-0  |  Terminating.
+  ‚úò  05:31:56|cuda-3  |  Fatal GPU error: CUDA error in func search at line 504 an illegal memory access was encountered
+  ‚úò  05:31:56|cuda-3  |  Terminating.
+
+
+
+********************************************************************************
+OC_1070TI=1400 OC_1070=1300
+albokiadt@rig-19X:~$ tail -f -n999 /var/log/mining/ZCL-miner.*|grep 'Miner died'
+[WARN] [2018-03-06T18:11:46-05:00] Miner died! It will be restarted soon...     
+OC_1070TI=1350 OC_1070=1300
+
+Mar 07 15:34:27 rig-19X systemd[1]: Stopped nicehash-ethash miner.
+Mar 07 15:34:27 rig-19X systemd[1]: Started nicehash-ethash miner.
+
+
+
+GPU[1]          : VBIOS version: 113-1E3660EU-O55
+GPU[2]          : VBIOS version: 113-1E366FU-S4J
+GPU[3]          : VBIOS version: 113-1E3660U-O51
+GPU[4]          : VBIOS version: 113-1E3660EU-O55
+
+atiflash -p 1 gpu1.amd-rx-580-4g-elpida-default-bios.rom
+Old SSID: E366
+New SSID: E366
+Old P/N: 113-1E366FU-S4J
+New P/N: 113-1E3660EU-O55
+P/N mismatched
+
+
+
+atiflash -p 0 gpu1.amd-rx-580-4g-elpida-113-1E3660EU-O55-bios.rom 
+
+
+CURRENTLY, rig-Win DOES 163.5 Mh/s AGAINST ETH ON MPH
+Let's try nicehash ...

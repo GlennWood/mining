@@ -1,0 +1,18 @@
+#!/bin/bash
+
+    if [[ $EUID -ne 0 ]]
+    then
+		echo "$0 requires elevated privileges."
+		sudo -H $0 $*
+		exit;
+	fi
+
+apt update
+apt-get -y install ocl-icd-opencl-dev
+echo | add-apt-repository ppa:paulo-miguel-dias/mesa 
+apt-get update
+apt-get -y install libclc-amdgcn mesa-opencl-icd
+
+cat >> /etc/profile.d/opencl.sh << OPENCL_SH
+export INSTALL_OPENCL_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+OPENCL_SH

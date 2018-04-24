@@ -1,0 +1,60 @@
+#!/bin/bash
+
+#=================== nVidia, claymore dual gpu miner ===============
+### REF: https://www.bminer.me/
+
+BMINER_VERSION=5.4.0
+BMINER_HUH=ae18e12
+
+mkdir /opt/bminer
+pushd /opt/bminer >/dev/null
+  wget https://www.bminercontent.com/releases/bminer-v${BMINER_VERSION}-${BMINER_HUH}-amd64.tar.xz
+  tar --xz -xf bminer-v${BMINER_VERSION}-${BMINER_HUH}-amd64.tar.xz
+  mv bminer-v${BMINER_VERSION}-${BMINER_HUH}/* ./
+  rm -R bminer-v${BMINER_VERSION}-${BMINER_HUH}*
+popd >/dev/null
+
+
+
+cd /opt/bminer ; ./bminer -uri stratum+ssl://albokiadt.ZCL-bminer@us-east.equihash-hub.miningpoolhub.com:20595
+# FIXME: [ERRO] [2018-04-15T16:28:33-04:00] Failed to initialize the NVMLSTATUS library. nvml: Driver/library version mismatch 
+
+#BMINER ZCL@mph
+#[INFO] [2018-02-20T09:59:42-05:00] Total 1451.02 Sol/s 775.79 Nonce/s Accepted shares 8 Rejected shares 0 
+#[INFO] [2018-02-20T09:59:53-05:00] [GPU 0] Speed: 484.45 Sol/s 259.34 Nonce/s Temp: 45C Power: 169W 2.87 Sol/J 
+#[INFO] [2018-02-20T09:59:53-05:00] [GPU 1] Speed: 484.13 Sol/s 259.37 Nonce/s Temp: 43C Power: 162W 2.99 Sol/J 
+#[INFO] [2018-02-20T09:59:54-05:00] [GPU 2] Speed: 484.46 Sol/s 259.37 Nonce/s Temp: 41C Power: 158W 3.07 Sol/J 
+
+
+
+#EWBF ZCL@mph
+#Temp: GPU0: 41C GPU1: 39C GPU2: 37C 
+#GPU0: 476 Sol/s GPU1: 473 Sol/s GPU2: 475 Sol/s 
+#Total speed: 1424 Sol/s
+#
+#Temp: GPU0: 42C GPU1: 40C GPU2: 38C 
+#GPU0: 472 Sol/s GPU1: 462 Sol/s GPU2: 463 Sol/s 
+#Total speed: 1397 Sol/s
+#
+#
+#BMINER BTG@mph
+#[INFO] [2018-02-20T13:14:14-05:00] [GPU 0] Speed: 483.46 Sol/s 259.54 Nonce/s Temp: 46C Power: 150W 3.22 Sol/J 
+#[INFO] [2018-02-20T13:14:14-05:00] [GPU 1] Speed: 487.46 Sol/s 260.08 Nonce/s Temp: 41C Power: 167W 2.92 Sol/J 
+#[INFO] [2018-02-20T13:14:15-05:00] [GPU 2] Speed: 488.01 Sol/s 260.18 Nonce/s Temp: 43C Power: 173W 2.82 Sol/J 
+#[INFO] [2018-02-20T13:14:16-05:00] [GPU 3] Speed: 485.27 Sol/s 260.09 Nonce/s Temp: 45C Power: 159W 3.05 Sol/J 
+#[INFO] [2018-02-20T13:14:29-05:00] Total 1944.20 Sol/s 1039.90 Nonce/s Accepted shares 153 Rejected shares 0 
+#
+#WhatToMine ratio 1944/1880 = 1.03%
+
+
+
+
+
+
+
+
+# EWBF
+#./miner --server na-zel.ragnarpool.ovh --user t1QpiKCkZxybwzN1CX4adbrGQjpmaJj4Ldt.ZEL-miner --pass x --port 2032 --cuda_devices 0 1 2 3 4 5
+
+# DSTM
+#./zm --server na-zel.ragnarpool.ovh --port 2032 --user t1QpiKCkZxybwzN1CX4adbrGQjpmaJj4Ldt.ZEL-miner --pass x 
