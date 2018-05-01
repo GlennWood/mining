@@ -16,7 +16,7 @@ Options:
 
   -h --help
   -v           verbose mode
-  -q           quiet mode
+  -q --quick   quick mode
   -X --dryrun  print the command, then exit
   -P --print   log the response of anything that is downloaded into
                  a local file (it's name will be listed on console)
@@ -62,7 +62,10 @@ def exec_operation_method(OP, METH):
         if config.VERBOSE: print(ex)
         print ("Module '"+OP+"' has no "+METH+"() method.", file=sys.stderr)
         sys.exit(1)
-    
+    except KeyboardInterrupt as ex:
+        if config.VERBOSE: print(ex)
+        print ("KeyboardInterrupt in '"+OP+":"+METH+"()' method.", file=sys.stderr)
+        sys.exit(1)
     return True
 ##################################################################################
 

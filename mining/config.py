@@ -40,6 +40,9 @@ class Config(object):
         if '--dryrun' in self.arguments:
             self.DRYRUN = self.arguments['--dryrun']
         else: self.DRYRUN = False
+        if '--quick' in self.arguments:
+            self.QUICK = self.arguments['--quick']
+        else: self.QUICK = False
 
         # Variables
         self.WORKER_NAME = ''
@@ -80,6 +83,9 @@ class Config(object):
                     if len(USER_PSW) > 1:
                         row['USER'] = USER_PSW[0]
                         row['PASSWORD'] = USER_PSW[1]
+                    else:
+                        row['USER'] = row['USER_PSW']
+                        row['PASSWORD'] = '' #None
 
                 prev_key = row[keys[0]].upper()
                 if prev_key: self.SHEETS[sheet_name][prev_key] = row

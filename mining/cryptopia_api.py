@@ -17,6 +17,14 @@ class Api(object):
     """ Represents a wrapper for cryptopia API """
 
     def __init__(self, key, secret):
+        if secret is None:
+            """Grabs API key and secret from file and returns them"""
+            with open(key) as secrets:
+                secrets_json = json.load(secrets)
+                secrets.close()
+            key = secrets_json['key']
+            secret = secrets_json['secret']
+
         self.key = key
         self.secret = secret
         self.public = ['GetCurrencies', 'GetTradePairs', 'GetMarkets',

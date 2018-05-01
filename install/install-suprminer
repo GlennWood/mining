@@ -6,16 +6,16 @@ apt-get -y install automake autotools-dev pkg-config libtool libcurl4-openssl-de
 [ -f /etc/profile.d/cuda.sh ] || /opt/mining/install/install-cuda
 
 pushd /opt
-  git clone https://github.com/KlausT/ccminer.git ccminer-KlausT
-  cd ccminer-KlausT
-  ### TODO: does this fix some bugs, and when should we return to branch 'windows'? 2018-01-18
-  git checkout cuda9
+  git clone https://github.com/ocminer/suprminer.git
+  cd suprminer
+  ### The README says:
+#  The recommended CUDA Toolkit version was the *6.5.19*, but some light algos could be
+#  faster with the version 7.5 and 8.0 (like lbry, decred and skein).
+  
 ### Ref: https://github.com/aria2/aria2/issues/120
 ### AUTOMAKE_OPTIONS or AM_INIT_AUTOMAKE([subdir-objects])
   ./autogen.sh
   ./configure
-# groestl_functions_quad.cu:243:18: error: macro "SHFL" passed 3 arguments, but takes just 2
-  sed -i.bak 's/SHFL[(]/SHFL_UP(/g' bitslice_transformations_quad.cu groestl_functions_quad.cu lyra2/cuda_lyra2v2.cu x11/cuda_x11_simd512.cu neoscrypt/cuda_neoscrypt_tpruvot.cu
   ./build.sh
   ./ccminer --ndevs
   [ -n "$RUN_ALL_TESTS" ] && ./ccminer --algo=neoscrypt --benchmark
