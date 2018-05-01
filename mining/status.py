@@ -3,7 +3,7 @@ import psutil
 
 ### TODO: ls -1stoh /var/log/mining/ETH-miner.*
 
-def get_status(coin,exclude_pids=[],exclude_cmdlines=[]):
+def get_status(coin, exclude_pids=[], exclude_cmdlines=[]):
 
     result = []
 
@@ -34,8 +34,6 @@ def get_status(coin,exclude_pids=[],exclude_cmdlines=[]):
 
 
 def process(self, config, coin):
-    if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
-
     pinfo = get_status(coin)
     if pinfo is None:
         if not config.ALL_COINS or config.VERBOSE:
@@ -50,11 +48,12 @@ def process(self, config, coin):
     
     # URL regex= s/.*(-\wpool|--server|-F|--url=)\s*([A-Za-z0-9./:_+-]{1,99}).*/\2/'
     print coin['COIN'] + ': ' + cmdline
-    return 0
+    return True
 
 def initialize(self, config, coin):
-    if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
+    #if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
+    return True
 
 def finalize(self, config, coin):
-    if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
-    return 0
+    #if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
+    return True

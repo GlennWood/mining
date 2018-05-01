@@ -38,25 +38,50 @@ from docopt import docopt
 config = config.Config(docopt(__doc__, argv=None, help=True, version=None, options_first=False))
 arguments = config.arguments
 
+### Verify that ticker exists, or that it is in the form "oldCoin:newCoin"
+def tickerInCoinMiners(config, METH, ticker):
+
+    if ticker in config.SHEETS['CoinMiners']:
+        return config.SHEETS['CoinMiners'][ticker]
+    
+    if ticker.find(':') >= 0: # Is it "oldCoin:newCoin"?
+        (oldCoin, newCoin) = ticker.split(':')
+        if oldCoin not in config.SHEETS['CoinMiners']:
+            if METH == 'initialize': # We want to print this only once
+                print ("Coin '" + oldCoin + "' is unknown.", file=sys.stderr)
+            return None
+        if newCoin not in config.SHEETS['CoinMiners']:
+            if METH == 'initialize': # We want to print this only once
+                print ("Coin '" + newCoin + "' is unknown.", file=sys.stderr)
+            return None
+        return [config.SHEETS['CoinMiners'][oldCoin], config.SHEETS['CoinMiners'][newCoin]]
+    else:
+        if METH == 'initialize': # We want to print this only once
+            print ("Coin '" + ticker + "' is unknown.", file=sys.stderr)
+            return None
+        
+        # This is a convenient place to generate WORKER_NAME
+        if config.SHEETS['CoinMiners'][ticker]['MINER'].strip():
+            hostN = socket.gethostname()
+            config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1]
+
+    return config.SHEETS['CoinMiners'][ticker]
+
 ###
 ### Iterate over all COINs (from commandline)
 ### Execute the given method (METH) of the given module (MOD)
 def exec_operation_method(OP, METH):
     try:
-        for ticker_ in arguments['COIN']:
-            ticker = ticker_.upper()
-            if ticker not in config.SHEETS['CoinMiners']:
-                print ("Coin '" + ticker + "' is unknown.", file=sys.stderr)
+        for ticker in arguments['COIN']:
+            
+            coin = tickerInCoinMiners(config, METH, ticker.upper())
+            if coin is None:
                 return False
-            else:
-                if config.SHEETS['CoinMiners'][ticker]['MINER'].strip():
-                    hostN = socket.gethostname()
-                    config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1]
-                module =  importlib.import_module(OP)
-                method = getattr(module, METH)
-                RC = method(module, config, config.SHEETS['CoinMiners'][ticker])
-      
-                if RC == config.ALL_MEANS_ONCE: break
+            module =  importlib.import_module(OP)
+            method = getattr(module, METH)
+            RC = method(module, config, coin)
+  
+            if RC == config.ALL_MEANS_ONCE: break
 
     except AttributeError as ex:
         if config.VERBOSE: print(ex)
@@ -77,10 +102,14 @@ OPS = arguments['OPERATION'].split(',')
 # TODO: Idea - make 'miners <coin>' behave like 'miners status <coin>'
 
 ### Execute finalize() on each OPERATION/COIN
-for OP in OPS: exec_operation_method(OP, 'initialize')
+success = True
+if success:
+    for OP in OPS: success &= exec_operation_method(OP, 'initialize')
 ### Loop over all OPERATIONs, applying each to all COINs
-for OP in OPS: exec_operation_method(OP, 'process')
+if success:
+    for OP in OPS: success &= exec_operation_method(OP, 'process')
 ### Execute finalize() on each OPERATION/COIN
-for OP in OPS: exec_operation_method(OP, 'finalize')
+if success:
+    for OP in OPS: success &= exec_operation_method(OP, 'finalize')
 
 ### EOF ##########################################################################
