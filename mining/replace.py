@@ -1,25 +1,48 @@
 import stop
 import start
 import status
+import time
+import sys
 
 def process(self, config, coin):
-    return config.ALL_MEANS_ONCE
 
-def initialize(self, config, coin):
-    #coins = coin.split(':')
-    pinfo = status.get_status(coin[0])
-    if pinfo is None:
-        if not config.ALL_COINS or config.VERBOSE:
-            print(coin[0]['COIN']+": There is no process mining "+coin[0]['COIN'])
-        return 1
     print "Stopping "+coin[0]['COIN']
+    stop.process(self, config, coin[0])
+
+    pinfo = status.get_status(coin[0])
+    t = 0
+    while pinfo is not None and t < 60:
+        t += 1
+        print('Waiting ... '+str(t)+' '),;sys.stdout.flush()
+        time.sleep(0.5)
+        print ('\r'),;sys.stdout.flush()
+        pinfo = status.get_status(coin[0])
+    if t >= 60:
+        print "FAIL: Process mining "+coin[0]['COIN']+" did not stop!"
+        return 1
+
+    print "Starting "+coin[1]['COIN']
+    start.process(self, config, coin[1])
     return 0
 
-def finalize(self, config, coin):
-    #coins = coin.split(':')
+def initialize(self, config, coin):
+
+    pinfo = status.get_status(coin[0])
+    if pinfo is None:
+        print(coin[0]['COIN']+": There is no process mining "+coin[0]['COIN'])
+        return 1
+
     pinfo = status.get_status(coin[1])
     if pinfo is not None:
         print(coin[1]['COIN']+": There is already a process mining "+coin[1]['COIN'])
         return 1
-    print "Starting "+coin[1]['COIN']
+
+    stop.initialize(self, config, coin)
+    start.initialize(self, config, coin)
+
+    return 0
+
+def finalize(self, config, coin):
+    start.finalize(self, config, coin)
+    stop.finalize(self, config, coin)
     return 0

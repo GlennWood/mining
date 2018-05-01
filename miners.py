@@ -82,6 +82,7 @@ def exec_operation_method(OP, METH):
             RC = method(module, config, coin)
   
             if RC == config.ALL_MEANS_ONCE: break
+            if RC != 0: return False
 
     except AttributeError as ex:
         if config.VERBOSE: print(ex)

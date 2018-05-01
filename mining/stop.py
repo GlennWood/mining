@@ -34,7 +34,7 @@ def process(self, config, coin):
             try:
                 os.kill(pinfo['pid'], signal.SIGKILL)
             except OSError:
-                print "You must be root to stop a miner; e.g. 'sudo kill SIGKILL " + str(pinfo['pid'])+"'"
+                print "You must be root to stop this "+coin['COIN']+" miner; e.g. 'sudo kill SIGKILL " + str(pinfo['pid'])+"'"
             '''
 Traceback (most recent call last):
   File "/usr/local/bin/miners", line 76, in <module>
@@ -45,10 +45,11 @@ Traceback (most recent call last):
     os.kill(pinfo['pid'], signal.SIGKILL)
 OSError: [Errno 1] Operation not permitted
 '''
-    return None
+    return 0
 
 def initialize(self, config, coin):
     if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
+    return 0
 
 def finalize(self, config, coin):
     if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")

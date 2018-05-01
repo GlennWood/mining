@@ -48,12 +48,12 @@ def process(self, config, coin):
     
     # URL regex= s/.*(-\wpool|--server|-F|--url=)\s*([A-Za-z0-9./:_+-]{1,99}).*/\2/'
     print coin['COIN'] + ': ' + cmdline
-    return True
+    return 0
 
 def initialize(self, config, coin):
     #if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
-    return True
+    return 0
 
 def finalize(self, config, coin):
     #if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
-    return True
+    return 0
