@@ -23,7 +23,6 @@ Options:
 """
 
 from __future__ import print_function
-import os
 import sys
 import socket
 sys.path.insert(0,'/opt/mining/mining')
@@ -42,6 +41,10 @@ arguments = config.arguments
 def tickerInCoinMiners(config, METH, ticker):
 
     if ticker in config.SHEETS['CoinMiners']:
+        # This is a convenient place to generate WORKER_NAME
+        if config.SHEETS['CoinMiners'][ticker]['MINER'].strip():
+            hostN = socket.gethostname()
+            config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1]
         return config.SHEETS['CoinMiners'][ticker]
     
     if ticker.find(':') >= 0: # Is it "oldCoin:newCoin"?
@@ -58,14 +61,7 @@ def tickerInCoinMiners(config, METH, ticker):
     else:
         if METH == 'initialize': # We want to print this only once
             print ("Coin '" + ticker + "' is unknown.", file=sys.stderr)
-            return None
-        
-        # This is a convenient place to generate WORKER_NAME
-        if config.SHEETS['CoinMiners'][ticker]['MINER'].strip():
-            hostN = socket.gethostname()
-            config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1]
-
-    return config.SHEETS['CoinMiners'][ticker]
+        return None
 
 ###
 ### Iterate over all COINs (from commandline)

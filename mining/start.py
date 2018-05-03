@@ -31,9 +31,9 @@ MINER_TO_BINARY = {
 
 def process(self, config, coin):
     if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
-
-    Clients = config.SHEETS['Clients']
     arguments = config.arguments
+
+    Clients = config.PLAT_COINS[config.PLATFORM]#config.SHEETS['Clients']
     coinKey = coin['COIN'].upper()
 
     miner = coin['MINER']
@@ -46,18 +46,22 @@ def process(self, config, coin):
     client = None
     if miner in Clients:
         client = Clients[miner]
+
         platform = client['PLATFORM']
         if platform != 'BTH' and platform != os.getenv('PLATFORM','BTH'):
             print >>sys.stderr, "Mining client "+client['MNEMONIC']+" does not work on this $PLATFORM="+os.getenv('PLATFORM','NONE')
             sys.exit(3)
+
         miner = client['EXECUTABLE']
         if options is '' and client['OPTIONS'] != None: options = client['OPTIONS']
         if client['CHDIR'] != None: cdDir = client['CHDIR']
+
     if cdDir is None:
         for miner_key in MINER_TO_CHDIR:
             if miner.find(miner_key) >= 0:
                 cdDir = MINER_TO_CHDIR[miner_key]
                 break
+
     if miner in MINER_TO_BINARY: miner = MINER_TO_BINARY[miner]
 
     # We have this way of handing all this off to SystemD ...

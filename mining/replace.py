@@ -33,7 +33,7 @@ def initialize(self, config, coin):
         return 1
 
     pinfo = status.get_status(coin[1])
-    if pinfo is not None:
+    if pinfo is not None and coin[0]['COIN'] is not coin[1]['COIN']:
         print(coin[1]['COIN']+": There is already a process mining "+coin[1]['COIN'])
         return 1
 

@@ -1,5 +1,6 @@
 import xlrd
 import re
+import os
 
 class Config(object):
 
@@ -30,7 +31,9 @@ class Config(object):
   
     def __init__(self, argumentsIn):
         self.arguments = argumentsIn
-        
+        self.PLATFORM = os.getenv('PLATFORM','BTH')
+        self.PLAT_COINS = {'AMD': None, 'NVI': None, 'BTH': None}
+
         # Command line options
         self.ALL_COINS = self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0
         self.VERBOSE = self.arguments['-v']
@@ -86,9 +89,15 @@ class Config(object):
                     else:
                         row['USER'] = row['USER_PSW']
                         row['PASSWORD'] = '' #None
-
+                    
                 prev_key = row[keys[0]].upper()
-                if prev_key: self.SHEETS[sheet_name][prev_key] = row
+                if prev_key: 
+                    self.SHEETS[sheet_name][prev_key] = row
+                    # Index each coinMiner under the applicable platform, AMD, NVI or BTH
+                    plat = row['PLAT']
+                    if plat is None or plat == '': plat = 'BTH'
+                    self.PLAT_COINS[plat][prev_key] = row
+
 
         if self.ALL_COINS: 
             self.arguments['COIN'] = [x.upper() for x in sorted(list(self.SHEETS['CoinMiners'].keys()))]   
