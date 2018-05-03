@@ -60,6 +60,7 @@ if [ "$PLATFORM" = "NVI" ] || ["$PLATFORM" = "BTH" ]; then
   /opt/mining/install/install-ethminer
   /opt/mining/install/install-ewbf
   /opt/mining/install/install-nheqminer
+  /opt/mining/install/install-suprminer
 fi
 
 ### Mining clients that work with both AMD and NVI
@@ -69,7 +70,7 @@ fi
 /opt/mining/install/install-optiminer-equihash
 
 # TODO: works with AMD only, but requires CUDA (?)
-/opt/mining/install/install-ccminer
+#/opt/mining/install/install-ccminer
 
 /opt/mining/install/install-monitor
 
