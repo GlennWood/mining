@@ -71,3 +71,4 @@ lspci|grep VGA
 cat >> /etc/profile.d/nvidia.sh << NVIDIA_SH
 export INSTALL_NVIDIA_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
 NVIDIA_SH
+chmod 0754 /etc/profile.d/nvidia.sh

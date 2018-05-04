@@ -40,28 +40,28 @@ arguments = config.arguments
 ### Verify that ticker exists, or that it is in the form "oldCoin:newCoin"
 def tickerInCoinMiners(config, METH, ticker):
 
-    if ticker in config.SHEETS['CoinMiners']:
+    coin = config.findTickerInPlatformCoinMiners(ticker)
+    if coin:
         # This is a convenient place to generate WORKER_NAME
-        if config.SHEETS['CoinMiners'][ticker]['MINER'].strip():
-            hostN = socket.gethostname()
-            config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1]
-        return config.SHEETS['CoinMiners'][ticker]
+        hostN = socket.gethostname()
+        config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1]
+        return coin
     
     if ticker.find(':') >= 0: # Is it "oldCoin:newCoin"?
         (oldCoin, newCoin) = ticker.split(':')
-        if oldCoin not in config.SHEETS['CoinMiners']:
-            if METH == 'initialize': # We want to print this only once
-                print ("Coin '" + oldCoin + "' is unknown.", file=sys.stderr)
+        if not config.findTickerInPlatformCoinMiners(oldCoin, METH == 'initialize'):
             return None
-        if newCoin not in config.SHEETS['CoinMiners']:
+        if not config.findTickerInPlatformCoinMiners(newCoin, METH == 'initialize'):
             if METH == 'initialize': # We want to print this only once
                 print ("Coin '" + newCoin + "' is unknown.", file=sys.stderr)
             return None
         return [config.SHEETS['CoinMiners'][oldCoin], config.SHEETS['CoinMiners'][newCoin]]
     else:
-        if METH == 'initialize': # We want to print this only once
-            print ("Coin '" + ticker + "' is unknown.", file=sys.stderr)
-        return None
+        coin = config.findTickerInCoinMiners(ticker, METH == 'initialize')
+        # TODO check that this general miner is applicable to this PLATFORM
+        if coin: return coin
+
+    return None
 
 ###
 ### Iterate over all COINs (from commandline)

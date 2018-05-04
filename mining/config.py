@@ -1,6 +1,8 @@
+from __future__ import print_function
 import xlrd
 import re
 import os
+import sys
 
 class Config(object):
 
@@ -32,7 +34,7 @@ class Config(object):
     def __init__(self, argumentsIn):
         self.arguments = argumentsIn
         self.PLATFORM = os.getenv('PLATFORM','BTH')
-        self.PLAT_COINS = {'AMD': None, 'NVI': None, 'BTH': None}
+        self.PLAT_COINS = {'AMD': {}, 'NVI': {}, 'BTH': {}}
 
         # Command line options
         self.ALL_COINS = self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0
@@ -92,14 +94,38 @@ class Config(object):
                     
                 prev_key = row[keys[0]].upper()
                 if prev_key: 
-                    self.SHEETS[sheet_name][prev_key] = row
                     # Index each coinMiner under the applicable platform, AMD, NVI or BTH
-                    plat = row['PLAT']
-                    if plat is None or plat == '': plat = 'BTH'
-                    self.PLAT_COINS[plat][prev_key] = row
+                    if sheet_name == 'CoinMiners':
+                        plat = row['PLAT']
+                        if plat is None or plat == '': plat = 'BTH'
+                        self.PLAT_COINS[plat][prev_key] = row
+                    # This one is deprecated since we want to use the PLATFORM specific version every time ...
+                    #   ... but that will have to wait for corrective coding later on where this dict is used.
+                    self.SHEETS[sheet_name][prev_key] = row
 
 
         if self.ALL_COINS: 
             self.arguments['COIN'] = [x.upper() for x in sorted(list(self.SHEETS['CoinMiners'].keys()))]   
 
         return [self.SHEETS['Stats'],self.StatsUrls,self.ConvertUrls,self.SHEETS['CoinMiners'],self.SHEETS['Clients']]
+
+    # Find the given ticker in the CoinMiners table for this PLATFORM
+    #   Return None if not found
+    #   If verbose=True: print error message if not found
+    def findTickerInPlatformCoinMiners(self, ticker, verbose=False):
+        if ticker and ticker in self.PLAT_COINS[self.PLATFORM]:
+            return self.PLAT_COINS[self.PLATFORM][ticker]
+        if self.PLATFORM == 'BTH':
+            return self.findTickerInCoinMiners(ticker, verbose)
+        if verbose: print ("Coin '" + ticker + "' is not configured for this platform='"+self.PLATFORM+"'.", file=sys.stderr)
+        return None
+
+    # Find the given ticker in the CoinMiners table, regardless of PLATFORM
+    #   Return None if not found
+    #   If verbose=True: print error message if not found
+    def findTickerInCoinMiners(self, ticker, verbose=False):
+        if ticker and ticker in self.SHEETS['CoinMiners']:
+            return self.SHEETS['CoinMiners'][ticker]
+        if verbose: print ("Coin '" + ticker + "' is not configured in miners.xslx/CoinMiners.", file=sys.stderr)
+        return None
+
