@@ -1,6 +1,8 @@
 import os
 import subprocess
 import start
+import status
+import socket
 
 def process(self, config, coin):
     global TAIL_LOG_FILES
@@ -18,7 +20,7 @@ TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(
      m  18:45:25|ethminer|  Speed 319.85 Mh/s    gpu/0 26.58  gpu/1 26.67  gpu/2 26.76  gpu/3 26.67  gpu/4 26.76  gpu/5 26.76  gpu/6 26.49  gpu/7 26.58  gpu/8 26.58  gpu/9 26.67  gpu/10 26.76  gpu/11 26.58  [A203+3:R0+0:F0] Time: 00:40
     
     '''
-
+        
     # We have this way of handing all this off to SystemD ...
     miner = coin['MINER']
     client = None
@@ -26,6 +28,23 @@ TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(
         client = config.SHEETS['Clients'][miner]
         miner = client['EXECUTABLE']
     if miner in start.MINER_TO_BINARY: miner = start.MINER_TO_BINARY[miner]
+    
+    # If no coins on command line, then list only those of currently running miners
+    if config.ALL_COINS:
+        pinfos = status.get_status(config.arguments['COIN'])
+        if pinfos is None:
+            return config.ALL_MEANS_ONCE
+        for pinfo in pinfos:
+            print(pinfo['coin'])
+            hostN = socket.gethostname()
+            WORKER_NAME = pinfo['coin'] + '-miner-' + hostN[len(hostN)-1]
+            for ext in ['.log','.err','.out']:
+                logName = '/var/log/mining/'+WORKER_NAME+ext
+                if os.path.isfile(logName):
+                    TAIL_LOG_FILES.append(logName)
+        return config.ALL_MEANS_ONCE
+
+
     if miner.endswith('.service'):
         TAIL_LOG_FILES = ['/bin/journalctl',  '-f']
     else:

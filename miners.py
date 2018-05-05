@@ -40,11 +40,12 @@ arguments = config.arguments
 ### Verify that ticker exists, or that it is in the form "oldCoin:newCoin"
 def tickerInCoinMiners(config, METH, ticker):
 
+    # This is a convenient place to generate WORKER_NAME
+    hostN = socket.gethostname()
+    config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1]
+
     coin = config.findTickerInPlatformCoinMiners(ticker)
     if coin:
-        # This is a convenient place to generate WORKER_NAME
-        hostN = socket.gethostname()
-        config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1]
         return coin
     
     if ticker.find(':') >= 0: # Is it "oldCoin:newCoin"?

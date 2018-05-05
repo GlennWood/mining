@@ -22,29 +22,28 @@ def process(self, config, coin):
             os.system(cmd)
         return 0
     
+    coins = []
+    if config.ALL_COINS:
+        coins = config.arguments['COIN']
+    else:
+        coins.append(coin['COIN'])
+    pinfos = status.get_status(coins)
 
-    pinfo = status.get_status(coin)
-    if pinfo is None:
+    if pinfos is None:
         print coin['COIN']+": There is no process mining "+coin['COIN']
         return 1
     else:
+        pids = ''
         if config.arguments['--dryrun']:
-            print "sudo kill SIGKILL " + str(pinfo['pid'])
+            for pinfo in pinfos:
+                pids += ' ' + str(pinfo['pid'])
+            print "sudo kill -s KILL" + pids
         else:
-            try:
-                os.kill(pinfo['pid'], signal.SIGKILL)
-            except OSError:
-                print "You must be root to stop this "+coin['COIN']+" miner; e.g. 'sudo kill -s KILL " + str(pinfo['pid'])+"'"
-            '''
-Traceback (most recent call last):
-  File "/usr/local/bin/miners", line 76, in <module>
-    for OP in arguments['OPERATION'].split(','): exec_operation_method(OP, 'process')
-  File "/usr/local/bin/miners", line 56, in exec_operation_method
-    RC = method(module, config, config.coin_dict[ticker])
-  File "/opt/mining/mining/stop.py", line 16, in process
-    os.kill(pinfo['pid'], signal.SIGKILL)
-OSError: [Errno 1] Operation not permitted
-'''
+            for pinfo in pinfos:
+                try:
+                    os.kill(pinfo['pid'], signal.SIGKILL)
+                except OSError:
+                    print "You must be root to stop this "+coin['COIN']+" miner; e.g. 'sudo kill -s KILL " + str(pinfo['pid'])+"'"
     return 0
 
 def initialize(self, config, coin):
