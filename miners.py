@@ -50,7 +50,7 @@ def tickerInCoinMiners(config, METH, ticker):
     
     if ticker.find(':') >= 0: # Is it "oldCoin:newCoin"?
         (oldCoin, newCoin) = ticker.split(':')
-        if not config.findTickerInPlatformCoinMiners(oldCoin, METH == 'initialize'):
+        if not config.findTickerInCoinMiners(oldCoin, METH == 'initialize'):
             return None
         if not config.findTickerInPlatformCoinMiners(newCoin, METH == 'initialize'):
             if METH == 'initialize': # We want to print this only once
