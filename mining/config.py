@@ -10,6 +10,7 @@ class Config(object):
     ALL_MEANS_ONCE = -11111
 
     SHEETS = {
+        'Globals': None,
         'CoinMiners': None,
         'Clients': None
         }
@@ -74,50 +75,67 @@ class Config(object):
             sheet = workbook.sheet_by_name(sheet_name)
             self.SHEETS[sheet_name] = {}
             keys = [sheet.cell(0, col_index).value for col_index in xrange(sheet.ncols)]
-            prev_key = ''
+            prev_key = None
             for row_index in xrange(1, sheet.nrows):
                 row = {keys[col_index]: sheet.cell(row_index, col_index).value 
-                     for col_index in xrange(sheet.ncols)}
+                    for col_index in xrange(sheet.ncols)}
 
-                # The CoinMiners sheet has a special way of enabling a wider OPTIONS cell
-                if sheet_name == 'CoinMiners':
-                    row['OPTIONS']='' # There is no OPTIONS column native to the CoinMiners sheet
-                    if not row['COIN'].strip() :
-                        #row['COIN'] = prev_key
-                        self.SHEETS[sheet_name][prev_key]['OPTIONS'] = row['MINER']
-                    # Provision $URL and $PORT as alternatives to $URL_PORT
-                    if self.URL_PORT:
-                        row['URL_PORT'] = self.URL_PORT
-                    regex = re.compile(r'(.*)[:]([0-9]{4,5})', re.DOTALL)
-                    match = regex.match(row['URL_PORT'])
-                    if match != None:
-                        row['URL'] = match.group(1)
-                        row['PORT'] = match.group(2)
-                    # Replace $USER_PSW, and/or $USER and $PSW, with configured value(s)
-                    USER_PSW = row['USER_PSW'].split(':')
-                    if len(USER_PSW) > 1:
-                        row['USER'] = USER_PSW[0]
-                        row['PASSWORD'] = USER_PSW[1]
-                    else:
-                        row['USER'] = row['USER_PSW']
-                        row['PASSWORD'] = '' #None
-                    
-                prev_key = row[keys[0]].upper()
-                if prev_key: 
-                    # Index each coinMiner under the applicable platform, AMD, NVI or BTH
-                    if sheet_name == 'CoinMiners':
-                        plat = row['PLAT']
-                        if plat is None or plat == '': plat = 'BTH'
-                        self.PLAT_COINS[plat][prev_key] = row
-                    # This one is deprecated since we want to use the PLATFORM specific version every time ...
-                    #   ... but that will have to wait for corrective coding later on where this dict is used.
-                    self.SHEETS[sheet_name][prev_key] = row
-
+                if sheet_name == 'CoinMiners': # CoinMiners' sheet is handled differently
+                    row, prev_key = self.setup_CoinMiners_dict(row, prev_key)
+                else:
+                    key = row[keys[0]]
+                    if key:
+                        self.SHEETS[sheet_name][key] = row
 
         if self.ALL_COINS: 
             self.arguments['COIN'] = [x.upper() for x in sorted(list(self.SHEETS['CoinMiners'].keys()))]   
 
         return [self.SHEETS['Stats'],self.StatsUrls,self.ConvertUrls,self.SHEETS['CoinMiners'],self.SHEETS['Clients']]
+
+    #
+    # The CoinMiners sheet enables a number of special configurable configurating.
+    #   1. The OPTIONS field is configured on a line following the main config (to give more room to spell out the OPTIONS)
+    #   2. The MINER can be specified as a key to the Clients spreadsheet to spell out the CoinMiner's options
+    #   2a. (this MNEMONICS capability is actually facilitated in the start option-module)
+    #
+    def setup_CoinMiners_dict(self, row, prev_key):
+        if prev_key is None and row['COIN'].strip():
+            prev_key = row['COIN'].upper()
+        # The CoinMiners sheet has a special way of enabling a wider OPTIONS cell
+        row['OPTIONS']='' # There is no OPTIONS column native to the CoinMiners sheet
+        if not row['COIN'].strip():
+            self.SHEETS['CoinMiners'][prev_key]['OPTIONS'] = row['MINER']
+            return row, prev_key
+        # Apply the '--url-port' command-line option, if exists.
+        if self.URL_PORT:
+            row['URL_PORT'] = self.URL_PORT
+        # Provision $URL and $PORT as alternatives to $URL_PORT
+        regex = re.compile(r'(.*)[:]([0-9]{4,5})', re.DOTALL)
+        match = regex.match(row['URL_PORT'])
+        if match != None:
+            row['URL'] = match.group(1)
+            row['PORT'] = match.group(2)
+        # Replace $USER_PSW, and/or $USER and $PSW, with configured value(s)
+        USER_PSW = row['USER_PSW'].split(':')
+        if len(USER_PSW) > 1:
+            row['USER'] = USER_PSW[0]
+            row['PASSWORD'] = USER_PSW[1]
+        else:
+            row['USER'] = row['USER_PSW']
+            row['PASSWORD'] = '' #None
+
+        prev_key = row['COIN']
+
+        #if prev_key: 
+        # Index each coinMiner under the applicable platform, AMD, NVI or BTH
+        plat = row['PLAT']
+        if plat is None or plat == '': plat = 'BTH'
+        self.PLAT_COINS[plat][prev_key] = row
+        # This one is deprecated since we want to use the PLATFORM specific version every time ...
+        #   ... but that will have to wait for corrective coding later on where this dict is used.
+        self.SHEETS['CoinMiners'][prev_key] = row
+
+        return row, prev_key
 
     # Find the given ticker in the CoinMiners table for this PLATFORM
     #   Return None if not found

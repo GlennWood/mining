@@ -33,7 +33,7 @@ def process(self, config, coin):
     if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
     arguments = config.arguments
 
-    Clients = config.PLAT_COINS[config.PLATFORM]#config.SHEETS['Clients']
+    Clients = config.SHEETS['Clients']
     coinKey = coin['COIN'].upper()
 
     miner = coin['MINER']
