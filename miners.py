@@ -1,18 +1,19 @@
 #!/usr/bin/python
 
-"""Usage: miners.py OPERATION [-vqrhgXP] [--gpus GPUS | --platform N] [--dryrun] [COIN] ...
+"""Usage: miners.py OPERATION [-vqrhgXP] [--gpus GPUS | --platform N] [--url-port UL] [--dryrun] [COIN] ...
 
 Apply OPERATION to the mining of designated COINs w
 
 Arguments:
-  OPERATION  start | stop | status | list | logs
+  OPERATION  start | stop | swap | status | list | logs | et.al.
                (a comma-separated list of OPERATIONs)
   COIN       Coin's symbol; defaults to all
                (multiple COINs may be specified)
 
 Options:
-  --platform N 0=AMD, 1=Nvidia, 2=both [default: 2]
-  --gpus GPUS  Comma separated list of GPU indexes
+  --platform N  0=AMD, 1=Nvidia, 2=both [default: 2]
+  --gpus GPUS   Comma separated list of GPU indexes
+  --url-port UL replace miners.xslx's URL_PORT value with UL
 
   -h --help
   -v           verbose mode
@@ -81,6 +82,12 @@ def exec_operation_method(OP, METH):
             if RC == config.ALL_MEANS_ONCE: break
             if RC != 0: return False
 
+
+
+    except ImportError as ex:
+        if config.VERBOSE: print(ex)
+        print ("Unknown operation '"+OP+"'.", file=sys.stderr)
+        sys.exit(1)        
     except AttributeError as ex:
         if config.VERBOSE: print(ex)
         print ("Module '"+OP+"' has no "+METH+"() method.", file=sys.stderr)

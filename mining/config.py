@@ -38,16 +38,24 @@ class Config(object):
 
         # Command line options
         self.ALL_COINS = self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0
+
         self.VERBOSE = self.arguments['-v']
         if '--print' in self.arguments:
             self.PRINT = self.arguments['--print']
         else: self.PRINT = False
+
         if '--dryrun' in self.arguments:
             self.DRYRUN = self.arguments['--dryrun']
         else: self.DRYRUN = False
+
         if '--quick' in self.arguments:
             self.QUICK = self.arguments['--quick']
         else: self.QUICK = False
+
+        if '--url-port' in self.arguments:
+            self.URL_PORT = self.arguments['--url-port']
+        else:
+            self.URL_PORT = None
 
         # Variables
         self.WORKER_NAME = ''
@@ -78,6 +86,8 @@ class Config(object):
                         #row['COIN'] = prev_key
                         self.SHEETS[sheet_name][prev_key]['OPTIONS'] = row['MINER']
                     # Provision $URL and $PORT as alternatives to $URL_PORT
+                    if self.URL_PORT:
+                        row['URL_PORT'] = self.URL_PORT
                     regex = re.compile(r'(.*)[:]([0-9]{4,5})', re.DOTALL)
                     match = regex.match(row['URL_PORT'])
                     if match != None:
