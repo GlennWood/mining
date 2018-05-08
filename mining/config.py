@@ -85,7 +85,7 @@ class Config(object):
                 else:
                     key = row[keys[0]]
                     if key:
-                        self.SHEETS[sheet_name][key] = row
+                        self.SHEETS[sheet_name][key.upper()] = row
 
         if self.ALL_COINS: 
             self.arguments['COIN'] = [x.upper() for x in sorted(list(self.SHEETS['CoinMiners'].keys()))]   
@@ -124,7 +124,7 @@ class Config(object):
             row['USER'] = row['USER_PSW']
             row['PASSWORD'] = '' #None
 
-        prev_key = row['COIN']
+        prev_key = row['COIN'].upper()
 
         #if prev_key: 
         # Index each coinMiner under the applicable platform, AMD, NVI or BTH
