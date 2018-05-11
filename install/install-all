@@ -20,7 +20,6 @@ pushd /opt/mining/install/
 ### OR, JUST copy GlennWood/mining/install/install-samba and use it ...
 chmod 0754 /opt/mining/install/install-*
 grep 'path = /opt/mining' /etc/samba/smb.conf >/dev/null 2>&1 || /opt/mining/install/install-samba $RIG_TAG
-### Now we can SAMBA copy GlennWood/mining/install/ into /opt/mining/install/
 chmod 0754 /opt/mining/install/install-*
 /opt/mining/install/install-python
 
@@ -55,30 +54,25 @@ if [ "$PLATFORM" = "NVI" ] || ["$PLATFORM" = "BTH" ]; then
     # or ./install-nvidia-and-cuda (or not; this is scripted, but hazardous if it goes wrong)
   # Mining clients that work with NVI only
   /opt/mining/install/install-bminer
-  /opt/mining/install/install-ccminer-KlausT
+  time /opt/mining/install/install-ccminer-KlausT
   /opt/mining/install/install-dstm
-  /opt/mining/install/install-ethminer
+  time /opt/mining/install/install-ethminer
   /opt/mining/install/install-ewbf
-  /opt/mining/install/install-nheqminer
-  /opt/mining/install/install-suprminer
+  time /opt/mining/install/install-nheqminer
+  time /opt/mining/install/install-suprminer
 fi
 
 ### Mining clients that work with both AMD and NVI
 ###/opt/mining/install/install-eth-proxy
 /opt/mining/install/install-ngsminer
-
 /opt/mining/install/install-optiminer-equihash
-
 # TODO: works with AMD only, but requires CUDA (?)
 #/opt/mining/install/install-ccminer
 
 /opt/mining/install/install-monitor
 
-
-reboot
-
 ### Clean up logs
-cd/opt/mining/install/va/opt/mining/install/log
+cd /opt/mining/install/log
 sudo su
 > lastlog
 > wtmp

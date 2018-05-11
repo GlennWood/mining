@@ -1,11 +1,17 @@
 #!/bin/bash
 
-### Ref: https://steemit.com/zencash/@masterdubs/mining-zencash-with-ubuntu-linux-and-gtx-1070
-DSTM_VER=0.3.4b
+### executable sha1 c5951521699e8f58f339a3a194a8896b27ebfba8
+### https://drive.google.com/file/d/1Q8kCklgXS9SctNARYyg48RXv4qEyUcQs
+### https://mega.nz/#!14IS2AbI!Zl9z9ZrWoNRGPQ59Fog15f4tIdPcT40u3fOMkVavHlo
 
-mkdir /opt/dstm
-pushd /opt/dstm
-  tar -zxf /opt/Downloads/zm_0.6.tar.gz
-  ln -sf /opt/dstm/zm /usr/local/bin/zm
-popd
-zm --version
+DSTM_VER=0.6
+if [ -f /opt/Downloads/zm_${DSTM_VER}.tar.gz ]; then
+	mkdir /opt/dstm
+	pushd /opt/dstm
+		tar -zxf /opt/Downloads/zm_${DSTM_VER}.tar.gz
+		ln -sf /opt/dstm/zm_${DSTM_VER}/zm /usr/local/bin/zm
+	popd
+	zm --version
+else
+	echo "You must download zm_${DSTM_VER}.tar.gz (aka dstm) from https://mega.nz/#!14IS2AbI!Zl9z9ZrWoNRGPQ59Fog15f4tIdPcT40u3fOMkVavHlo into /opt/Downloads, first"
+fi
