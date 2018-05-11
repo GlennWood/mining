@@ -1,6 +1,6 @@
 import subprocess
 import re
-import os.path
+from gpustat import GPUStatCollection
 
 ### FIXME: sometimes a rig ignores a gpu, and 'miners devices' ought to report that:
 '''
@@ -18,13 +18,9 @@ albokiadt@rig-Borg1:~$ lspci|grep VGA
 '''
 
 def process(self, config, coin):
-    #if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
-    #TODO os.system("lspci |grep 'VGA compatible controller'|grep -v 'Intel Corporation Device'")
-    #TODO a much more interesting report:  lshw -c video
-    
+
     devices = {}
-    # TODO: use 'lspci|grep VGA' to get list of cards plugged into PCIe; then we can go after each type appropriately
-    
+
     ### Scan AMD debug data
     '''
     root@rig-19X:~# cat /sys/kernel/debug/dri/*/amdgpu_pm_info|grep 'GFX Clocks and Power:' -A9
@@ -51,10 +47,6 @@ GFX Clocks and Power:
 GPU Temperature: 70 C
 GPU Load: 100 %
 
-    '''
-
-
-    '''
     $> rocm-smi
 ====================    ROCm System Management Interface    ====================
 ================================================================================
@@ -70,14 +62,12 @@ GPU Load: 100 %
     
     # Use rocm-smi to scan for AMD metrics
     try:
-        
         proc = subprocess.Popen(['rocm-smi'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
         out, err = proc.communicate(None)
         if err:
             if config.VERBOSE: print err
         else:
             lines = out.splitlines()
-            idx = 0
             for line in lines:
                 # 'GPU  Temp    AvgPwr   SCLK     MCLK     Fan      Perf    SCLK OD'
                 # ' 3   76.0c   144.222W 1411Mhz  2000Mhz  40.0%    auto      0%'
@@ -90,45 +80,13 @@ GPU Load: 100 %
     except OSError as ex:
         if config.arguments.get('-v'): print str(ex)
 
-    ### Scan for Nvidia devices' metrics using 'nvidia-smi'
-    ### TODO: a simpler temperature report: nvidia-smi -q -d temperature
-    try:
-        proc = subprocess.Popen(['nvidia-smi','-L'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-        outL, errL = proc.communicate(None)
-        # FIXME: what to do if you see this?
-        # "Unable to determine the device handle for gpu 0000:08:00.0: GPU is lost.  Reboot the system to recover this GPU"
-        # While bminer says: "ERROR: Looks like GPU5 are stuck he not respond." Ha!
-        if errL:
-            print errL
-            return 1
-        outLs = outL.splitlines()
-
-        proc = subprocess.Popen(['nvidia-smi'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-        out, err = proc.communicate(None)
-        if err:
-            print err
-            return 1
-        lines = out.splitlines()
-        idx = 0
-        for line in lines:
-            if '%' in line:
-                regex = re.compile(r'.*?%\s*([0-9]*)C.*?([0-9]*)W [/].*', re.DOTALL)
-                match = regex.match(line)
-                matches = [0,0]
-                if match is not None: matches = [match.group(1), match.group(2)]
-                regex = re.compile(r'GPU ([0-9A-F]+): ([^(]*).*', re.DOTALL)
-                match = regex.match(outLs[idx])
-                # TODO?: match.group(1) should be == idx, should't it?
-                if match is not None:
-                    matches.append(match.group(2))
-                else:
-                    matches.append('')
-                devices['NVI'+'0123456789ABCDEFGHIJK'[idx]] = matches
-                idx += 1
-
-    except OSError as ex:
-        if config.arguments.get('-v'): print str(ex)
-
+    ### Scan for Nvidia using gpustats.GPUStatCollection
+    gpu_stats = GPUStatCollection.new_query()
+    idx = 0
+    for gpu in gpu_stats:
+        devices['NVI'+'0123456789ABCDEFGHIJK'[idx]] = gpu
+        idx += 1
+    
     idxNVI = 0
     total_nvi_watts = 0
     total_amd_watts = 0
@@ -137,8 +95,9 @@ GPU Load: 100 %
             print device+' '+devices[device][0]+'C '+devices[device][1]+'W '+devices[device][3]+'Mhz'
             total_amd_watts += int(devices[device][1])
         else:
-            print("%s: %2sC %3sW %s"%(device, devices[device][0], devices[device][1], devices[device][2]))
-            total_nvi_watts += int(devices[device][1])
+            print("%s: %2sC %3sW %s"%(device,devices[device].temperature,devices[device].power_draw,devices[device].name))
+                #device, devices[device][0], devices[device][1], devices[device][2]))
+            total_nvi_watts += int(devices[device].power_draw)#devices[device][1])
             idxNVI += 1
     if total_nvi_watts != 0: print "TOTAL: "+str(total_nvi_watts)+' watts (NVI)'
     if total_amd_watts != 0: print "TOTAL: "+str(total_amd_watts)+' watts (AMD)'
