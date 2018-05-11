@@ -71,7 +71,8 @@ def tickerInCoinMiners(config, METH, ticker):
 def exec_operation_method(OP, METH):
     try:
         for ticker in arguments['COIN']:
-            
+            if config.I_AM_FORK: break
+
             coin = tickerInCoinMiners(config, METH, ticker.upper())
             if coin is None:
                 return False
@@ -81,8 +82,6 @@ def exec_operation_method(OP, METH):
   
             if RC == config.ALL_MEANS_ONCE: break
             if RC != 0: return False
-
-
 
     except ImportError as ex:
         if config.VERBOSE: print(ex)
@@ -114,7 +113,7 @@ if success:
 if success:
     for OP in OPS: success &= exec_operation_method(OP, 'process')
 ### Execute finalize() on each OPERATION/COIN
-if success:
+if success: 
     for OP in OPS: success &= exec_operation_method(OP, 'finalize')
 
 ### EOF ##########################################################################

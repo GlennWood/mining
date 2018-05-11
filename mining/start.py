@@ -1,6 +1,7 @@
 import os
 import sys
 import socket
+import time
 
 '''
 FIXME:
@@ -18,7 +19,7 @@ Ctrl-C ->  '16:54:03|ethminer|  Shutting down miners...'
 
 MINER_TO_CHDIR = {
     'optiminer-zcash': '/opt/optiminer-zcash',
-    'nsgminer': '/opt/nsgminer',
+    #'nsgminer': '/opt/nsgminer',
     'ccminer-KlausT': '/opt/ccminer-KlausT',
     'optiminer-equihash': '/opt/optiminer/optiminer-equihash',
     'zecminer64': '/opt/zecminer64',
@@ -95,7 +96,7 @@ def process(self, config, coin):
             gpus = '-cd '+ ' '.join(GPUS_LIST)
         elif miner.find('optiminer-equihash') >= 0:
             gpus = '-d '+ '-d '.join(GPUS_LIST)
-        elif miner.find('ccminer') >= 0:
+        elif miner.find('ccminer') >= 0 or miner.find('sgminer') >= 0:
             gpus = '-d '+ GPUS_WC
         elif miner.find('bminer') >= 0:
             # TODO: bminer apparently runs on a max of 4 gpus?
@@ -143,7 +144,10 @@ def process(self, config, coin):
         if config.VERBOSE: print cmd
         # Fork this!
         newpid = os.fork()
-        if newpid == 0: return 0
+        if newpid != 0: 
+            time.sleep(1.0)
+            return 0
+        config.I_AM_FORK = True # Do not loop to any more OPs in this fork.
 
         # Make sure we're in the right working directory for the miner
         if cdDir != None and cdDir.strip() != '': 

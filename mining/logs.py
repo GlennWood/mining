@@ -45,7 +45,8 @@ TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(
 
 
     if miner.endswith('.service'):
-        TAIL_LOG_FILES = ['/bin/journalctl',  '-f']
+        TAIL_LOG_FILES = ['/bin/journalctl',  '-f', '--utc']
+        # The '--utc' makes len(TAIL_LOG_FILES)>2 so it doesn't get passed over in finalize()
     else:
         for ext in ['.log','.err','.out']:
             logName = '/var/log/mining/'+config.WORKER_NAME+ext
@@ -54,7 +55,6 @@ TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(
     return 0
 
 def initialize(self, config, coin):
-    # TODO Idea - if ALL_COINS, select logs of running miners only
     global TAIL_LOG_FILES
     TAIL_LOG_FILES = ['/usr/bin/tail', '-f']
     if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
@@ -63,13 +63,13 @@ def initialize(self, config, coin):
 def finalize(self, config, coin):
     global TAIL_LOG_FILES
     if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
-    if len(TAIL_LOG_FILES) is 0: return config.ALL_MEANS_ONCE
+    if len(TAIL_LOG_FILES) <= 2: return config.ALL_MEANS_ONCE
     if config.DRYRUN:
         print ' '.join(TAIL_LOG_FILES)
     else:
         try:
             subprocess.call(TAIL_LOG_FILES)
         except KeyboardInterrupt:
-            if config.VERBOSE: print 'exit: miners logs '+' '.join(config.arguments['COIN'])
+            if config.VERBOSE: print 'KeyboardInterrupt: miners logs '+' '.join(config.arguments['COIN'])
 
     return config.ALL_MEANS_ONCE

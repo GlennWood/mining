@@ -8,6 +8,7 @@ class Config(object):
 
     MINERS_XLSX = '/opt/mining/miners.xlsx'
     ALL_MEANS_ONCE = -11111
+    I_AM_FORK = False
 
     SHEETS = {
         'Globals': None,
