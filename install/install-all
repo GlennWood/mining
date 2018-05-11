@@ -38,7 +38,6 @@ if [ "$PLATFORM" = "AMD" ] || [ "$PLATFORM" = "BTH" ]; then
   /opt/mining/install/install-amd-pro
   /opt/mining/install/install-opencl
   # Mining clients that work with AMD only
-  /opt/mining/install/install-ethdcrminer64
   /opt/mining/install/install-gatelessgate
   /opt/mining/install/install-optiminer-zcash
   /opt/mining/install/install-sgminer
@@ -63,7 +62,8 @@ if [ "$PLATFORM" = "NVI" ] || ["$PLATFORM" = "BTH" ]; then
 fi
 
 ### Mining clients that work with both AMD and NVI
-###/opt/mining/install/install-eth-proxy
+#/opt/mining/install/install-eth-proxy
+/opt/mining/install/install-ethdcrminer64
 /opt/mining/install/install-ngsminer
 /opt/mining/install/install-optiminer-equihash
 # TODO: works with AMD only, but requires CUDA (?)

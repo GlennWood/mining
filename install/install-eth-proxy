@@ -1,0 +1,12 @@
+#/bin/bash
+
+apt-get -y install python-twisted
+pushd /opt
+git clone https://github.com/Atrides/eth-proxy.git
+popd
+
+
+python /opt/eth-proxy/eth-proxy.py
+
+MINING_URL_PORT='http://192.168.1.164:8080'
+./ethminer --farm-recheck 200 -U -F $MINING_URL_PORT/$WORKER_NAME
