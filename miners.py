@@ -88,10 +88,10 @@ def exec_operation_method(OP, METH):
         if config.VERBOSE: print(ex)
         print ("Unknown operation '"+OP+"'.", file=sys.stderr)
         sys.exit(1)        
-    except AttributeError as ex:
-        if config.VERBOSE: print(ex)
-        print ("Module '"+OP+"' has no "+METH+"() method.", file=sys.stderr)
-        sys.exit(1)
+    #except AttributeError as ex:
+    #    if config.VERBOSE: print(ex)
+    #    print ("Module '"+OP+"' has no "+METH+"() method.", file=sys.stderr)
+    #    sys.exit(1)
     except KeyboardInterrupt as ex:
         if config.VERBOSE: print(ex)
         print ("KeyboardInterrupt in '"+OP+":"+METH+"()' method.", file=sys.stderr)

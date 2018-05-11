@@ -12,7 +12,8 @@ class Config(object):
     SHEETS = {
         'Globals': None,
         'CoinMiners': None,
-        'Clients': None
+        'Clients': None,
+        'WhatToMine': None
         }
     
 
@@ -22,6 +23,8 @@ class Config(object):
         # Substitute in reverse sequence of name's length
         keys = conf.keys() ; keys.sort(key=lambda item: (-len(item), item))
         for trans in xrange(0,2): # loop thrice to enable transitive substitutions
+            if trans>9:
+                print(rslt)
             for key in keys:
                 val = conf[key]
                 if val == '': continue
@@ -82,6 +85,8 @@ class Config(object):
 
                 if sheet_name == 'CoinMiners': # CoinMiners' sheet is handled differently
                     row, prev_key = self.setup_CoinMiners_dict(row, prev_key)
+                elif sheet_name == 'WhatToMine': # WhatToMine is keyed by column, not row
+                    self.SHEETS[sheet_name] = self.pivot_sheet(self.SHEETS[sheet_name], row, keys)
                 else:
                     key = row[keys[0]]
                     if key:
@@ -91,6 +96,23 @@ class Config(object):
             self.arguments['COIN'] = [x.upper() for x in sorted(list(self.SHEETS['CoinMiners'].keys()))]   
 
         return [self.SHEETS['Stats'],self.StatsUrls,self.ConvertUrls,self.SHEETS['CoinMiners'],self.SHEETS['Clients']]
+
+    '''
+    The miners.xslx/WhatToMine spreadsheet is mapped from the keys on the first
+    row into the columns under each key, so we do that way here rather than the 
+    default of first-column => columns (as above).
+    '''
+    def pivot_sheet(self, sheet, row, keys):
+        for key in keys:
+            if key == 'Param':
+                param = row[key]
+            else:
+                row_val = row[key]
+                if key not in sheet:
+                    sheet[key] = { }
+                sheet[key][param] = row_val
+        return sheet
+
 
     #
     # The CoinMiners sheet enables a number of special configurable configurating.
