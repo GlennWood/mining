@@ -40,6 +40,7 @@ def get_status(coin, exclude_pids=[], exclude_cmdlines=[]):
 
 
 def process(self, config, coin):
+    global COUNT_STATUS
     coins = []
     if config.ALL_COINS:
         coins = config.arguments['COIN']
@@ -61,12 +62,17 @@ def process(self, config, coin):
         
         # URL regex= s/.*(-\wpool|--server|-F|--url=)\s*([A-Za-z0-9./:_+-]{1,99}).*/\2/'
         print pinfo['coin'] + ': [' + str(pinfo['pid']) + '] ' + cmdline
+        COUNT_STATUS += 1
+
     return config.ALL_MEANS_ONCE
 
 def initialize(self, config, coin):
-    #if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
+    global COUNT_STATUS
+    COUNT_STATUS = 0
     return 0
 
 def finalize(self, config, coin):
-    #if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
+    global COUNT_STATUS
+    if COUNT_STATUS is 0:
+        config.RC_MAIN = 1
     return 0

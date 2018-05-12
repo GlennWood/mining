@@ -1,50 +1,56 @@
 import os
 import sys
-
-'''
-root@rig-19X:~# nvidia-smi -L
-GPU 0: GeForce GTX 1070 Ti (UUID: GPU-fb93da66-2fe6-d559-1673-e28d72cc996f)
-GPU 1: GeForce GTX 1070 Ti (UUID: GPU-189cf176-3185-2880-f049-594754bbcd16)
-GPU 2: GeForce GTX 1070 Ti (UUID: GPU-07f46ba7-8727-c538-373d-81e81db6d1e6)
-GPU 3: GeForce GTX 1070 (UUID: GPU-3fbd9994-bdfc-dc17-45ec-e691f3ad4a17)
-GPU 4: GeForce GTX 1070 (UUID: GPU-b9e933d0-5c48-19d3-2765-64cd8f54b7db)
-GPU 5: GeForce GTX 1070 (UUID: GPU-3e321474-214c-c305-a479-255a616c8e35)
-GPU 6: GeForce GTX 1070 Ti (UUID: GPU-292fec7a-5f82-2a5c-480c-24f60d1a8316)
-GPU 7: GeForce GTX 1070 (UUID: GPU-22d50ff2-2ae8-6e7f-b9fb-e6be717fa79b)
-'''
+from gpustat import GPUStatCollection
 
 
 def process(self, config, coin):
-    if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
 
-    cmd = 'overclock module is NYI'
-    try:
-        if config.VERBOSE: print cmd
-        # Fork this!
-        newpid = os.fork()
-        if newpid == 0: return 0
+    postfix = '-'+coin['COIN']
+    if config.ALL_COINS: postfix = ''
 
-        try: os.setsid()
-        except OSError as ex:# 'fork of './ccminer' failed: 1 (Operation not permitted)' 
-            newpid = newpid#  due to python's exception when you are already the group-leader ... 
-        os.umask(0)
-             
-        os.system(cmd)
+    gpu_stats = GPUStatCollection.new_query()
+    idx = 0
+    settings = 'sudo nvidia-settings -c :0'
+    nvidia_pwrs = { }
+    for gpu in gpu_stats:
+        if gpu.uuid.upper() in config.SHEETS['Overclock']:
+            dev = config.SHEETS['Overclock'][gpu.uuid.upper()]
+            uv = dev['UV']             # default undervolt (or watts-limit)
+            if 'UV'+postfix in dev:    # unless a coin-specific one is given
+                uv = dev['UV'+postfix]
+            oc = dev['OC']             # default overclock
+            if 'OC'+postfix in dev:    # unless a coin-specific one is given
+                oc = dev['OC'+postfix]
+            settings += ' -a "[gpu:'+str(idx)+']/GPUMemoryTransferRateOffset[3]='+str(int(oc))+'"'
+            iuv = int(uv)
+            if iuv in nvidia_pwrs:
+                nvidia_pwrs[iuv].append(str(idx))
+            else:
+                nvidia_pwrs[iuv] = [str(idx)]
+            idx += 1
 
-    except SystemExit as ex:
-        print "Exiting"
-    except OSError as ex:
-        print >> sys.stderr, "fork failed: %d (%s)" % (ex.errno, ex.strerror)
-        sys.exit(1)
-    except:
-        ex = sys.exc_info()[0]
-        print ( ex )
+    overclock_filename = os.getenv('LOG_RAMDISK','/var/local/ramdisk')+'/overclock-dryrun.sh'
+    with open(overclock_filename, 'w') as fh: 
+        for pwr in nvidia_pwrs:
+            fh.write("sudo nvidia-smi -i "+','.join(nvidia_pwrs[pwr])+" -pl "+str(pwr))
+            fh.write("\n")
+        fh.write(settings)
+        fh.write("\n")
 
+    if config.DRYRUN:
+        with open(overclock_filename, 'r') as fh:
+            print(fh.read())
+    else:
+        with open(os.getenv('LOG_RAMDISK','/var/local/ramdisk')+'/overclock.sh', 'w') as fh: 
+            for pwr in nvidia_pwrs:
+                fh.write("sudo nvidia-smi -i "+','.join(nvidia_pwrs[pwr])+" -pl "+str(pwr))
+        if config.VERBOSE: print(settings)
+        os.system(settings)
+
+    return config.ALL_MEANS_ONCE
 
 def initialize(self, config, coin):
-    if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
-    return 0
+    return config.ALL_MEANS_ONCE
 
 def finalize(self, config, coin):
-    if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
-    return 0
+    return config.ALL_MEANS_ONCE

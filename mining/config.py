@@ -9,12 +9,14 @@ class Config(object):
     MINERS_XLSX = '/opt/mining/miners.xlsx'
     ALL_MEANS_ONCE = -11111
     I_AM_FORK = False
+    RC_MAIN = 0
 
     SHEETS = {
         'Globals': None,
         'CoinMiners': None,
         'Clients': None,
-        'WhatToMine': None
+        'WhatToMine': None,
+        'Overclock': None
         }
     
 

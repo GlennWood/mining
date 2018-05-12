@@ -116,4 +116,6 @@ if success:
 if success: 
     for OP in OPS: success &= exec_operation_method(OP, 'finalize')
 
+sys.exit(config.RC_MAIN)
+
 ### EOF ##########################################################################

@@ -65,7 +65,7 @@ GPU Load: 100 %
         proc = subprocess.Popen(['rocm-smi'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
         out, err = proc.communicate(None)
         if err:
-            if config.VERBOSE: print err
+            if config.VERBOSE: print ("subprocess.Popen(['rocm-smi']) "+err)
         else:
             lines = out.splitlines()
             for line in lines:
@@ -95,7 +95,10 @@ GPU Load: 100 %
             print device+' '+devices[device][0]+'C '+devices[device][1]+'W '+devices[device][3]+'Mhz'
             total_amd_watts += int(devices[device][1])
         else:
-            print("%s: %2sC %3sW %s"%(device,devices[device].temperature,devices[device].power_draw,devices[device].name))
+            uuid = ''
+            if config.VERBOSE:
+                uuid = devices[device].uuid
+            print("%s: %2sC %3sW %s %s" % (device,devices[device].temperature,devices[device].power_draw,devices[device].name,uuid))
                 #device, devices[device][0], devices[device][1], devices[device][2]))
             total_nvi_watts += int(devices[device].power_draw)#devices[device][1])
             idxNVI += 1
