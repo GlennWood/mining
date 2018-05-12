@@ -53,6 +53,7 @@ if [ "$PLATFORM" = "NVI" ] || ["$PLATFORM" = "BTH" ]; then
     # or ./install-nvidia-and-cuda (or not; this is scripted, but hazardous if it goes wrong)
   # Mining clients that work with NVI only
   /opt/mining/install/install-bminer
+  time /opt/mining/install/install-ccminer
   time /opt/mining/install/install-ccminer-KlausT
   /opt/mining/install/install-dstm
   time /opt/mining/install/install-ethminer

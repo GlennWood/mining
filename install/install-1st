@@ -43,6 +43,7 @@ MINERS_USER=${MINERS_USER}
 RIG_TAG=$RIG_TAG
 PLATFORM=$PLATFORM
 LOG_DIR=/var/log/mining
+LOG_RAMDISK=/var/local/ramdisk
 NO_AT_BRIDGE=1
 ETC_ENVIRONMENT
 source /etc/environment
