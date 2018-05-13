@@ -1,14 +1,23 @@
-import os
-import sys
+import os.path
 from gpustat import GPUStatCollection
+import stat
+import filecmp
+import time
 
+### TODO: https://github.com/GPUOpen-Tools/GPA/blob/master/BUILD.md
 
 def process(self, config, coin):
 
     postfix = '-'+coin['COIN']
     if config.ALL_COINS: postfix = ''
 
-    gpu_stats = GPUStatCollection.new_query()
+    try:
+        gpu_stats = GPUStatCollection.new_query()     
+    except:
+        if not config.QUICK:
+            print("'miners overclock' is not implemented for AMD devices")
+        return config.ALL_MEANS_ONCE
+
     idx = 0
     settings = 'sudo nvidia-settings -c :0'
     nvidia_pwrs = { }
@@ -21,32 +30,45 @@ def process(self, config, coin):
             oc = dev['OC']             # default overclock
             if 'OC'+postfix in dev:    # unless a coin-specific one is given
                 oc = dev['OC'+postfix]
-            settings += ' -a "[gpu:'+str(idx)+']/GPUMemoryTransferRateOffset[3]='+str(int(oc))+'"'
-            iuv = int(uv)
-            if iuv in nvidia_pwrs:
-                nvidia_pwrs[iuv].append(str(idx))
-            else:
-                nvidia_pwrs[iuv] = [str(idx)]
+            if oc:
+                settings += ' -a "[gpu:'+str(idx)+']/GPUMemoryTransferRateOffset[3]='+str(int(oc))+'"'
+            if uv:
+                iuv = int(uv)
+                if iuv in nvidia_pwrs:
+                    nvidia_pwrs[iuv].append(str(idx))
+                else:
+                    nvidia_pwrs[iuv] = [str(idx)]
             idx += 1
 
-    overclock_filename = os.getenv('LOG_RAMDISK','/var/local/ramdisk')+'/overclock-dryrun.sh'
-    with open(overclock_filename, 'w') as fh: 
+    overclock_dryrun = os.getenv('LOG_RAMDISK','/var/local/ramdisk')+'/overclock-dryrun.sh'
+    with open(overclock_dryrun, 'w') as fh: 
         for pwr in nvidia_pwrs:
-            fh.write("sudo nvidia-smi -i "+','.join(nvidia_pwrs[pwr])+" -pl "+str(pwr))
+            cmd = "sudo nvidia-smi -i "+','.join(nvidia_pwrs[pwr])+" -pl "+str(pwr)
+            fh.write(cmd)
             fh.write("\n")
+            if config.VERBOSE: print(cmd)
         fh.write(settings)
         fh.write("\n")
+        if config.VERBOSE: print(cmd)
+    os.chmod(overclock_dryrun, stat.S_IXUSR|stat.S_IXGRP | stat.S_IWUSR|stat.S_IWGRP | stat.S_IRUSR|stat.S_IRGRP|stat.S_IROTH)
 
     if config.DRYRUN:
-        with open(overclock_filename, 'r') as fh:
+        with open(overclock_dryrun, 'r') as fh:
             print(fh.read())
     else:
-        with open(os.getenv('LOG_RAMDISK','/var/local/ramdisk')+'/overclock.sh', 'w') as fh: 
-            for pwr in nvidia_pwrs:
-                fh.write("sudo nvidia-smi -i "+','.join(nvidia_pwrs[pwr])+" -pl "+str(pwr))
-        if config.VERBOSE: print(settings)
-        os.system(settings)
+        overclock_filename = os.getenv('LOG_RAMDISK','/var/local/ramdisk')+'/overclock.sh'
+        if os.path.isfile(overclock_filename) and filecmp.cmp(overclock_dryrun, overclock_filename):
+            timestamp = time.ctime(os.path.getctime(overclock_filename))
+            if not config.QUICK:
+                print("Overclock settings are identical to those already set at '"+timestamp+"', so we are skipping it.")
+        else:
+            os.rename(overclock_dryrun, overclock_filename)
+            if config.VERBOSE:
+                with open(overclock_filename, 'r') as fh:
+                    print(fh.read())
+            os.system(overclock_filename)
 
+    if os.path.isfile(overclock_dryrun): os.remove(overclock_dryrun)
     return config.ALL_MEANS_ONCE
 
 def initialize(self, config, coin):

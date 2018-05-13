@@ -102,19 +102,16 @@ def exec_operation_method(OP, METH):
 ##################################################################################
 ### MAIN #########################################################################
 
-OPS = arguments['OPERATION'].split(',')
-# TODO: Idea - make 'miners <coin>' behave like 'miners status <coin>'
-
 ### Execute finalize() on each OPERATION/COIN
 success = True
 if success:
-    for OP in OPS: success &= exec_operation_method(OP, 'initialize')
+    for OP in config.OPS: success &= exec_operation_method(OP, 'initialize')
 ### Loop over all OPERATIONs, applying each to all COINs
 if success:
-    for OP in OPS: success &= exec_operation_method(OP, 'process')
+    for OP in config.OPS: success &= exec_operation_method(OP, 'process')
 ### Execute finalize() on each OPERATION/COIN
 if success: 
-    for OP in OPS: success &= exec_operation_method(OP, 'finalize')
+    for OP in config.OPS: success &= exec_operation_method(OP, 'finalize')
 
 sys.exit(config.RC_MAIN)
 

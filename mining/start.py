@@ -144,9 +144,10 @@ def process(self, config, coin):
         if config.VERBOSE: print cmd
         # Fork this!
         newpid = os.fork()
-        if newpid != 0: 
-            time.sleep(1.0)
-            return 0
+        if newpid != 0:
+            if config.OPS > 1:  # If there are more OPs on the command line, it might be
+                time.sleep(1.0) # prudent to wait a second before proceeding with them.
+            return 0 
         config.I_AM_FORK = True # Do not loop to any more OPs in this fork.
 
         # Make sure we're in the right working directory for the miner

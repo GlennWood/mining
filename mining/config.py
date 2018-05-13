@@ -44,6 +44,7 @@ class Config(object):
         self.PLAT_COINS = {'AMD': {}, 'NVI': {}, 'BTH': {}}
 
         # Command line options
+        self.OPS = self.arguments['OPERATION'].split(',')
         self.ALL_COINS = self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0
 
         self.VERBOSE = self.arguments['-v']
