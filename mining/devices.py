@@ -81,7 +81,12 @@ GPU Load: 100 %
         if config.arguments.get('-v'): print str(ex)
 
     ### Scan for Nvidia using gpustats.GPUStatCollection
-    gpu_stats = GPUStatCollection.new_query()
+    gpu_stats = None
+    try:
+        gpu_stats = GPUStatCollection.new_query()     
+    except:
+        gpu_stats = [ ]
+
     idx = 0
     for gpu in gpu_stats:
         devices['NVI'+'0123456789ABCDEFGHIJK'[idx]] = gpu

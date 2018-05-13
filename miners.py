@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-"""Usage: miners.py OPERATION [-vqrhgXP] [--gpus GPUS | --platform N] [--url-port UL] [--dryrun] [COIN] ...
+"""Usage: miners.py OPERATION [-vqrhgXP] [--gpus GPUS | --platform typ] [--url-port UL] [--scope scope] [--dryrun] [COIN] ...
 
 Apply OPERATION to the mining of designated COINs w
 
@@ -11,9 +11,10 @@ Arguments:
                (multiple COINs may be specified)
 
 Options:
-  --platform N  0=AMD, 1=Nvidia, 2=both [default: 2]
+  --platform typ  AMD, NVI, BTH [default: BTH]
   --gpus GPUS   Comma separated list of GPU indexes
   --url-port UL replace miners.xslx's URL_PORT value with UL
+  --scope scope list of hosts, or ALL
 
   -h --help
   -v           verbose mode

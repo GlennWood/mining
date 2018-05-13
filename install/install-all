@@ -7,8 +7,8 @@
 		exit;
 	fi
 
-RIG_TAG=${1:-BORG-B}
-[ -z "$CREATE_DATE_MINERS" ] && /opt/mining/install/install--ME-first albokiadt $RIG_TAG && source /etc/environment
+RIG_TAG=${1:-RIG_TAG}
+[ -z "$CREATE_DATE_MINERS" ] && /opt/mining/install/install-1st ${2:albokiadt} $RIG_TAG && source /etc/environment
 
 ### Ref: Interesting recipes, all languages https://github.com/ActiveState/code/tree/master/recipes
 ### TODO Connect To Wifi From The Linux Command Line
