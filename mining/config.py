@@ -3,6 +3,7 @@ import xlrd
 import re
 import os
 import sys
+import jprops
 
 class Config(object):
 
@@ -19,62 +20,39 @@ class Config(object):
         'Overclock': None
         }
     
-
-    def substitute(self, row_id, arg):
-        rslt = arg
-        conf = self.SHEETS['CoinMiners'][row_id]
-        # Substitute in reverse sequence of name's length
-        keys = conf.keys() ; keys.sort(key=lambda item: (-len(item), item))
-        for trans in xrange(0,2): # loop thrice to enable transitive substitutions
-            if trans>9:
-                print(rslt)
-            for key in keys:
-                val = conf[key]
-                if val == '': continue
-                # Substitute both '$NAME" and '<NAME>'
-                rslt = rslt.replace('$'+key,val).replace('<'+key+'>',val)
-        return rslt
-
-    def get_arguments(self):
-        return self.arguments
-  
     def __init__(self, argumentsIn):
         self.arguments = argumentsIn
-        self.PLATFORM = os.getenv('PLATFORM','BTH')
+
+        # Global Variables
         self.PLAT_COINS = {'AMD': {}, 'NVI': {}, 'BTH': {}}
-
-        # Command line options
-        self.OPS = self.arguments['OPERATION'].split(',')
-        self.ALL_COINS = self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0
-
-        self.VERBOSE = self.arguments['-v']
-        if '--print' in self.arguments:
-            self.PRINT = self.arguments['--print']
-        else: self.PRINT = False
-
-        if '--dryrun' in self.arguments:
-            self.DRYRUN = self.arguments['--dryrun']
-        else: self.DRYRUN = False
-
-        if '--quick' in self.arguments:
-            self.QUICK = self.arguments['--quick']
-        else: self.QUICK = False
-
-        if '--url-port' in self.arguments:
-            self.URL_PORT = self.arguments['--url-port']
-        else:
-            self.URL_PORT = None
-
-        # Variables
         self.WORKER_NAME = ''
         self.StatsUrls = {}
         self.ConvertUrls = {}
     
-        self.setup_stats_dict()
+        # Command line options, values
+        self.OPS = self.arguments['OPERATION'].split(',')
+        if '--platform' in self.arguments:
+            self.PLATFORM = self.arguments['--platform']
+        else:
+            self.PLATFORM = os.getenv('PLATFORM','BTH')
+        if '--url-port' in self.arguments: self.URL_PORT = self.arguments['--url-port']
+        self.ALL_COINS = self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0
+
+        # Command line options, booleans
+        self.URL_PORT = self.SCOPE = None
+        self.VERBOSE = self.arguments['-v']
+        self.PRINT   =  self.arguments['--print']
+        self.DRYRUN  =  self.arguments['--dryrun']
+        self.QUICK   =  self.arguments['--quick']
+        self.SCOPE   =  self.arguments['--scope']
+     
+        self.setup_config_dicts()
+        self.setup_ansible_config()
         return
   
-  
-    def setup_stats_dict(self):
+
+    # Parse sheets from miners.xslx
+    def setup_config_dicts(self):
 
         # Put Stats sheet into stats_dict
         workbook = xlrd.open_workbook(self.MINERS_XLSX)
@@ -163,6 +141,45 @@ class Config(object):
 
         return row, prev_key
 
+    # Configurations from ansible
+    def setup_ansible_config(self):
+        ansibleFilename = '/etc/ansible/hosts'
+        self.ANSIBLE_HOSTS = { }
+   
+        try:
+            # jprops does a good job of handling the minutiae of parsing a properties file, but
+            #   it does not handle sections. So we use a hacky wrapper on jprops to do that.
+            lines = open(ansibleFilename).read().splitlines()
+            section = 'default'
+            fo = open('/var/local/ramdisk/ansible.'+section+'.ini', 'w')
+            for line in lines:
+                regex = re.compile(r'[[]([^]]*)[]]', re.DOTALL)
+                match = regex.match(line)
+                if match:
+                    fo.close()
+                    section = match.group(1)
+                    fo = open('/var/local/ramdisk/ansible.'+section+'.ini', 'w')
+                else:
+                    fo.write(line+"\n")
+            fo.close()
+
+            ansibleMinersFilename = '/var/local/ramdisk/ansible.miners.ini'
+            with open(ansibleMinersFilename) as fh:
+                for ip, value in jprops.iter_properties(fh):
+                    (hostname, platform) = value.strip().split(' ')
+                    hostname = hostname.split('=')[1]
+                    platform = platform.split('=')[1]
+                    self.ANSIBLE_HOSTS[hostname] = {'hostname': hostname, 'platform': platform, 'ip': ip}
+
+        except IOError as ex:
+            print(str(ex))
+        except AttributeError as ex:
+            print(ansibleFilename+' format is invalid (for miners).' + str(ex))
+        except:
+            print ( sys.exc_info()[0] )
+
+        if self.VERBOSE: print(ansibleFilename+': '+str(self.ANSIBLE_HOSTS))
+
     # Find the given ticker in the CoinMiners table for this PLATFORM
     #   Return None if not found
     #   If verbose=True: print error message if not found
@@ -183,3 +200,18 @@ class Config(object):
         if verbose: print ("Coin '" + ticker + "' is not configured in miners.xslx/CoinMiners.", file=sys.stderr)
         return None
 
+
+    def substitute(self, row_id, arg):
+        rslt = arg
+        conf = self.SHEETS['CoinMiners'][row_id]
+        # Substitute in reverse sequence of name's length
+        keys = conf.keys() ; keys.sort(key=lambda item: (-len(item), item))
+        for trans in xrange(0,2): # loop thrice to enable transitive substitutions
+            if trans>9:
+                print(rslt)
+            for key in keys:
+                val = conf[key]
+                if val == '': continue
+                # Substitute both '$NAME" and '<NAME>'
+                rslt = rslt.replace('$'+key,val).replace('<'+key+'>',val)
+        return rslt
