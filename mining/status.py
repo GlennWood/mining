@@ -1,3 +1,5 @@
+from __future__ import print_function
+import subprocess
 import re
 import psutil
 import types
@@ -41,6 +43,9 @@ def get_status(coin, exclude_pids=[], exclude_cmdlines=[]):
 
 def process(self, config, coin):
     global COUNT_STATUS
+    if config.SCOPE:
+        return process_scope(self,config, coin)
+
     coins = []
     if config.ALL_COINS:
         coins = config.arguments['COIN']
@@ -59,12 +64,32 @@ def process(self, config, coin):
         match = regex.match(cmdline)
         if not match is None and match.lastindex is 4 and not 'c=' in match.group(3):
             cmdline = match.group(1)+match.group(2)+'{x} '+match.group(4)
-        
+
         # URL regex= s/.*(-\wpool|--server|-F|--url=)\s*([A-Za-z0-9./:_+-]{1,99}).*/\2/'
-        print pinfo['coin'] + ': [' + str(pinfo['pid']) + '] ' + cmdline
+        print(pinfo['coin'] + ': [' + str(pinfo['pid']) + '] ' + cmdline)
         COUNT_STATUS += 1
 
     return config.ALL_MEANS_ONCE
+
+# Handle 'status' operation within the given --scope
+def process_scope(self, config, coin):
+    for key in config.ANSIBLE_HOSTS:
+        host = config.ANSIBLE_HOSTS[key]
+        if config.SCOPE.upper() == 'ALL' or config.SCOPE.upper() in host['hostname'].upper():
+            proc = subprocess.Popen(['ssh', '-l', config.SHEETS['Globals']['MINERS_USER']['VALUE'], '-o', 'StrictHostKeyChecking=no', 
+                        host['ip'], 'miners', 'status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+            out, err = proc.communicate(None)
+            if out:
+                hostname = '['+host['hostname']+']            '
+                for ln in out.split('\n'):
+                    print("%.12s %s"%(hostname+'            ', ln.rstrip()))
+                    hostname = '            '
+            if err:
+                hostname = '['+host['hostname']+']            '
+                for ln in out.split('\n'):
+                    print("%.12s %s"%(hostname+'            ', err.rstrip()))
+                    hostname = '            '
+
 
 def initialize(self, config, coin):
     global COUNT_STATUS
