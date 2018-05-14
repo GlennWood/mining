@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-"""Usage: miners.py OPERATION [-vqrhgXP] [--gpus GPUS | --platform typ] [--url-port UL] [--scope scope] [--dryrun] [COIN] ...
+"""Usage: miners.py OPERATION [-vqrhglXP] [--gpus GPUS | --platform typ] [--url-port UL] [--scope scope] [--dryrun] [COIN] ...
 
 Apply OPERATION to the mining of designated COINs w
 
@@ -16,6 +16,7 @@ Options:
   --url-port UL replace miners.xslx's URL_PORT value with UL
   --scope scope list of hosts, or ALL
 
+  -l           do not truncate lines long than consol width
   -h --help
   -v           verbose mode
   -q --quick   quick mode
@@ -88,10 +89,6 @@ def exec_operation_method(OP, METH):
         if config.VERBOSE: print(ex)
         print ("Unknown operation '"+OP+"'.", file=sys.stderr)
         sys.exit(1)        
-    #except AttributeError as ex:
-    #    if config.VERBOSE: print(ex)
-    #    print ("Module '"+OP+"' has no "+METH+"() method.", file=sys.stderr)
-    #    sys.exit(1)
     except KeyboardInterrupt as ex:
         if config.VERBOSE: print(ex)
         print ("KeyboardInterrupt in '"+OP+":"+METH+"()' method.", file=sys.stderr)

@@ -40,11 +40,12 @@ class Config(object):
 
         # Command line options, booleans
         self.URL_PORT = self.SCOPE = None
-        self.VERBOSE = self.arguments['-v']
-        self.PRINT   =  self.arguments['--print']
-        self.DRYRUN  =  self.arguments['--dryrun']
-        self.QUICK   =  self.arguments['--quick']
-        self.SCOPE   =  self.arguments['--scope']
+        self.VERBOSE  = self.arguments['-v']
+        self.PRINT    = self.arguments['--print']
+        self.DRYRUN   = self.arguments['--dryrun']
+        self.QUICK    = self.arguments['--quick']
+        self.SCOPE    = self.arguments['--scope']
+        self.WIDE_OUT = self.arguments['-l']
      
         self.setup_config_dicts()
         self.setup_ansible_config()

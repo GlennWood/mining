@@ -73,6 +73,7 @@ def process(self, config, coin):
 
 # Handle 'status' operation within the given --scope
 def process_scope(self, config, coin):
+    sttyColumns = int(subprocess.check_output(['stty', 'size']).split()[1])
     for key in config.ANSIBLE_HOSTS:
         host = config.ANSIBLE_HOSTS[key]
         if config.SCOPE.upper() == 'ALL' or config.SCOPE.upper() in host['hostname'].upper():
@@ -82,7 +83,13 @@ def process_scope(self, config, coin):
             if out:
                 hostname = '['+host['hostname']+']            '
                 for ln in out.split('\n'):
-                    print("%.12s %s"%(hostname+'            ', ln.rstrip()))
+                    ln = ln.rstrip()
+                    regex = re.compile(r'(.*?)[[][^]]*[]](.*)', re.DOTALL)
+                    match = regex.match(ln)
+                    if match and match.lastindex is 2: ln = match.group(1) + match.group(2)
+                    if ln:
+                        if not config.WIDE_OUT and len(ln) > sttyColumns: ln = ln[0:sttyColumns-16]+'...'
+                        print("%.12s %s"%(hostname+'            ', ln))
                     hostname = '            '
             if err:
                 hostname = '['+host['hostname']+']            '
