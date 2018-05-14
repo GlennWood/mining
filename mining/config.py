@@ -46,6 +46,7 @@ class Config(object):
         self.QUICK    = self.arguments['--quick']
         self.SCOPE    = self.arguments['--scope']
         self.WIDE_OUT = self.arguments['-l']
+        self.FORCE    = self.arguments['--force']
      
         self.setup_config_dicts()
         self.setup_ansible_config()

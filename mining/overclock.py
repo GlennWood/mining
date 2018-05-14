@@ -1,25 +1,29 @@
 import os.path
 from gpustat import GPUStatCollection
+import status
 import stat
 import filecmp
 import time
-
-### TODO: https://github.com/GPUOpen-Tools/GPA/blob/master/BUILD.md
 
 def process(self, config, coin):
 
     postfix = '-'+coin['COIN']
     if config.ALL_COINS: postfix = ''
 
+    if not config.FORCE and status.get_status(None):
+        print("A miner is currently running, so we are skipping overclocking (use -f to force).")
+        return config.ALL_MEANS_ONCE
+
     try:
         gpu_stats = GPUStatCollection.new_query()     
     except:
         if not config.QUICK:
+            ### TODO: https://github.com/GPUOpen-Tools/GPA/blob/master/BUILD.md
             print("'miners overclock' is not implemented for AMD devices")
         return config.ALL_MEANS_ONCE
 
     idx = 0
-    settings = 'sudo nvidia-settings -c :0'
+    settings = 'nvidia-settings -c :0'
     nvidia_pwrs = { }
     for gpu in gpu_stats:
         if gpu.uuid.upper() in config.SHEETS['Overclock']:
@@ -42,9 +46,10 @@ def process(self, config, coin):
 
     overclock_dryrun = os.getenv('LOG_RAMDISK','/var/local/ramdisk')+'/overclock-dryrun.sh'
     with open(overclock_dryrun, 'w') as fh: 
+        fh.write('%s\n'%('nvidia-smi -pm 1'))
         for pwr in nvidia_pwrs:
-            cmd = "sudo nvidia-smi -i "+','.join(nvidia_pwrs[pwr])+" -pl "+str(pwr)
-            fh.write(cmd)
+            cmd = "nvidia-smi -i "+','.join(nvidia_pwrs[pwr])+" -pl "+str(pwr)
+            fh.write('%s\n'%(cmd))
             fh.write("\n")
             if config.VERBOSE: print(cmd)
         fh.write(settings)
@@ -57,7 +62,7 @@ def process(self, config, coin):
             print(fh.read())
     else:
         overclock_filename = os.getenv('LOG_RAMDISK','/var/local/ramdisk')+'/overclock.sh'
-        if os.path.isfile(overclock_filename) and filecmp.cmp(overclock_dryrun, overclock_filename):
+        if not config.FORCE and os.path.isfile(overclock_filename) and filecmp.cmp(overclock_dryrun, overclock_filename):
             timestamp = time.ctime(os.path.getctime(overclock_filename))
             if not config.QUICK:
                 print("Overclock settings are identical to those already set at '"+timestamp+"', so we are skipping it.")
@@ -66,7 +71,7 @@ def process(self, config, coin):
             if config.VERBOSE:
                 with open(overclock_filename, 'r') as fh:
                     print(fh.read())
-            os.system(overclock_filename)
+            os.system("sudo /bin/bash "+overclock_filename)
 
     if os.path.isfile(overclock_dryrun): os.remove(overclock_dryrun)
     return config.ALL_MEANS_ONCE

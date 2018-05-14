@@ -2,24 +2,11 @@ import os
 import sys
 import socket
 import time
-
-'''
-FIXME:
-
-05:33:47|stratum |  Received new job 6e98a77c, from daggerhashimoto.usa.nicehash.com
-  05:33:49|cuda-6  |  Fatal GPU error: CUDA error in func search at line 504 unspecified launch failure
-  05:33:49|cuda-6  |  Terminating.
-  05:33:49|cuda-11 |  Fatal GPU error: CUDA error in func search at line 504 unspecified launch failure
-root@rig-19X:/opt/ethminer/build# 
-root@rig-19X:/opt/ethminer/build# ethminer -SP 2 -U -S daggerhashimoto.usa.nicehash.com:3353 -O 346u4oMvACtZQK9RASzcgYoZwX4JaAd3Pi.NICEHASH-ETHASH-miner:x
-
-Ctrl-C ->  '16:54:03|ethminer|  Shutting down miners...'
-'''
+import overclock
 
 
 MINER_TO_CHDIR = {
     'optiminer-zcash': '/opt/optiminer-zcash',
-    #'nsgminer': '/opt/nsgminer',
     'ccminer-KlausT': '/opt/ccminer-KlausT',
     'optiminer-equihash': '/opt/optiminer/optiminer-equihash',
     'zecminer64': '/opt/zecminer64',
@@ -139,6 +126,11 @@ def process(self, config, coin):
     if config.DRYRUN:
         print cmd
         return 0
+
+    # Set overclocking for this coin
+    overclock.initialize(self, config, coin)
+    overclock.process(self, config, coin)
+    overclock.finalize(self, config, coin)
 
     try:
         if config.VERBOSE: print cmd

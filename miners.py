@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-"""Usage: miners.py OPERATION [-vqrhglXP] [--gpus GPUS | --platform typ] [--url-port UL] [--scope scope] [--dryrun] [COIN] ...
+"""Usage: miners.py OPERATION [-fghlqrXPv] [--gpus GPUS | --platform typ] [--url-port UL] 
+                [--scope scope] [--force] [--dryrun] [COIN] ...
 
 Apply OPERATION to the mining of designated COINs w
 
@@ -14,9 +15,11 @@ Options:
   --platform typ  AMD, NVI, BTH [default: BTH]
   --gpus GPUS   Comma separated list of GPU indexes
   --url-port UL replace miners.xslx's URL_PORT value with UL
-  --scope scope list of hosts, or ALL
+  --scope scope list of rigs to operate on, or ALL
 
-  -l           do not truncate lines long than consol width
+  -f --force   force execution, ignoring non-critical warnings
+  -l           do not truncate lines longer than console width
+
   -h --help
   -v           verbose mode
   -q --quick   quick mode

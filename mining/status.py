@@ -12,7 +12,7 @@ def get_status(coin, exclude_pids=[], exclude_cmdlines=[]):
     names = []
 
     if coin is None:
-        names = None
+        names = ['']
     elif isinstance(coin, types.ListType):
         names = coin
     else:
@@ -74,7 +74,7 @@ def process(self, config, coin):
 # Handle 'status' operation within the given --scope
 def process_scope(self, config, coin):
     sttyColumns = int(subprocess.check_output(['stty', 'size']).split()[1])
-    for key in config.ANSIBLE_HOSTS:
+    for key in sorted(config.ANSIBLE_HOSTS):
         host = config.ANSIBLE_HOSTS[key]
         if config.SCOPE.upper() == 'ALL' or config.SCOPE.upper() in host['hostname'].upper():
             proc = subprocess.Popen(['ssh', '-l', config.SHEETS['Globals']['MINERS_USER']['VALUE'], '-o', 'StrictHostKeyChecking=no', 
