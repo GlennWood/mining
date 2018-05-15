@@ -45,6 +45,7 @@ def process(self, config, coin):
     global COUNT_STATUS
     if config.SCOPE:
         return process_scope(self,config, coin)
+    sttyColumns = int(subprocess.check_output(['stty', 'size']).split()[1])
 
     coins = []
     if config.ALL_COINS:
@@ -66,7 +67,10 @@ def process(self, config, coin):
             cmdline = match.group(1)+match.group(2)+'{x} '+match.group(4)
 
         # URL regex= s/.*(-\wpool|--server|-F|--url=)\s*([A-Za-z0-9./:_+-]{1,99}).*/\2/'
-        print(pinfo['coin'] + ': [' + str(pinfo['pid']) + '] ' + cmdline)
+        out = pinfo['coin'] + ': [' + str(pinfo['pid']) + '] ' + cmdline
+        if not config.WIDE_OUT and len(out) > sttyColumns: out = out[0:sttyColumns-3]+'...'
+        print(out)
+
         COUNT_STATUS += 1
 
     return config.ALL_MEANS_ONCE
