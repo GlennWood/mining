@@ -1,0 +1,18 @@
+#!/bin/bash
+
+### Ref: https://github.com/GPUOpen-Tools/GPA/blob/master/BUILD.md
+
+    if [[ $EUID -ne 0 ]]
+    then
+		echo "$0 requires elevated privileges."
+		sudo -H $0 $*
+		exit;
+	fi
+
+apt-get -y install mesa-common-dev
+pushd /opt >/dev/null
+  git clone https://github.com/GPUOpen-Tools/GPA.git
+  python Scripts/UpdateCommon.py
+  cd GPA/Build/Linux
+  bash build.sh skip32bitbuild
+popd >/dev/null

@@ -4,6 +4,7 @@ import re
 import os
 import sys
 import jprops
+import subprocess
 
 class Config(object):
 
@@ -180,8 +181,6 @@ class Config(object):
         except:
             print ( sys.exc_info()[0] )
 
-        if self.VERBOSE: print(ansibleFilename+': '+str(self.ANSIBLE_HOSTS))
-
     # Find the given ticker in the CoinMiners table for this PLATFORM
     #   Return None if not found
     #   If verbose=True: print error message if not found
@@ -217,3 +216,11 @@ class Config(object):
                 # Substitute both '$NAME" and '<NAME>'
                 rslt = rslt.replace('$'+key,val).replace('<'+key+'>',val)
         return rslt
+
+    def get_sttyDims(self):
+        try:
+            sttyRow, sttyCol = subprocess.check_output(['stty', 'size'], stderr=subprocess.PIPE).split()
+        except:
+            return int(99), int(999)
+        return int(sttyRow), int(sttyCol)
+        

@@ -37,6 +37,7 @@ PLATFORM=${PLATFORM:-BTH}
 if [ "$PLATFORM" = "AMD" ] || [ "$PLATFORM" = "BTH" ]; then
   /opt/mining/install/install-amd-pro
   /opt/mining/install/install-opencl
+  /opt/mining/install/install-GPUOpen-Tools
   # Mining clients that work with AMD only
   /opt/mining/install/install-gatelessgate
   /opt/mining/install/install-optiminer-zcash
@@ -71,6 +72,12 @@ fi
 #/opt/mining/install/install-ccminer
 
 /opt/mining/install/install-monitor
+
+cat > /etc/update-motd.d/995-miners-status << MOTD_MINERS_STATUS
+#!/bin/sh
+miners status --quick || echo "No miners are working here, now."
+MOTD_MINERS_STATUS
+
 
 ### Clean up logs
 cd /opt/mining/install/log
