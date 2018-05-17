@@ -11,7 +11,8 @@ def process(self, config, coin):
     if config.ALL_COINS: postfix = ''
 
     if not config.FORCE and status.get_status(None):
-        print("A miner is currently running, so we are skipping overclocking (use -f to force).")
+        if not config.QUICK:
+            print("A miner is currently running, so we are skipping overclocking (use -f to force).")
         return config.ALL_MEANS_ONCE
 
     try:
@@ -58,14 +59,15 @@ def process(self, config, coin):
     os.chmod(overclock_dryrun, stat.S_IXUSR|stat.S_IXGRP | stat.S_IWUSR|stat.S_IWGRP | stat.S_IRUSR|stat.S_IRGRP|stat.S_IROTH)
 
     if config.DRYRUN:
+        print("\nexport DISPLAY=:0\nexport XAUTHORITY=/var/run/lightdm/root/:0\n")
         with open(overclock_dryrun, 'r') as fh:
-            print(fh.read())
+            print(fh.read().replace('-a'," \\\n    -a"))
     else:
         overclock_filename = os.getenv('LOG_RAMDISK','/var/local/ramdisk')+'/overclock.sh'
         if not config.FORCE and os.path.isfile(overclock_filename) and filecmp.cmp(overclock_dryrun, overclock_filename):
             timestamp = time.ctime(os.path.getctime(overclock_filename))
             if not config.QUICK:
-                print("Overclock settings are identical to those already set at '"+timestamp+"', so we are skipping it.")
+                print("Overclock settings are identical to those already set at '"+timestamp+"', so we are keeping them.")
         else:
             os.rename(overclock_dryrun, overclock_filename)
             if config.VERBOSE:

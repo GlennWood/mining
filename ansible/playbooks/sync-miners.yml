@@ -1,0 +1,15 @@
+---
+-
+  hosts: miners
+  
+  name: "synchronize /opt/mining"
+  tasks:
+    -
+      name: "synchronize /opt/mining"
+      action: synchronize src=/opt/mining/ dest=/opt/mining/ archive=yes delete=yes rsync_opts=--exclude=.git,--exclude=*.pyc
+    -
+      name: "synchronize /etc/mining"
+      action: synchronize src=/etc/mining/ dest=/etc/mining/ archive=yes rsync_opts=--exclude=.git,--exclude=*.pyc
+    -
+      name: "synchronize ansible configs"
+      action: synchronize src=/etc/ansible/ dest=/etc/ansible/ archive=yes delete=yes rsync_opts=--exclude=.git,--exclude=*.pyc,--exclude=*.retry

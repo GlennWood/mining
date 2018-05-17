@@ -1,0 +1,7 @@
+# Since this is also read by miners/config.py for some of its configuration, this hosts file's
+#   format is somewhat limited, i.e. "<IP_ADDR> hostname=<HOSTNAME> platform=<PLATFORM>"
+[miners]
+10.0.0.2 hostname=rig-NVI platform=NVI
+10.0.0.4 hostname=rig-AMD platform=AMD
+10.0.0.5 hostname=rig-Lab platform=NVI
+10.0.0.7 hostname=rig-BORG platform=NVI
