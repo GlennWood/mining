@@ -5,6 +5,7 @@ import os
 import sys
 import jprops
 import subprocess
+import stat
 
 class Config(object):
 
@@ -153,18 +154,20 @@ class Config(object):
             # jprops does a good job of handling the minutiae of parsing a properties file, but
             #   it does not handle sections. So we use a hacky wrapper on jprops to do that.
             lines = open(ansibleFilename).read().splitlines()
-            section = 'default'
-            fo = open('/var/local/ramdisk/ansible.'+section+'.ini', 'w')
+            fo = sectionFilename = None
+            sectionFiles = []
             for line in lines:
                 regex = re.compile(r'[[]([^]]*)[]]', re.DOTALL)
                 match = regex.match(line)
                 if match:
-                    fo.close()
                     section = match.group(1)
-                    fo = open('/var/local/ramdisk/ansible.'+section+'.ini', 'w')
+                    if fo: fo.close()
+                    sectionFilename = '/var/local/ramdisk/ansible.'+section+'.ini'
+                    fo = open(sectionFilename, 'w')
+                    sectionFiles.append(sectionFilename)
                 else:
-                    fo.write(line+"\n")
-            fo.close()
+                    if fo: fo.write(line+"\n")
+            if fo: fo.close()
 
             ansibleMinersFilename = '/var/local/ramdisk/ansible.miners.ini'
             with open(ansibleMinersFilename) as fh:
@@ -180,6 +183,9 @@ class Config(object):
             print(ansibleFilename+' format is invalid (for miners).' + str(ex))
         except:
             print ( sys.exc_info()[0] )
+        
+        # We don't need these section files anymore.
+        for fn in sectionFiles: os.remove(fn)
 
     # Find the given ticker in the CoinMiners table for this PLATFORM
     #   Return None if not found

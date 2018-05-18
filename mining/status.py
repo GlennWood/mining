@@ -3,6 +3,7 @@ import subprocess
 import re
 import psutil
 import types
+import sys
 
 ### TODO: ls -1stoh /var/log/mining/ETH-miner.*
 
@@ -45,7 +46,7 @@ def process(self, config, coin):
     global COUNT_STATUS
     if config.SCOPE:
         return process_scope(self,config, coin)
-    sttyColumns = int(subprocess.check_output(['stty', 'size']).split()[1])
+    sttyColumns = config.get_sttyDims()[1]
 
     coins = []
     if config.ALL_COINS:
@@ -77,29 +78,36 @@ def process(self, config, coin):
 
 # Handle 'status' operation within the given --scope
 def process_scope(self, config, coin):
-    sttyColumns = int(subprocess.check_output(['stty', 'size']).split()[1])
+    sttyColumns = config.get_sttyDims()[1]
+    maxRigNameLen = max(config.ANSIBLE_HOSTS.keys(), key = len)
+    #for key in sorted(config.ANSIBLE_HOSTS):
+    #    if len(key) > maxRigNameLn: maxRigNameLn = ln(key)
+    maxRigNameLen = len(maxRigNameLen)+3
+
     for key in sorted(config.ANSIBLE_HOSTS):
         host = config.ANSIBLE_HOSTS[key]
         if config.SCOPE.upper() == 'ALL' or config.SCOPE.upper() in host['hostname'].upper():
+            print(('%.'+str(maxRigNameLen)+'s')%('['+host['hostname']+']            '),end='')
+            sys.stdout.flush()
+            tabber = ''
             proc = subprocess.Popen(['ssh', '-l', config.SHEETS['Globals']['MINERS_USER']['VALUE'], '-o', 'StrictHostKeyChecking=no', 
                         host['ip'], 'miners', 'status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
             out, err = proc.communicate(None)
             if out:
-                hostname = '['+host['hostname']+']            '
                 for ln in out.split('\n'):
                     ln = ln.rstrip()
                     regex = re.compile(r'(.*?)[[][^]]*[]](.*)', re.DOTALL)
                     match = regex.match(ln)
                     if match and match.lastindex is 2: ln = match.group(1) + match.group(2)
                     if ln:
-                        if not config.WIDE_OUT and len(ln) > sttyColumns: ln = ln[0:sttyColumns-16]+'...'
-                        print("%.12s %s"%(hostname+'            ', ln))
-                    hostname = '            '
+                        if not config.WIDE_OUT and len(ln) > sttyColumns: ln = ln[0:sttyColumns-maxRigNameLen-3]+'...'
+                        print(tabber+ln)
+                        tabber = '                      '[0:maxRigNameLen]
             if err:
-                hostname = '['+host['hostname']+']            '
                 for ln in out.split('\n'):
-                    print("%.12s %s"%(hostname+'            ', err.rstrip()))
-                    hostname = '            '
+                    print(err.rstrip())
+                    tabber = '                      '[0:maxRigNameLen]
+            if tabber == '': print("No miners are working here, now.")
 
 
 def initialize(self, config, coin):
