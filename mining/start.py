@@ -113,7 +113,10 @@ def process(self, config, coin):
     unbuffer = ''
     if environment != None and len(environment) > 0:
         for envKeyVal in environment.split():
-            envKeyVal = envKeyVal.split('=',1)
+            if envKeyVal.find('=') < 0:
+                envKeyVal = [envKeyVal, '1']
+            else:
+                envKeyVal = envKeyVal.split('=',1)
             if envKeyVal[0] == 'UNBUFFER':
                 unbuffer = 'unbuffer '
             else:
