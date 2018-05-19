@@ -7,13 +7,14 @@ then
 fi
 pushd /opt
 
-NVIDIA_VERSION=${1:390.48}
+NVIDIA_VERSION=${1:390.59}
 NVIDIA_VER_PTC=(${NVIDIA_VERSION//./ })
 NVIDIA_VER=${NVIDIA_VER_PTC[0]}
 NVIDIA_PATCH=${NVIDIA_VER_PTC[1]}
 
 cat >> /etc/profile.d/nvidia.sh << NVIDIA_SH
 export INSTALL_NVIDIA=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+NVIDIA_VERSION=$NVIDIA_VERSION
 export NVIDIA_VER=$NVIDIA_VER
 export NVIDIA_PATCH=$NVIDIA_PATCH
 export PATH=/usr/lib/nvidia-\$NVIDIA_VER/bin\${PATH:+:\$PATH}
@@ -45,6 +46,7 @@ NOUVEAU_OFF
 
 [ -n "$REBOOT_WHEN_NEEDED" ] && reboot || source /etc/profile.d/nvidia.sh
 
+cd /opt/Downloads/
 wget https://us.download.nvidia.com/XFree86/Linux-x86_64/${NVIDIA_VER}.${NVIDIA_PATCH}/NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_PATCH}.run
 ### Question: When will we ever need X server?
 ### Answer: nvidia-settings is too stupid to talk directly to its own GPUs and has to use X-server to do that for it.

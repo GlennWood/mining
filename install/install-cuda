@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export CUDA_VERSION=9.1.85
+export CUDA_VERSION=9.2.88
 
 export CUDA_VER=$(echo $CUDA_VERSION|cut -f1 -d.).$(echo $CUDA_VERSION|cut -f2 -d.)
 export CUDA_PATCH=$(echo $CUDA_VERSION|cut -f3 -d.)
@@ -18,13 +18,16 @@ source /etc/profile.d/cuda.sh
 
 ### The RUN-method wget https://developer.nvidia.com/compute/cuda/${CUDA_VER}/Prod/local_installers/cuda_${CUDA_VERSION}_${NVIDIA_VERSION}.81_linux-run
 
+pushd /opt/Downloads
 wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_${CUDA_VERSION}-1_amd64.deb
 dpkg -i cuda-repo-ubuntu1604_${CUDA_VERSION}-1_amd64.deb
+popd
 apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
 apt-get update
 apt-get -y install cuda-${CUDA_WTF}
 
+echo "A reboot at this time is highly recommended."
 
 ### TEST
-/usr/local/cuda-9.1/extras/demo_suite/deviceQuery 
-cat /usr/local/cuda-9.1/version.txt
+/usr/local/cuda-${CUDA_VER}/extras/demo_suite/deviceQuery 
+cat /usr/local/cuda-${CUDA_VER}/version.txt
