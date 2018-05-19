@@ -31,3 +31,7 @@ Once that is done we do not need a password to log into any of your mining rigs 
 
     ansible all -m copy -a "src=/home/$MINERS_USER/.ssh/id_rsa dest=/home/$MINERS_USER/.ssh/id_rsa" --ask-pass -c paramiko
     ansible all -m copy -a "src=/home/$MINERS_USER/.ssh/id_rsa.pub dest=/home/$MINERS_USER/.ssh/id_rsa.pub" --ask-pass -c paramiko
+
+** Synchronize Mining Rigs **
+
+    
