@@ -5,7 +5,6 @@ import os
 import sys
 import jprops
 import subprocess
-import stat
 
 class Config(object):
 
@@ -229,4 +228,7 @@ class Config(object):
         except:
             return int(99), int(999)
         return int(sttyRow), int(sttyCol)
-        
+    
+    def get_sttyColumnsMaxRigNameLen(self):
+        maxRigNameLen = max(self.ANSIBLE_HOSTS.keys(), key = len)
+        return self.get_sttyDims()[1], len(maxRigNameLen)

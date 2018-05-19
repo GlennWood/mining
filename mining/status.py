@@ -78,11 +78,8 @@ def process(self, config, coin):
 
 # Handle 'status' operation within the given --scope
 def process_scope(self, config, coin):
-    sttyColumns = config.get_sttyDims()[1]
-    maxRigNameLen = max(config.ANSIBLE_HOSTS.keys(), key = len)
-    #for key in sorted(config.ANSIBLE_HOSTS):
-    #    if len(key) > maxRigNameLn: maxRigNameLn = ln(key)
-    maxRigNameLen = len(maxRigNameLen)+3
+    sttyColumns, maxRigNameLen = config.get_sttyColumnsMaxRigNameLen()
+    maxRigNameLen += 3
 
     for key in sorted(config.ANSIBLE_HOSTS):
         host = config.ANSIBLE_HOSTS[key]

@@ -78,7 +78,7 @@ GPU Load: 100 %
                 if match is not None: 
                     devices['AMD'+str(match.group(1))] = [match.group(2),match.group(3),match.group(4),match.group(5),match.group(6)]#,match.group(3),match.group(4),match.group(5),match.group(6)]
     except OSError as ex:
-        if config.arguments.get('-v') and str(ex) != '[Errno 2] No such file or directory':
+        if config.arguments.get('-v') and str(ex) and str(ex).find('[Errno 2] No such file or directory') < 0:
             print(ex)
 
     ### Scan for Nvidia using gpustats.GPUStatCollection

@@ -4,6 +4,7 @@ import socket
 import time
 import overclock
 
+### FIXME: 'start' does not recognize PLATFORM 'BTH' or empty as acceptable for PLATFORM=NVI
 
 MINER_TO_CHDIR = {
     'optiminer-zcash': '/opt/optiminer-zcash',
@@ -44,11 +45,17 @@ def process(self, config, coin):
         if options is '' and client['OPTIONS'] != None: options = client['OPTIONS']
         if client['CHDIR'] != None: cdDir = client['CHDIR']
 
+        environment = client['ENVIRONMENT'] + ' ' + coin['ENVIRONMENT']
+    else:
+        environment = coin['ENVIRONMENT']
+
+
     if cdDir is None:
         for miner_key in MINER_TO_CHDIR:
             if miner.find(miner_key) >= 0:
                 cdDir = MINER_TO_CHDIR[miner_key]
                 break
+    
 
     if miner in MINER_TO_BINARY: miner = MINER_TO_BINARY[miner]
 
@@ -102,15 +109,18 @@ def process(self, config, coin):
     options = options.replace('$PLATFORM', PLATFORM_ARG)
 
     # Transpose Environment settings to a environment map
-    # FIXME: SHEET['Clients'] has multiple rows per ENVIRONMENT - needs coalescing somehow
     environ = {}
-    environment = coin['ENVIRONMENT']
+    unbuffer = ''
     if environment != None and len(environment) > 0:
         for envKeyVal in environment.split():
             envKeyVal = envKeyVal.split('=',1)
-            environ[envKeyVal[0]] = envKeyVal[1]
-    else:
-        environment = ''
+            if envKeyVal[0] == 'UNBUFFER':
+                unbuffer = 'unbuffer '
+            else:
+                environ[envKeyVal[0]] = envKeyVal[1]
+    environment = ''
+    for key in environ:
+        environment += ' ' + key + '=' + environ[key]
 
     if cdDir is None:
         minerDir = miner.split('/')
@@ -120,8 +130,8 @@ def process(self, config, coin):
 
     cmd = '' # don't think too hard about these lines; they just make DRYRUN look prettier
     if cdDir: cmd = 'cd '+cdDir+' ; '
-    if environment != '': cmd += environment + ' ' 
-    cmd += 'nohup ' + miner + ' ' + options
+    if environment != '': cmd += environment + ' '
+    cmd += 'nohup ' + unbuffer + miner + ' ' + options
     if not config.DRYRUN or config.VERBOSE: cmd += ' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
     if config.DRYRUN:
         print cmd
