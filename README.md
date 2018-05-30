@@ -41,6 +41,10 @@ Starts a process mining the coin(s) given on the command line. Which mining clie
 
 Stops all processes mining the given coin(s). This is the converse of **start**.
 
+* **restart**
+
+Restarts the latest started mining operation.
+
 * **swap \<oldCoin>:\<newCoin>**
 
 Stops mining **\<oldCoin>**, waits for **status** to report it as stopped, then starts mining **\<newCoin>**.
