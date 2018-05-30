@@ -48,7 +48,7 @@ def tickerInCoinMiners(config, METH, ticker):
 
     # This is a convenient place to generate WORKER_NAME
     hostN = socket.gethostname()
-    config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1]
+    config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1].upper()
 
     coin = config.findTickerInPlatformCoinMiners(ticker)
     if coin:

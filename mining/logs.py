@@ -36,7 +36,7 @@ TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(
             return config.ALL_MEANS_ONCE
         for pinfo in pinfos:
             hostN = socket.gethostname()
-            WORKER_NAME = pinfo['coin'] + '-miner-' + hostN[len(hostN)-1]
+            WORKER_NAME = pinfo['coin'] + '-miner-' + hostN[len(hostN)-1].upper()
             for ext in ['.log','.err','.out']:
                 logName = '/var/log/mining/'+WORKER_NAME+ext
                 if os.path.isfile(logName):
