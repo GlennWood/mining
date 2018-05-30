@@ -1,0 +1,94 @@
+#!/bin/bash
+
+    if [[ $EUID -ne 0 ]]
+    then
+		echo "$0 must be run as root."
+		sudo -H $0 $*
+		exit $?
+	fi
+
+pushd /opt/mining/install/
+### TODO: FIXME: automate this?
+### MANUALLY copy GlennWood/mining/install/install-* into /opt/mining/install/
+### OR, JUST copy GlennWood/mining/install/install-samba and use it ...
+chmod 0754 /opt/mining/install/install-*
+grep 'path = /opt/mining' /etc/samba/smb.conf >/dev/null 2>&1 || /opt/mining/install/install-samba $RIG_TAG
+chmod 0754 /opt/mining/install/install-*
+
+### Get miners python scripts from git:GlennWood/miners
+chmod 0754 /opt/mining/*.py /opt/mining/*/*.py
+ln -s /opt/mining/miners.py  /usr/local/bin/miners
+ln -s /opt/mining/monitor.py /usr/local/bin/monitor-miners
+#ln -s /opt/mining/stratum.py /usr/local/bin/stratum
+
+RAMDISK_SIZE=10M
+mkdir -p /var/local/ramdisk
+mount -t tmpfs -o size=${RAMDISK_SIZE} tmpfs /var/local/ramdisk
+chown ${MINERS_USER} /var/local/ramdisk         
+echo "none /var/local/ramdisk tmpfs nodev,nosuid,noexec,nodiratime,size=${RAMDISK_SIZE} 0 0" >> /etc/fstab
+
+# Figure out if we have AMD graphic cards, Nvidia graphic cards, or both
+HAS_AMD=$(lspci | grep VGA | grep AMD    >/dev/null && echo AMD)
+HAS_NVI=$(lspci | grep VGA | grep NVIDIA >/dev/null && echo NVI)
+[ -n "$HAS_AMD" ] && PLATFORM=$HAS_AMD
+[ -n "$HAS_NVI" ] && PLATFORM=$HAS_NVI
+[ -n "$HAS_AMD" ] && [ -n "$HAS_NVI" ] && PLATFORM=BTH
+
+### Great post at https://zxq9.com/archives/795
+cat >> /etc/environment << ETC_ENVIRONMENT
+PLATFORM=$PLATFORM
+LOG_DIR=/var/log/mining
+XAUTHORITY=/home/$MINERS_USER/.Xauthority
+ETC_ENVIRONMENT
+source /etc/environment
+
+cat >> /etc/profile.d/alias.sh << PROFILE_ALIAS
+alias status-all='miners status --scope all'
+alias whattomine='miners whattomine'
+alias whattomine-all='miners whattomine --scope all'
+alias sync-miners ansible-playbook /opt/mining/ansible/playbooks/sync-miners.yml
+PROFILE_ALIAS
+source /etc/profile.d/alias.sh
+
+### Ref: https://embraceubuntu.com/2006/01/28/turn-on-bash-smart-completion/
+cat >> /etc/bash.bashrc << ENABLE_SMART_COMPLETION
+if [ -f /etc/bash_completion ]; then
+  . /etc/bash_completion
+fi
+ENABLE_SMART_COMPLETION
+cp /opt/$MINING_ROOT/etc/bash_completion_miners.sh /etc/bash_completion.d/miners
+
+apt-get -y update ; apt-get -y dist-upgrade
+apt-get -y autoremove ; apt-get -y autoclean
+
+apt-get -y install openssh-server git autoconf curl selinux-utils expect lrzip libffi-dev libssl-dev python-pip mesa-utils
+## TODO: apt-get -y install python3-dev python3-pip
+
+### FIXME: need to logout and back in for 'pip install--upgrade pip' to work, now. Why is that?
+pip2 install --upgrade pip
+## TODO: pip3 install --upgrade pip
+### FIXTHEM: You know, I still don't think python development team understands the concept of backward compatibility ... you'd think python2 to python3 would have taught them something ...
+###     REF: https://github.com/pypa/pip/issues/5240#issuecomment-381673100
+sed -i.bak 's/from pip import main/from pip._internal import main/' /usr/bin/pip
+## TOTO: sed -i.bak 's/from pip import main/from pip._internal import main/' /usr/bin/pip3
+pip2 install xlrd docopt requests jprops
+# go ahead, laugh, but this did fix a problem on one of my rigs one day.
+pip2 install psutil
+
+## TODO: pip3 install bitshares
+
+# For PyCryptScraper
+apt-get -y install python-lxml
+pip install -U marshmallow --pre
+
+cat > /etc/update-motd.d/995-miners-status << MOTD_MINERS_STATUS
+#!/bin/bash
+miners status --quick || echo "No miners are working here, now."
+MOTD_MINERS_STATUS
+chmod a+x /etc/update-motd.d/995-miners-status
+[ -f /etc/update-motd.d/10-help-text ]         && chmod 0644 /etc/update-motd.d/10-help-text
+[ -f /etc/update-motd.d/50-landscape-sysinfo ] && chmod 0644 /etc/update-motd.d/50-landscape-sysinfo
+
+echo "INSTALL_DATE_MINING=`date --utc +%Y-%m-%dT%H-%M-%SZ`" >> /etc/environment
+echo
+echo "Basic accounts, folders and packages for mining have been prepared."

@@ -4,22 +4,21 @@
 
   if [[ $EUID -ne 0 ]]
   then
-		echo "$0 requires elevated privileges."
+		echo "$0 must be run as root."
 		sudo $0 $*
-		exit;
+		exit $?
 	fi
-
-RIG_TAG=${RIG_TAG:-$1}
 
 apt-get update
 apt-get -y install samba
 
-smbpasswd -a albokiadt
-#> type new password twice
+samba_password=$(cat /home/$MINERS_USER/.ssh/miners_user.psw)
+smbpasswd -s -a albokiadt << PSW
+$samba_password
+$samba_password
+PSW
 
-mkdir /opt/mining 2>/dev/null ; chown albokiadt /opt/mining
-
-cat >> /etc/samba/smb.conf <<SMB_CONF
+cat >> /etc/samba/smb.conf << SMB_CONF
 [mining-${RIG_TAG}]
 path = /opt/mining
 available = yes

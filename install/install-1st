@@ -2,67 +2,94 @@
 
     if [[ $EUID -ne 0 ]]
     then
-		echo "$0 requires elevated privileges."
+		echo "$0 must be run as root."
 		sudo -H $0 $*
-		exit;
+		exit $?
 	fi
 
-# Create miners' user account
-MINERS_USER=${1:-albokiadt}
+# Grab the rig-tag
 [ -z "$HOSTNAME" ] && HOSTNAME=$(cat /etc/hostname)
 r_tag=$(echo $HOSTNAME|sed 's/rig-//')
-RIG_TAG=${2:-$r_tag}
-echo MINERS_USER=$MINERS_USER RIG_TAG=$RIG_TAG
+RIG_TAG=${1:-$r_tag}
+
+# Create miners' user account
+MINERS_USER=$2
+if [ -z "$MINERS_USER" ]; then
+  echo -n 'MINERS_USER account: '
+  read MINERS_USER
+  echo
+fi
+MINERS_PSW=$3
+while [ -z "$MINERS_PSW" ]; do
+  echo -n "$MINERS_USER password: "
+  read -s MINERS_PSW_FIRST
+  echo
+  echo -n "$MINERS_USER password, again: "
+  read -s MINERS_PSW_AGAIN
+  echo
+  if [ "$MINERS_PSW_AGAIN" = "$MINERS_PSW_FIRST" ]; then
+    MINERS_PSW=$MINERS_PSW_FIRST
+    break
+  else
+    echo "Passwords do not match."
+  fi
+done
+MINING_ROOT=${MINING_ROOT:-/opt/mining}
+
+usermod -a -G sudo -G staff -G root $MINERS_USER
+
+cat  > /etc/sudoers.d/miners << ETC_SUDOERS
+Defaults env_keep+="DISPLAY XAUTHORITY"
+$MINERS_USER ALL=(ALL) NOPASSWD: ALL
+ETC_SUDOERS
+chmod 0440 /etc/sudoers.d/miners
+
+[ ! -d /home/$MINERS_USER/.ssh ]&& mkdir /home/$MINERS_USER/.ssh && chmod 0700 /home/$MINERS_USER/.ssh
+echo $MINERS_PSW > /home/$MINERS_USER/.ssh/miners_user.psw
+chown $MINERS_USER:$MINERS_USER /home/$MINERS_USER/.ssh/miners_user.psw
+chmod 0600 /home/$MINERS_USER/.ssh/miners_user.psw
+
 
 ### Ref: https://www.cyberciti.biz/python-tutorials/linux-tutorial-install-ansible-configuration-management-and-it-automation-tool/
 apt-get -y install software-properties-common
-apt-add-repository ppa:ansible/ansible
+apt-add-repository -y ppa:ansible/ansible
 apt-get update
 apt-get -y install ansible
-sed -i.bak 's/#host_key_checking = False/host_key_checking = False/' /etc/ansible/ansible.cfg
 
 HOSTNAME=rig-$RIG_TAG
 hostname $HOSTNAME
 echo $HOSTNAME > /etc/hostname
+cat >> /etc/ansible/hosts << ANSIBLE_MINERS
 
-usermod -a -G sudo $MINERS_USER
+[miners]
+# Since this section is also read by miners.py for some of its configuration, this hosts
+#   file's format is somewhat limited, to "<IP_ADDR> hostname=<hostname> platform=<plat>"
+`hostname -I` hostname=$HOSTNAME platform=$PLATFORM
+
+ANSIBLE_MINERS
+sed -i.bak 's/#host_key_checking = False/host_key_checking = False/' /etc/ansible/ansible.cfg
+
+usermod -a -G sudo  $MINERS_USER
+usermod -a -G staff $MINERS_USER
 
 cat  >> /etc/sudoers << ETC_SUDOERS
 Defaults env_keep+="DISPLAY"
 $MINERS_USER ALL=(ALL) NOPASSWD: ALL
 ETC_SUDOERS
 
-# Make and configure some initial directories
-MINERS_FOLDERS='/opt/mining /opt/mining/install /var/mining /var/log/mining /var/run/miners /opt/Downloads /etc/mining /etc/ansible'
-mkdir -p $MINERS_FOLDERS 2>/dev/null
-chown -R ${MINERS_USER} $MINERS_FOLDERS
-# Make ~/.ssh folders in root and $MINERS_USER accounts
-mkdir -p ~/.ssh/config.d >/dev/null /home/${MINERS_USER}/.ssh/config.d >/dev/null
-chmod 0700 ~/.ssh/config.d /home/${MINERS_USER}/.ssh/config.d
-chown $MINERS_USER:$MINERS_USER /home/${MINERS_USER}/.ssh/config.d
-
-# Figure out if we have AMD graphic cards, Nvidia graphic cards, or both
-HAS_AMD=$(lspci | grep VGA | grep AMD    >/dev/null && echo AMD)
-HAS_NVI=$(lspci | grep VGA | grep NVIDIA >/dev/null && echo NVI)
-[ -n "$HAS_AMD" ] && PLATFORM=$HAS_AMD
-[ -n "$HAS_NVI" ] && PLATFORM=$HAS_NVI
-[ -n "$HAS_AMD" ] && [ -n "$HAS_NVI" ] && PLATFORM=BTH
-
 ### Great post at https://zxq9.com/archives/795
 cat >> /etc/environment << ETC_ENVIRONMENT
-CREATE_DATE_MINERS=`date --utc +%Y-%m-%dT%H-%M-%SZ`
 MINERS_USER=${MINERS_USER}
 RIG_TAG=$RIG_TAG
-PLATFORM=$PLATFORM
-LOG_DIR=/var/log/mining
-LOG_RAMDISK=/var/local/ramdisk
+MINING_ROOT=$MINING_ROOT
+XAUTHORITY=/home/$MINERS_USER/.Xauthority
+NO_AT_BRIDGE=1
+ANSIBLE_HOST_KEY_CHECKING=False
+INSTALL_DATE_MINERS=`date --utc +%Y-%m-%dT%H-%M-%SZ`
 NO_AT_BRIDGE=1
 ANSIBLE_HOST_KEY_CHECKING=False
 ETC_ENVIRONMENT
 source /etc/environment
-
-#echo '. /etc/profile' >> /root/.bashrc
-#echo '. /etc/profile' >> /home/${MINERS_USER}/.bashrc
 
 ### Turn off PCI ASPM (active state power management)
 ### Ref: https://askubuntu.com/questions/68372/how-do-i-add-pcie-aspm-force-to-my-boot-options
@@ -74,28 +101,18 @@ update-grub
 ### Ref: http://ask.xmodulo.com/disable-automatic-updates-ubuntu.html
 echo 'APT::Periodic::Unattended-Upgrade "0";' >> /etc/apt/apt.conf.d/10periodic 
 
-RAMDISK_SIZE=40M
-mkdir -p /var/local/ramdisk
-mount -t tmpfs -o size=${RAMDISK_SIZE} tmpfs /var/local/ramdisk
-chown ${MINERS_USER} /var/local/ramdisk         
-echo "none /var/local/ramdisk tmpfs nodev,nosuid,noexec,nodiratime,size=${RAMDISK_SIZE} 0 0" >> /etc/fstab
-## Test
-mount | grep /var/local/ramdisk
+# Make and configure some initial directories
+MINERS_FOLDERS='/opt/mining /var/mining /var/log/mining /var/run/miners /var/local/persist /opt/Downloads /etc/mining /etc/ansible'
+mkdir -p $MINERS_FOLDERS 2>/dev/null
+chown -R ${MINERS_USER} $MINERS_FOLDERS
+# Make ~/.ssh folders in root and $MINERS_USER accounts
+mkdir -p ~/.ssh/config.d >/dev/null /home/${MINERS_USER}/.ssh/config.d >/dev/null
+chmod 0700 ~/.ssh/config.d /home/${MINERS_USER}/.ssh/config.d
+chown -R $MINERS_USER:$MINERS_USER /home/${MINERS_USER}/.ssh
 
-apt-get -y update ; apt-get -y dist-upgrade
-apt-get -y autoremove ; apt-get -y autoclean
+echo "Basic OS, accounts, etc., for mining have been prepared."
+echo "A reboot is highly recommended at this point."
 
-apt-get -y install openssh-server git autoconf curl selinux-utils expect lrzip
-apt-get -y install libffi-dev libssl-dev python3-dev python3-pip
-
-pip install --upgrade pip
-pip install xlrd docopt requests jprops
-
-### TODO: does this do anything new? pip install ansible
-pip3 install bitshares
-
-# For PyCryptScraper
-apt-get -y install python-lxml
-pip install -U marshmallow --pre
-
-[ -n "$REBOOT_WHEN_NEEDED" ] && reboot || echo "A reboot is highly recommended at this point."
+echo "Hit ctrl-C to abort the reboot."
+sleep 10
+reboot

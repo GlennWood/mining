@@ -2,89 +2,60 @@
 
   if [[ $EUID -ne 0 ]]
   then
-		echo "$0 requires elevated privileges."
+		echo "$0 must be run as root."
 		sudo $0 $*
 		exit;
 	fi
 
+export MINING_ROOT=${MINING_ROOT:-/opt/mining}
 RIG_TAG=${1:-RIG_TAG}
-[ -z "$CREATE_DATE_MINERS" ] && /opt/mining/install/install-1st ${2:albokiadt} $RIG_TAG && source /etc/environment
+export MINERS_USER=${2:-albokiadt}
+
+getent passwd $MINERS_USER || $MINING_ROOT/install/install-mining-user
+[ -z "$INSTALL_DATE_MINERS" ] && $MINING_ROOT/install/install-1st    $MINERS_USER $RIG_TAG && source /etc/environment
+[ -z "$INSTALL_DATE_MINING" ] && $MINING_ROOT/install/install-mining $MINERS_USER $RIG_TAG && source /etc/environment && source /etc/profile
 
 ### Ref: Interesting recipes, all languages https://github.com/ActiveState/code/tree/master/recipes
 ### TODO Connect To Wifi From The Linux Command Line
 ###      Ref: https://linuxconfig.org/connect-to-wifi-from-the-linux-command-line
 
-pushd /opt/mining/install/
-### TODO: FIXME: automate this?
-### MANUALLY copy GlennWood/mining/install/install-* into /opt/mining/install/
-### OR, JUST copy GlennWood/mining/install/install-samba and use it ...
-chmod 0754 /opt/mining/install/install-*
-grep 'path = /opt/mining' /etc/samba/smb.conf >/dev/null 2>&1 || /opt/mining/install/install-samba $RIG_TAG
-chmod 0754 /opt/mining/install/install-*
-/opt/mining/install/install-python
-
-### Get miners python scripts from git:GlennWood/miners
-chmod 0754 /opt/mining/*.py /opt/mining/*/*.py
-ln -s /opt/mining/miners.py  /usr/local/bin/miners
-ln -s /opt/mining/monitor.py /usr/local/bin/monitor-miners
-#ln -s /opt/mining/stratum.py /usr/local/bin/stratum
-
-[ -n "$INSTALL_WIFI" ] && /opt/mining/install/install-wifi $WIFI_SID $WIFI_PSW
-
+[ -n "$INSTALL_WIFI" ] && $MINING_ROOT/install/install-wifi $WIFI_SID $WIFI_PSW
 
 # For AMD GPUs
 PLATFORM=${PLATFORM:-BTH}
 if [ "$PLATFORM" = "AMD" ] || [ "$PLATFORM" = "BTH" ]; then
-  /opt/mining/install/install-amd-pro
-  /opt/mining/install/install-opencl
-  /opt/mining/install/install-GPUOpen-Tools
+  $MINING_ROOT/install/install-amd-pro
+  $MINING_ROOT/install/install-opencl
+  $MINING_ROOT/install/install-GPUOpen-Tools
   # Mining clients that work with AMD only
-  /opt/mining/install/install-gatelessgate
-  /opt/mining/install/install-optiminer-zcash
-  /opt/mining/install/install-sgminer
-  /opt/mining/install/install-sgminer-phi
-  /opt/mining/install/install-zecminer64
+  $MINING_ROOT/install/install-gatelessgate
+  $MINING_ROOT/install/install-optiminer-zcash
+  $MINING_ROOT/install/install-sgminer
+  $MINING_ROOT/install/install-sgminer-phi
+  $MINING_ROOT/install/install-zecminer64
 fi
 
 # For Nvidia GPUs
 if [ "$PLATFORM" = "NVI" ] || ["$PLATFORM" = "BTH" ]; then
   # For Nvidia GPUs - these are difficult to script, so manual operation is required
-  /opt/mining/install/install-nvidia
-  /opt/mining/install/install-cuda
-    # or ./install-nvidia-and-cuda (or not; this is scripted, but hazardous if it goes wrong)
+  $MINING_ROOT/install/install-nvidia-and-cuda
   # Mining clients that work with NVI only
-  /opt/mining/install/install-bminer
-  time /opt/mining/install/install-ccminer
-  time /opt/mining/install/install-ccminer-KlausT
-  /opt/mining/install/install-dstm
-  time /opt/mining/install/install-ethminer
-  /opt/mining/install/install-ewbf
-  time /opt/mining/install/install-nheqminer
-  time /opt/mining/install/install-suprminer
+  $MINING_ROOT/install/install-bminer
+  time $MINING_ROOT/install/install-ccminer
+  time $MINING_ROOT/install/install-ccminer-KlausT
+  $MINING_ROOT/install/install-dstm
+  time $MINING_ROOT/install/install-ethminer
+  $MINING_ROOT/install/install-ewbf
+  time $MINING_ROOT/install/install-nheqminer
+  time $MINING_ROOT/install/install-suprminer
 fi
 
 ### Mining clients that work with both AMD and NVI
-#/opt/mining/install/install-eth-proxy
-/opt/mining/install/install-ethdcrminer64
-/opt/mining/install/install-ngsminer
-/opt/mining/install/install-optiminer-equihash
+#$MINING_ROOT/install/install-eth-proxy
+$MINING_ROOT/install/install-ethdcrminer64
+$MINING_ROOT/install/install-ngsminer
+$MINING_ROOT/install/install-optiminer-equihash
 # TODO: works with AMD only, but requires CUDA (?)
-#/opt/mining/install/install-ccminer
+#$MINING_ROOT/install/install-ccminer
 
-/opt/mining/install/install-monitor
-
-cat > /etc/update-motd.d/995-miners-status << MOTD_MINERS_STATUS
-#!/bin/sh
-miners status --quick || echo "No miners are working here, now."
-MOTD_MINERS_STATUS
-
-
-### Clean up logs
-cd /opt/mining/install/log
-sudo su
-> lastlog
-> wtmp
-> dpkg.log 
-> kern.log
-> syslog
-exit
+$MINING_ROOT/install/install-monitor

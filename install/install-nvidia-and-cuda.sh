@@ -1,17 +1,26 @@
 #!/bin/bash
 
+### TODO: Let's try this one next time; it looks promising!
+###       Ref: https://www.pugetsystems.com/labs/hpc/The-Best-Way-To-Install-Ubuntu-16-04-with-NVIDIA-Drivers-and-CUDA-1097/
+
 ### WARNING! A DANGEROUS SCRIPT IF IT DOESN'T WORK RIGHT!!! REBOOTS CONTINUOUSLY!!!!
-### Ref: https://github.com/BMische/eth.sh
 
-# test for root
+  if [[ $EUID -ne 0 ]]; then
+    echo "$0 must be run as root."
+    sudo $0 $*
+    exit $?
+  fi
 
-    if [[ $EUID -ne 0 ]]
-    then
-        printf "%s\n" "This script must be run as root" 
-        exit 1
-    fi
+  ### Note: Must be done in this order; even though both come from Nvidia
+  ###       and both operate to some extent against (as in opposed to) the
+  ###       other, doing it in this sequence works best; do not reverse.
+  $MINING_ROOT/install/install-nvidia
+  $MINING_ROOT/install/install-cuda
+
+  exit
 
 
+### This version from Ref: https://github.com/BMische/eth.sh
 # check for Ubuntu 16.04
 
     if [ -e /tmp/.os_check ]

@@ -12,7 +12,8 @@
 apt-get -y install mesa-common-dev
 pushd /opt >/dev/null
   git clone https://github.com/GPUOpen-Tools/GPA.git
-  python Scripts/UpdateCommon.py
-  cd GPA/Build/Linux
-  bash build.sh skip32bitbuild
+  cd GPA
+    python Scripts/UpdateCommon.py
+    cd Build/Linux
+      bash build.sh skip32bitbuild
 popd >/dev/null

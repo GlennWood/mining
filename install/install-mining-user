@@ -1,0 +1,34 @@
+#!/bin/bash
+
+    if [[ $EUID -ne 0 ]]
+    then
+		echo "$0 must be run as root."
+		sudo -H $0 $*
+		exit $?
+	fi
+
+# Create miners' user account
+MINERS_USER=$2
+if [ -z "$MINERS_USER" ]; then
+  echo -n 'MINERS_USER account: '
+  read MINERS_USER
+  echo
+fi
+MINERS_PSW=$3
+while [ -z "$MINERS_PSW" ]; do
+  echo -n "$MINERS_USER password: "
+  read -s MINERS_PSW_FIRST
+  echo
+  echo -n "$MINERS_USER password, again: "
+  read -s MINERS_PSW_AGAIN
+  echo
+  if [ "$MINERS_PSW_AGAIN" = "$MINERS_PSW_FIRST" ]; then
+    MINERS_PSW=$MINERS_PSW_FIRST
+    break
+  else
+    echo "Passwords do not match."
+  fi
+done
+
+useradd -m $MINING_USER  -p $(echo "$MINERS_PSW" | openssl passwd -1 -stdin) 
+usermod -a -G sudo -G staff -G root $MINERS_USER

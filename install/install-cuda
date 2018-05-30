@@ -26,7 +26,10 @@ apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos
 apt-get update
 apt-get -y install cuda-${CUDA_WTF}
 
-echo "A reboot at this time is highly recommended."
+echo "CUDA has been installed. A reboot at this time is highly recommended."
+echo "Hit ctrl-C to abort the reboot."
+sleep 10
+reboot
 
 ### TEST
 /usr/local/cuda-${CUDA_VER}/extras/demo_suite/deviceQuery 

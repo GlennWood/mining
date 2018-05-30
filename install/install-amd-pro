@@ -111,17 +111,16 @@ Do you want to add these lines automatically to /etc/modules? (yes/NO)
 ### And now, FINALLY, we can get the running temperature of AMD cards
 sensors|grep amdgpu -A 4
 
-cat /sys/kernel/debug/dri/*/amdgpu_pm_info | grep 'GFX Clocks and Power:' -A9
-
-### amdmeminfo Ref: https://wiki.lexruee.ch/amd-gpus/
-pushd /opt
-apt-get -y install build-essential ocl-icd-opencl-dev libpci-dev git
-git clone https://github.com/ystarnaud/amdmeminfo
-cd amdmeminfo
-make
-
 cat >> /etc/profile.d/amdgpu-pro.sh << AMDGPU_PRO_SH
+AMDGPU_VERSION=$AMDGPU_VERSION
+AMDGPU_PATCH=$AMDGPU_PATCH
 export INSTALL_AMDGPU_PRO_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
 AMDGPU_PRO_SH
+source /etc/profile.d/amdgpu-pro.sh
 
-[ -n "$REBOOT_WHEN_NEEDED" ] && reboot
+echo "AMD-PRO $AMDGPU_VERSION and ROCM have been installed."
+echo "A reboot is highly recommended at this point."
+
+echo "Hit ctrl-C to abort the reboot."
+sleep 10
+reboot
