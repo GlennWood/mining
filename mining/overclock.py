@@ -1,9 +1,14 @@
 import os.path
-from gpustat import GPUStatCollection
 import status
 import stat
 import filecmp
 import time
+try:
+    from gpustat import GPUStatCollection
+    GPUSTAT = True
+except:
+    GPUSTAT = False
+
 
 def process(self, config, coin):
 
@@ -20,7 +25,8 @@ def process(self, config, coin):
     except:
         if not config.QUICK:
             ### TODO: https://github.com/GPUOpen-Tools/GPA/blob/master/BUILD.md
-            print("'miners overclock' is not implemented for AMD devices")
+            if config.PLATFORM == 'AMD':
+                print("'miners overclock' is not implemented for AMD devices")
         return config.ALL_MEANS_ONCE
 
     idx = 0
@@ -47,6 +53,7 @@ def process(self, config, coin):
 
     overclock_dryrun = os.getenv('LOG_RAMDISK','/var/local/ramdisk')+'/overclock-dryrun.sh'
     with open(overclock_dryrun, 'w') as fh: 
+        fh.write("echo '%s %i %s'\n\n"%('Overclocking', len(gpu_stats), 'GPUs.'))
         fh.write('%s\n'%('nvidia-smi -pm 1'))
         for pwr in nvidia_pwrs:
             cmd = "nvidia-smi -i "+','.join(nvidia_pwrs[pwr])+" -pl "+str(pwr)
@@ -67,7 +74,7 @@ def process(self, config, coin):
         if not config.FORCE and os.path.isfile(overclock_filename) and filecmp.cmp(overclock_dryrun, overclock_filename):
             timestamp = time.ctime(os.path.getctime(overclock_filename))
             if not config.QUICK:
-                print("Overclock settings are identical to those already set at '"+timestamp+"', so we are keeping them.")
+                print("Overclock settings are identical to those already set at '"+timestamp+"', so we are keeping them (use -f to force).")
         else:
             os.rename(overclock_dryrun, overclock_filename)
             if config.VERBOSE:

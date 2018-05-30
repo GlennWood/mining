@@ -73,6 +73,7 @@ def process(self, config, coin):
 
 def initialize(self, config, coin):
     if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
+    return 0
 
 def finalize(self, config, coin):
     if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")

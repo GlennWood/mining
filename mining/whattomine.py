@@ -75,6 +75,7 @@ def process_scope(self, config, coin):
     maxRigNameLen += 3
     totals = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
+    actualMaxRslts = 0
     for key in sorted(config.ANSIBLE_HOSTS):
         host = config.ANSIBLE_HOSTS[key]
         if config.SCOPE.upper() == 'ALL' or config.SCOPE.upper() in host['hostname'].upper():
@@ -97,22 +98,19 @@ def process_scope(self, config, coin):
                     if len(coinStats) > 4:
                         print('%6s %5s %5s '%(coinStats[0],coinStats[1],coinStats[4]),end='')
                         totals[totIdx] += float(coinStats[1])
-                        totIdx += 1
                         maxRslts -= 1
                         if maxRslts <= 0:
                             break
+                        totIdx += 1
+                        if totIdx > actualMaxRslts: actualMaxRslts = totIdx
             if err:
                 for ln in out.split('\n'):
                     print(err.rstrip()+';',end='')
             print()
 
     print(('%.'+str(maxRigNameLen)+'s')%('TOTALS:                 '),end='')
-    if config.VERBOSE:
-        maxRslts = len(totals)-1
-    else:
-        maxRslts = 4
     prev_total = totals[0]
-    for idx in xrange(0,maxRslts):
+    for idx in xrange(0,actualMaxRslts):
         diff = 1-(prev_total/totals[idx])
         print('       %3.2f  %3i%% '%(totals[idx],int(diff*100)),end='')
         prev_total = totals[idx]

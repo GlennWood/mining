@@ -1,6 +1,11 @@
 import subprocess
 import re
-from gpustat import GPUStatCollection
+GPUSTAT = True
+try:
+    from gpustat import GPUStatCollection
+except:
+    GPUSTAT = False
+import sys
 
 ### FIXME: sometimes a rig ignores a gpu, and 'miners devices' ought to report that:
 '''
@@ -77,16 +82,28 @@ GPU Load: 100 %
                 match = regex.match(line)
                 if match is not None: 
                     devices['AMD'+str(match.group(1))] = [match.group(2),match.group(3),match.group(4),match.group(5),match.group(6)]#,match.group(3),match.group(4),match.group(5),match.group(6)]
+            if config.VERBOSE:
+                print(str(len(devices))+" AMD devices found.")
     except OSError as ex:
-        if config.arguments.get('-v') and str(ex) and str(ex).find('[Errno 2] No such file or directory') < 0:
-            print(ex)
+        if config.VERBOSE:
+            if str(ex) and str(ex).find('[Errno 2] No such file or directory') < 0:
+                print(ex)
+            else:
+                print("Cannot discover AMD devices, since 'rocm-smi' is not installed.")
 
     ### Scan for Nvidia using gpustats.GPUStatCollection
-    gpu_stats = None
-    try:
-        gpu_stats = GPUStatCollection.new_query()     
-    except:
-        gpu_stats = [ ]
+    gpu_stats = [ ]
+    if GPUSTAT:
+        try:
+            gpu_stats = GPUStatCollection.new_query()     
+            if config.VERBOSE:
+                print(str(len(gpu_stats))+" Nvidia devices found.")
+        except:
+            if config.VERBOSE:
+                ex = sys.exc_info()[0]
+                print str(ex)
+            if config.PLATFORM != 'AMD':
+                print("gpustat for Nvidia GPUs is not installed.")
 
     idx = 0
     for gpu in gpu_stats:
@@ -104,9 +121,15 @@ GPU Load: 100 %
             uuid = ''
             if config.VERBOSE:
                 uuid = devices[device].uuid
-            print("%s: %2sC %3sW %s %s" % (device,devices[device].temperature,devices[device].power_draw,devices[device].name,uuid))
+            watts = devices[device].power_draw 
+            if not watts: 
+                strWatts = ' N/A' # Some GPUs (looking a you GTX 750) do not return power level
+            else:
+                strWatts = "%3sW" % (watts)
+            print("%s: %2sC %4s %s %s" % (device,devices[device].temperature,strWatts,devices[device].name,uuid))
                 #device, devices[device][0], devices[device][1], devices[device][2]))
-            total_nvi_watts += int(devices[device].power_draw)#devices[device][1])
+            if watts: 
+                total_nvi_watts += int(watts)
             idxNVI += 1
     if total_nvi_watts != 0: print "TOTAL: "+str(total_nvi_watts)+' watts (NVI)'
     if total_amd_watts != 0: print "TOTAL: "+str(total_amd_watts)+' watts (AMD)'
