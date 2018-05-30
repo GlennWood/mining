@@ -1,0 +1,10 @@
+-
+  hosts: miners
+  
+  name: "synchronize /opt/mining"
+  tasks:
+    - name: Set authorized key took from file
+      authorized_key:
+        user: albokiadt
+        state: present
+        key: "{{ lookup('file', '/home/albokiadt/.ssh/id_rsa.pub') }}"

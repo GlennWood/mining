@@ -1,0 +1,14 @@
+#!/bin/bash
+
+### Minimal x-server is required for nvidia-settings to work, but we do not need a full desktop for it.
+### Ref: https://help.ubuntu.com/community/ServerGUI#X11_Server_Installation
+
+    if [[ $EUID -ne 0 ]]
+    then
+		echo "$0 must be run as root."
+		sudo -H $0 $*
+		exit $?
+	fi
+
+apt-get -y install xauth  xorg
+apt-get -y install openbox # or fluxbox, blackbox, etc.

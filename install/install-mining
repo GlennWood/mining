@@ -46,17 +46,17 @@ cat >> /etc/profile.d/alias.sh << PROFILE_ALIAS
 alias status-all='miners status --scope all'
 alias whattomine='miners whattomine'
 alias whattomine-all='miners whattomine --scope all'
-alias sync-miners ansible-playbook /opt/mining/ansible/playbooks/sync-miners.yml
+alias sync-mining-rigs='ansible-playbook /opt/mining/ansible/playbooks/sync-mining-rigs.yml'
 PROFILE_ALIAS
 source /etc/profile.d/alias.sh
 
-### Ref: https://embraceubuntu.com/2006/01/28/turn-on-bash-smart-completion/
 cat >> /etc/bash.bashrc << ENABLE_SMART_COMPLETION
 if [ -f /etc/bash_completion ]; then
   . /etc/bash_completion
 fi
 ENABLE_SMART_COMPLETION
-cp /opt/$MINING_ROOT/etc/bash_completion_miners.sh /etc/bash_completion.d/miners
+cp $MINING_ROOT/etc/bash_completion_miners.sh /etc/bash_completion.d/miners
+cp $MINING_ROOT/etc/bash_completion_install_miners.sh /etc/bash_completion.d/install_miners
 
 apt-get -y update ; apt-get -y dist-upgrade
 apt-get -y autoremove ; apt-get -y autoclean
