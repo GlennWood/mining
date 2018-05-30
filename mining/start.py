@@ -3,6 +3,7 @@ import sys
 import socket
 import time
 import overclock
+import restart
 
 ### FIXME: 'start' does not recognize PLATFORM 'BTH' or empty as acceptable for PLATFORM=NVI
 
@@ -25,7 +26,7 @@ def process(self, config, coin):
     Clients = config.SHEETS['Clients']
     coinKey = coin['COIN'].upper()
 
-    miner = coin['MINER']
+    miner = minerName = coin['MINER']
     options = ''
     if 'OPTIONS' in coin and coin['OPTIONS'] != None:
         options = coin['OPTIONS']
@@ -71,7 +72,7 @@ def process(self, config, coin):
 
     # Replace $VARNAME, and <VARNAME>, variables with configured value(s)
     hostN = socket.gethostname()
-    WORKER_NAME = config.SHEETS['CoinMiners'][coinKey]['WORKER_NAME'] = coinKey + '-miner-' + hostN[len(hostN)-1]
+    WORKER_NAME = config.SHEETS['CoinMiners'][coinKey]['WORKER_NAME'] = coinKey + '-miner-' + hostN[len(hostN)-1].upper()
     options = config.substitute(coinKey, options)
     
     # Replace $WALLET and $COIN with configured values
@@ -137,19 +138,22 @@ def process(self, config, coin):
     cmd += 'nohup ' + unbuffer + miner + ' ' + options
     if not config.DRYRUN or config.VERBOSE: cmd += ' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
     if config.DRYRUN:
+        restart.write_latest_start_cmd(config, cmd, WORKER_NAME)
         print cmd
         return 0
 
     # Set overclocking for this coin
-    overclock.initialize(self, config, coin)
-    overclock.process(self, config, coin)
-    overclock.finalize(self, config, coin)
+    if not config.QUICK:
+        overclock.initialize(self, config, coin)
+        overclock.process(self, config, coin)
+        overclock.finalize(self, config, coin)
 
     try:
         if config.VERBOSE: print cmd
         # Fork this!
         newpid = os.fork()
         if newpid != 0:
+            print("Started mining "+coinKey+" with "+minerName+" in the background.")
             if config.OPS > 1:  # If there are more OPs on the command line, it might be
                 time.sleep(1.0) # prudent to wait a second before proceeding with them.
             return 0 
@@ -168,6 +172,7 @@ def process(self, config, coin):
             newpid = newpid#  due to python's exception when you are already the group-leader ... 
         os.umask(0)
              
+        restart.write_latest_start_cmd(config, cmd, WORKER_NAME)
         os.system(cmd)
 
     except SystemExit as ex:
