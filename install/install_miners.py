@@ -4,7 +4,7 @@
 Apply OPERATION to the mining of designated COINs w
 
 Arguments:
-  OPERATION  install
+  OPERATION  install | status
                (a comma-separated list of OPERATIONs)
   MINERS     comma-seperated list of miners to (re)install
 
@@ -44,13 +44,36 @@ MINERS_INSTALLERS = {
     ]
 }
 
+
+################################################################################################
+def bash_completion(config):
+    for idx in xrange(len(sys.argv)-1,0,-1):
+        cur = sys.argv[idx]
+        print(cur.upper())
+        if cur in {'install':1,'status':1}:
+            print('ALL '+' '.join(MINERS_INSTALLERS.keys()))
+            sys.exit(0)
+        print('install status')
+
+################################################################################################
 config = config.Config(docopt(__doc__, argv=None, help=True, version=None, options_first=False))
-if not config.arguments['MINERS']:
+
+if not config.arguments['OPERATION'] or config.arguments['OPERATION'] not in {'install':1,'status':1,'bash_completion':1}:
+    print("USAGE: "+sys.argv[0]+" [ install | status ] [ miner-name ... ]")
+    sys.exit(1)
+if config.arguments['OPERATION'] == 'bash_completion':
+    bash_completion(config)
+    sys.exit(0)
+
+if 'ALL' in config.arguments['MINERS']:
     config.arguments['MINERS'] = MINERS_INSTALLERS.keys()
 
-for miner in config.arguments['MINERS']:
-    MinersInstaller(MINERS_INSTALLERS[miner])
-
-os.chdir('/opt')
-MinersInstaller.install_all(config)
-print("All done!")
+if config.arguments['OPERATION'] == 'install':
+    for miner in config.arguments['MINERS']:
+        # TODO verify 'miner' is in MINERS_INSTALLERS
+        MinersInstaller(MINERS_INSTALLERS[miner])
+    os.chdir('/opt')
+    MinersInstaller.install_all(config)
+    print("All done!")
+elif config.arguments['OPERATION'] == 'status':
+    print ("'install_miners status' is not yet implemented.")

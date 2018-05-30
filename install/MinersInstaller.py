@@ -97,13 +97,15 @@ class MinersInstaller():
                         print("FAIL: '"+cmd+"' returned RC="+str(self.RC))
                         break
         #[ -n "$RUN_ALL_TESTS" ] && ./ccminer --algo=neoscrypt --benchmark
-        if not self.RC:
+        if self.RC != 0:
             with open('/etc/profile.d/'+self.NAME+'.sh','a+') as fh:
-                fh.write("export INSTALL_"+self.NAME.upper()+"_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`\n")
+                fh.write("export INSTALL_"+self.NAME.upper().replace('-','_')+"_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`\n")
             if not config.DRYRUN:
                 print("Finished installation of "+self.NAME)
+            print("Exiting due to errors, RC="+str(self.RC))
             sys.exit(self.RC)
 
+        return 0
 
     def git_clone(self, git_repo, srcDir):
 

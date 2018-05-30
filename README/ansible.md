@@ -4,7 +4,9 @@ Ansible for *GlennWood/mining* rigs
 
 **Overview**
 
-*ansible* is installed by *install/install-1st*. There is currently only one playbook, in */etc/ansible/playbooks/sync-miners.yml*. It synchronizes the content of three folders, */opt/mining*, */etc/mining* and */etc/ansible/*, on all your mining rigs.
+*ansible* is installed by *install/install-1st*. There is currently only one playbook, in */etc/ansible/playbooks/sync-mining-rigs.yml*. 
+It synchronizes the content of three folders, */opt/mining*, */etc/mining* and */etc/ansible/*, on all your mining rigs.
+*sync-mining-rigs* is a command-line alias for *ansible-playbook /opt/mining/ansible/playbooks/sync-mining-rigs.yml*
 
 **Configuration**
 
