@@ -13,6 +13,15 @@ class Config(object):
     I_AM_FORK = False
     RC_MAIN = 0
 
+    # Global state from command-line options
+    DRYRUN   = False
+    VERBOSE  = False
+    QUICK    = False
+    SCOPE    = False
+    WIDE_OUT = False
+    FORCE    = False
+    arguments = {}
+
     SHEETS = {
         'Globals': None,
         'CoinMiners': None,
@@ -38,17 +47,17 @@ class Config(object):
             else:
                 self.PLATFORM = os.getenv('PLATFORM','BTH')
             if '--url-port' in self.arguments: self.URL_PORT = self.arguments['--url-port']
-            self.ALL_COINS = self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0
+            self.ALL_COINS = 'COIN' in self.arguments and ( self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0 )
     
             # Command line options, booleans
             self.URL_PORT = self.SCOPE = None
-            self.VERBOSE  = self.arguments['-v']
-            self.PRINT    = self.arguments['--print']
-            self.DRYRUN   = self.arguments['--dryrun']
-            self.QUICK    = self.arguments['--quick']
-            self.SCOPE    = self.arguments['--scope']
-            self.WIDE_OUT = self.arguments['-l']
-            self.FORCE    = self.arguments['--force']
+            self.VERBOSE  = '-v'       in self.arguments and self.arguments['-v']
+            self.PRINT    = '--print'  in self.arguments and self.arguments['--print']
+            self.DRYRUN   = '--dryrun' in self.arguments and self.arguments['--dryrun']
+            self.QUICK    = '--quick'  in self.arguments and self.arguments['--quick']
+            self.SCOPE    = '--scope'  in self.arguments and self.arguments['--scope']
+            self.WIDE_OUT = '-l'       in self.arguments and self.arguments['-l']
+            self.FORCE    = '--force'  in self.arguments and self.arguments['--force']
         else:
             self.arguments = {}
             self.URL_PORT = self.SCOPE = None
