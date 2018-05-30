@@ -20,7 +20,7 @@ class Config(object):
         'WhatToMine': None,
         'Overclock': None
         }
-    
+
     def __init__(self, argumentsIn):
         self.arguments = argumentsIn
 
@@ -30,25 +30,37 @@ class Config(object):
         self.StatsUrls = {}
         self.ConvertUrls = {}
     
-        # Command line options, values
-        self.OPS = self.arguments['OPERATION'].split(',')
-        if '--platform' in self.arguments:
-            self.PLATFORM = self.arguments['--platform']
+        if self.arguments:
+            # Command line options, values
+            self.OPS = self.arguments['OPERATION'].split(',')
+            if '--platform' in self.arguments:
+                self.PLATFORM = self.arguments['--platform']
+            else:
+                self.PLATFORM = os.getenv('PLATFORM','BTH')
+            if '--url-port' in self.arguments: self.URL_PORT = self.arguments['--url-port']
+            self.ALL_COINS = self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0
+    
+            # Command line options, booleans
+            self.URL_PORT = self.SCOPE = None
+            self.VERBOSE  = self.arguments['-v']
+            self.PRINT    = self.arguments['--print']
+            self.DRYRUN   = self.arguments['--dryrun']
+            self.QUICK    = self.arguments['--quick']
+            self.SCOPE    = self.arguments['--scope']
+            self.WIDE_OUT = self.arguments['-l']
+            self.FORCE    = self.arguments['--force']
         else:
-            self.PLATFORM = os.getenv('PLATFORM','BTH')
-        if '--url-port' in self.arguments: self.URL_PORT = self.arguments['--url-port']
-        self.ALL_COINS = self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0
+            self.arguments = {}
+            self.URL_PORT = self.SCOPE = None
+            self.VERBOSE  = False
+            self.PRINT    = False
+            self.DRYRUN   = False
+            self.QUICK    = False
+            self.SCOPE    = None
+            self.WIDE_OUT = False
+            self.FORCE    = False
+            self.ALL_COINS = True
 
-        # Command line options, booleans
-        self.URL_PORT = self.SCOPE = None
-        self.VERBOSE  = self.arguments['-v']
-        self.PRINT    = self.arguments['--print']
-        self.DRYRUN   = self.arguments['--dryrun']
-        self.QUICK    = self.arguments['--quick']
-        self.SCOPE    = self.arguments['--scope']
-        self.WIDE_OUT = self.arguments['-l']
-        self.FORCE    = self.arguments['--force']
-     
         self.setup_config_dicts()
         self.setup_ansible_config()
         return
@@ -126,10 +138,10 @@ class Config(object):
         USER_PSW = row['USER_PSW'].split(':')
         if len(USER_PSW) > 1:
             row['USER'] = USER_PSW[0]
-            row['PASSWORD'] = USER_PSW[1]
+            row['PSW']  = USER_PSW[1]
         else:
             row['USER'] = row['USER_PSW']
-            row['PASSWORD'] = '' #None
+            row['PSW']  = ''
 
         prev_key = row['COIN'].upper()
 
