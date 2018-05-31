@@ -5,7 +5,16 @@ import os
 import requests
 import subprocess
 
+NicehashToTicker = {
+    'Nicehash-CNV7':'NH-CN',
+    'Nicehash-Lyra2REv2':'NH-LY',
+    'Nicehash-NeoScrypt':'NH-NS',
+    'Nicehash-Equihash':'NH-EQ',
+    'Nicehash-Ethash':'NH-ET',
+}
+
 def process(self, config, coin):
+    global NicehashToTicker
 
     hostname = os.getenv('HOSTNAME')
     if not hostname: # So, HOSTNAME was not exported
@@ -31,13 +40,22 @@ def process(self, config, coin):
     prev_revenue = prev_profit = None
     for tr in wtmList:
         cnt += 1
-        coinName = tr.xpath("td[1]/div[2]/a/text()")
+        coinName = tr.xpath("td[1]/div[2]/text()")
+        if coinName and coinName[0].strip().startswith('Nicehash-'):
+            coinName = coinName[0].strip()
+            if coinName in NicehashToTicker:
+                ticker = NicehashToTicker[coinName]
+            else:
+                print("Unrecognized Nicehash code: '"+coinName+"'", file=sys.stderr)
+                continue
+        else:
+            coinName = tr.xpath("td[1]/div[2]/a/text()")
+            if len(coinName) is 0:
+                continue
+            coinName, ticker = coinName[0].split('(')
+            ticker = ticker.replace(')','')
         revenue_profit = tr.xpath("td[8]")
-        if len(coinName) is 0:
-            continue
         
-        coinName, ticker = coinName[0].split('(')
-        ticker = ticker.replace(')','')
         revenue = revenue_profit[0].xpath("text()")
         profit = revenue_profit[0].xpath("strong/text()")
         if profit[0].find('-') < 0: # Let's skip the ones with negative profit.
