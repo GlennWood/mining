@@ -12,8 +12,8 @@ RIG_TAG=${1:-RIG_TAG}
 export MINERS_USER=${2:-albokiadt}
 
 getent passwd $MINERS_USER || $MINING_ROOT/install/install-mining-user
-[ -z "$INSTALL_DATE_MINERS" ] && $MINING_ROOT/install/install-1st    $MINERS_USER $RIG_TAG && source /etc/environment
-[ -z "$INSTALL_DATE_MINING" ] && $MINING_ROOT/install/install-mining $MINERS_USER $RIG_TAG && source /etc/environment && source /etc/profile
+[ -z "$INSTALL_DATE_MINERS" ] && $MINING_ROOT/install/install-1st $MINERS_USER $RIG_TAG && source /etc/environment
+[ -z "$INSTALL_DATE_MINING" ] && $MINING_ROOT/install/install-2nd $MINERS_USER $RIG_TAG && source /etc/environment && source /etc/profile
 
 ### Ref: Interesting recipes, all languages https://github.com/ActiveState/code/tree/master/recipes
 ### TODO Connect To Wifi From The Linux Command Line

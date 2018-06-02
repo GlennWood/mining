@@ -7,4 +7,4 @@ _script()
 
   return 0
 }
-complete -F _script /opt/mining/install/install_miners.py
+complete -F _script /opt/mining/install/InstallMiners.py

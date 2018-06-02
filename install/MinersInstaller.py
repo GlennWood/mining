@@ -53,11 +53,13 @@ class MinersInstaller():
         srcDir = self.SOURCE.split('/')
         srcDir = srcDir[len(srcDir)-1].replace('.git','')
         if config.DRYRUN:
-            print('git clone '+self.SOURCE)
+            if self.SOURCE.startswith('wget '):
+                print(self.SOURCE)
+            else:
+                print('git clone '+self.SOURCE)
             print('cd '+srcDir)
         else:
-            repoName = self.git_clone(self.SOURCE, srcDir)
-            os.chdir('/opt/'+repoName)
+            dirName = self.git_clone(self.SOURCE, srcDir)
             print("Starting installation of "+self.NAME)
 
         self.RC = 0
@@ -109,22 +111,39 @@ class MinersInstaller():
 
     def git_clone(self, git_repo, srcDir):
 
+        dirName = None
+        if self.SOURCE.startswith('wget '):
+            self.RC = os.system(self.SOURCE)
+            if self.RC:
+                sys.exit(1)
+            archiveName = self.SOURCE.split('/')[-1]
+            if archiveName.ends_with('.tgz') or archiveName.ends_with('.tar.gz'):
+                os.system('tar -xzf '+archiveName)
+                dirName = archiveName.replace('.tgz','').replace('.tar.gz','')
+            elif archiveName.ends_with('.tar.lrz'):
+                os.system('lrunzip '+archiveName)
+                archiveName = archiveName.replace('.lrz','')
+                os.system('lrunzip '+archiveName)
+                dirName = archiveName.replace('.tar','')
+            if dirName:
+                os.chdir(dirName)
+            return dirName
+       
         regex = re.compile(r'.*?/([^/]*)[.]git', re.DOTALL)
         match = regex.match(git_repo)
         if match != None:
-            repoName = match.group(1)
+            dirName = match.group(1)
         else:
-            repoName = self.NAME
+            dirName = self.NAME
 
         if os.path.isdir(srcDir):
             self.RC = os.system('git pull '+git_repo+' -C '+srcDir)            
         else:
             self.RC = os.system('git clone '+git_repo)
         if self.RC:
-            os.chdir('/opt/'+repoName)
-            self.RC = os.system('git pull')
-            if self.RC:
-                #raise BaseException("FAIL: git clone "+git_repo)
-                sys.exit(1)
+            #raise BaseException("FAIL: git clone "+git_repo)
+            sys.exit(1)
         
-        return repoName
+        if dirName:
+            os.chdir('/opt/'+dirName)
+        return dirName

@@ -36,6 +36,7 @@ while [ -z "$MINERS_PSW" ]; do
 done
 MINING_ROOT=${MINING_ROOT:-/opt/mining}
 
+getent passwd $MINERS_USER || useradd -m $MINING_USER  -p $(echo "$MINERS_PSW" | openssl passwd -1 -stdin) 
 usermod -a -G sudo -G staff -G root $MINERS_USER
 
 cat  > /etc/sudoers.d/miners << ETC_SUDOERS
@@ -44,6 +45,7 @@ $MINERS_USER ALL=(ALL) NOPASSWD: ALL
 ETC_SUDOERS
 chmod 0440 /etc/sudoers.d/miners
 
+# Setup .ssh folder and put miners_user.psw in there.
 [ ! -d /home/$MINERS_USER/.ssh ]&& mkdir /home/$MINERS_USER/.ssh && chmod 0700 /home/$MINERS_USER/.ssh
 echo $MINERS_PSW > /home/$MINERS_USER/.ssh/miners_user.psw
 chown $MINERS_USER:$MINERS_USER /home/$MINERS_USER/.ssh/miners_user.psw
@@ -53,8 +55,8 @@ chmod 0600 /home/$MINERS_USER/.ssh/miners_user.psw
 ### Ref: https://www.cyberciti.biz/python-tutorials/linux-tutorial-install-ansible-configuration-management-and-it-automation-tool/
 apt-get -y install software-properties-common
 apt-add-repository -y ppa:ansible/ansible
-apt-get update
-apt-get -y install ansible
+apt-get update ; apt-get upgrade
+apt-get -y install ansible testdisk
 
 HOSTNAME=rig-$RIG_TAG
 hostname $HOSTNAME
@@ -69,23 +71,12 @@ cat >> /etc/ansible/hosts << ANSIBLE_MINERS
 ANSIBLE_MINERS
 sed -i.bak 's/#host_key_checking = False/host_key_checking = False/' /etc/ansible/ansible.cfg
 
-usermod -a -G sudo  $MINERS_USER
-usermod -a -G staff $MINERS_USER
-
-cat  >> /etc/sudoers << ETC_SUDOERS
-Defaults env_keep+="DISPLAY"
-$MINERS_USER ALL=(ALL) NOPASSWD: ALL
-ETC_SUDOERS
-
 ### Great post at https://zxq9.com/archives/795
 cat >> /etc/environment << ETC_ENVIRONMENT
 MINERS_USER=${MINERS_USER}
 RIG_TAG=$RIG_TAG
 MINING_ROOT=$MINING_ROOT
 XAUTHORITY=/home/$MINERS_USER/.Xauthority
-NO_AT_BRIDGE=1
-ANSIBLE_HOST_KEY_CHECKING=False
-INSTALL_DATE_MINERS=`date --utc +%Y-%m-%dT%H-%M-%SZ`
 NO_AT_BRIDGE=1
 ANSIBLE_HOST_KEY_CHECKING=False
 ETC_ENVIRONMENT
@@ -99,20 +90,36 @@ update-grub
 ### TODO: Is there really a 20% hit on hashrate if upgrade Ubuntu after Jan 19 2018?!
 ### Ref: http://www.cryptobadger.com/2017/05/build-ethereum-mining-rig-faq/#kernal_update
 ### Ref: http://ask.xmodulo.com/disable-automatic-updates-ubuntu.html
+### Regardless, we do not what automated background upgrades happening
 echo 'APT::Periodic::Unattended-Upgrade "0";' >> /etc/apt/apt.conf.d/10periodic 
 
-# Make and configure some initial directories
-MINERS_FOLDERS='/opt/mining /var/mining /var/log/mining /var/run/miners /var/local/persist /opt/Downloads /etc/mining /etc/ansible'
-mkdir -p $MINERS_FOLDERS 2>/dev/null
-chown -R ${MINERS_USER} $MINERS_FOLDERS
-# Make ~/.ssh folders in root and $MINERS_USER accounts
-mkdir -p ~/.ssh/config.d >/dev/null /home/${MINERS_USER}/.ssh/config.d >/dev/null
-chmod 0700 ~/.ssh/config.d /home/${MINERS_USER}/.ssh/config.d
-chown -R $MINERS_USER:$MINERS_USER /home/${MINERS_USER}/.ssh
+### SAMBA ###################################################
+apt-get update
+apt-get -y install samba
 
-echo "Basic OS, accounts, etc., for mining have been prepared."
-echo "A reboot is highly recommended at this point."
+samba_password=$(cat /home/$MINERS_USER/.ssh/miners_user.psw)
+smbpasswd -s -a albokiadt << PSW
+$samba_password
+$samba_password
+PSW
 
-echo "Hit ctrl-C to abort the reboot."
-sleep 10
-reboot
+cat >> /etc/samba/smb.conf << SMB_CONF
+[mining-${RIG_TAG}]
+path = /opt/mining
+available = yes
+valid users = $MINING_USER
+read only = no
+browseable = yes
+public = yes
+writable = yes
+SMB_CONF
+
+service smbd restart
+
+cat >> /etc/environment << ETC_ENVIRONMENT
+INSTALL_1ST_DATE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+ETC_ENVIRONMENT
+
+echo
+echo "Basic OS, accounts, etc., for GlennWood/mining have been prepared."
+echo
