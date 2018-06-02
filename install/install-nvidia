@@ -1,5 +1,7 @@
 #!/bin/bash
 
+### Ref: http://www.nvidia.com/Download/index.aspx
+
   if [[ $EUID -ne 0 ]]
   then
 		echo "$0 must be run as root."
@@ -9,31 +11,20 @@
 
 pushd /opt
 
-[ -n "$INSTALL_NVIDIA_DONE" ] && echo "Nvidia drivers and support already installed $INSTALL_NVIDIA_DONE." && echo "Do 'rm /etc/profile.d/nvidia.sh' to restart over from scratch." && exit 0
+[ -n "$INSTALL_NVIDIA_DONE" ] && echo "Nvidia drivers and support already installed $INSTALL_NVIDIA_DONE." && echo "To restart over from scratch, 'rm /etc/profile.d/nvidia.sh', logout, and retry." && exit 0
+
+NVIDIA_VERSION=${1:-390.59}
+NVIDIA_VER_PTC=(${NVIDIA_VERSION//./ })
+NVIDIA_VER=${NVIDIA_VER_PTC[0]}
+NVIDIA_SUB=${NVIDIA_VER_PTC[1]}
 
 ################################################################################
 ### Phase 0: Setup autostart ###################################################
 [ -f /etc/profile.d/nvidia.sh ] && source /etc/profile.d/nvidia.sh
 if [ -z "$INSTALL_NVIDIA" ]; then
 
-#cat > /etc/xdg/autostart/install-nvidia.desktop << NVIDIA_AUTOSTART
-#[Desktop Entry]
-#Type=Application
-#Name=Install Nvidia Drivers and Support
-#Exec=sudo /opt/mining/install/install-nvidia
-#NVIDIA_AUTOSTART
-
-NVIDIA_VERSION=${NVIDIA_VERSION:-390.59}
-# For GTX 750 TI -334.21 ?
-NVIDIA_VER_PTC=(${NVIDIA_VERSION//./ })
-NVIDIA_VER=${NVIDIA_VER_PTC[0]}
-NVIDIA_PATCH=${NVIDIA_VER_PTC[1]}
-
 cat >> /etc/profile.d/nvidia.sh << NVIDIA_SH
-export NVIDIA_VERSION=$NVIDIA_VERSION
-export NVIDIA_VER=$NVIDIA_VER
-export NVIDIA_PATCH=$NVIDIA_PATCH
-export INSTALL_NVIDIA=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+export INSTALL_NVIDIA_STARTED=`date --utc +%Y-%m-%dT%H-%M-%SZ`
 NVIDIA_SH
 
 fi
@@ -86,27 +77,39 @@ fi
 ################################################################################
 if [ -z "$NVIDIA_DRIVERS_INSTALLED" ]; then
   cd /opt/Downloads/
+if [ -n "$USE_RUN_METHOD" ]; then # USE_RUN_METHOD
   [ -f NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_PATCH}.run ] && rm NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_PATCH}.run
   wget https://us.download.nvidia.com/XFree86/Linux-x86_64/${NVIDIA_VER}.${NVIDIA_PATCH}/NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_PATCH}.run
   [ ! -f NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_PATCH}.run ] && echo "Nvidia Drivers download failed!" && exit 1
   ### Question: When will we ever need X server?
   ### Answer: nvidia-settings is too stupid to talk directly to its own GPUs and has to use X-server to do that for it.
   service lightdm stop
-  sh NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_PATCH}.run --no-questions --disable-nouveau --ui=none --run-nvidia-xconfig
+  sh NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_SUB}.run --no-questions --disable-nouveau --ui=none --run-nvidia-xconfig
   NVIDIA_RC=$?
-  rm NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_PATCH}.run
+  rm NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_SUB}.run
   service lightdm start
   ### See /usr/share/doc/NVIDIA_GLX-1.0/README.txt
 
   if [ $NVIDIA_RC != 0 ]; then
-    echo "FAIL: Execution of NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_PATCH}.run RC=$NVIDIA_RC"
+    tail -n15 /var/log/nvidia-installer.log
+    echo "FAIL: Execution of NVIDIA-Linux-x86_64-${NVIDIA_VER}.${NVIDIA_SUB}.run RC=$NVIDIA_RC"
     exit $NVIDIA_RC
   fi
-  ## TODO: grep /var/log/nvidia-installer.log to determine if any NVIDIA.run failed.
+
+else # USE_DEB_METHOD
+  ### Ref: https://www.pugetsystems.com/labs/hpc/The-Best-Way-To-Install-Ubuntu-16-04-with-NVIDIA-Drivers-and-CUDA-1097/
+  add-apt-repository ppa:graphics-drivers/ppa
+  apt-get install dkms synaptic build-essential
+  apt-get update
+  apt-get -y install nvidia-387
+fi
 
   cat >> /etc/profile.d/nvidia.sh << NVIDIA_DRIVERS_INSTALLED
-export PATH=/usr/lib/nvidia-\$NVIDIA_VER/bin\${PATH:+:\$PATH}
-export LD_LIBRARY_PATH=/usr/lib/nvidia-\$NVIDIA_VER${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}
+export NVIDIA_VERSION=$NVIDIA_VERSION
+export NVIDIA_VER=$NVIDIA_VER
+export NVIDIA_SUB=$NVIDIA_SUB
+export PATH=/usr/lib/nvidia-\$NVIDIA_VER/bin:\$PATH
+export LD_LIBRARY_PATH=/usr/lib/nvidia-\$NVIDIA_VER\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}
 export NVIDIA_DRIVERS_INSTALLED=`date --utc +%Y-%m-%dT%H-%M-%SZ`
 NVIDIA_DRIVERS_INSTALLED
 
@@ -116,8 +119,6 @@ NVIDIA_DRIVERS_INSTALLED
 export INSTALL_NVIDIA_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
 NVIDIA_SH
   chmod 0754 /etc/profile.d/nvidia.sh
-
-  rm -f /etc/xdg/autostart/install-nvidia.desktop
 
   echo "Nvidia drivers have been installed."
   echo "After this reboot, install-nvidia will be complete."

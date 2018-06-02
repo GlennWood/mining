@@ -1,30 +1,65 @@
 #!/bin/bash
 
-export CUDA_VERSION=9.2.88
+  if [[ $EUID -ne 0 ]]
+  then
+		echo "$0 must be run as root."
+		sudo $0 $*
+		exit $?
+	fi
+
+[ -n "$INSTALL_NVIDIA_DONE" ] && echo "Nvidia drivers and support already installed $INSTALL_NVIDIA_DONE." && echo "To restart over from scratch, 'rm /etc/profile.d/nvidia.sh', logout, and retry." && exit 0
+
+export CUDA_VERSION=${1:-9.2.88}
+# Nvidia didn't get this quite right, grrrr...
+CUDA_NVIDIA_VERSION=396.26
 
 export CUDA_VER=$(echo $CUDA_VERSION|cut -f1 -d.).$(echo $CUDA_VERSION|cut -f2 -d.)
-export CUDA_PATCH=$(echo $CUDA_VERSION|cut -f3 -d.)
+export CUDA_SUB=$(echo $CUDA_VERSION|cut -f3 -d.)
 export CUDA_WTF=$(echo $CUDA_VERSION|cut -f1 -d.)-$(echo $CUDA_VERSION|cut -f2 -d.)
-cat >> /etc/profile.d/cuda.sh <<CUDA_ENV
-CUDA_VERSION=$CUDA_VERSION
-CUDA_VER=$CUDA_VER
-CUDA_PATCH=$CUDA_PATCH
-CUDA_WTF=$CUDA_WTF
-export PATH=/usr/local/cuda-${CUDA_VER}/bin${PATH:+:${PATH}}
-export LD_LIBRARY_PATH=/usr/local/cuda-${CUDA_VER}/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-export CUDA_CUDART_LIBRARY=/usr/local/cuda-9.1/lib64
-CUDA_ENV
-source /etc/profile.d/cuda.sh
-
-### The RUN-method wget https://developer.nvidia.com/compute/cuda/${CUDA_VER}/Prod/local_installers/cuda_${CUDA_VERSION}_${NVIDIA_VERSION}.81_linux-run
 
 pushd /opt/Downloads
-wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_${CUDA_VERSION}-1_amd64.deb
-dpkg -i cuda-repo-ubuntu1604_${CUDA_VERSION}-1_amd64.deb
+apt-get clean
+
+if [ -n "$USE_RUN_METHOD" ]; then # USE_RUN_METHOD
+  [ -f cuda_${CUDA_VERSION}_${NVIDIA_VERSION}_linux ] && rm cuda_${CUDA_VERSION}_${NVIDIA_VERSION}_linux
+  [ -f cuda_${CUDA_VERSION}_${CUDA_NVIDIA_VERSION}_linux ] \
+  || wget https://developer.nvidia.com/compute/cuda/${CUDA_VER}/Prod/local_installers/cuda_${CUDA_VERSION}_${CUDA_NVIDIA_VERSION}_linux
+  [ -f cuda_${CUDA_VERSION}.1_linux  ] && rm cuda_${CUDA_VERSION}.1_linux 
+  [ -f cuda_${CUDA_VERSION}.1_linux  ] \
+  || wget https://developer.nvidia.com/compute/cuda/${CUDA_VER}/Prod/patches/1/cuda_${CUDA_VERSION}.1_linux
+
+  sh cuda_${CUDA_VERSION}_${CUDA_NVIDIA_VERSION}_linux --silent --driver --no-man-page
+  CUDA_RC=$?
+  if [ $CUDA_RC != 0 ]; then
+    #tail -n15 /var/log/nvidia-installer.log
+    echo "FAIL: Execution of cuda_${CUDA_VERSION}_${CUDA_NVIDIA_VERSION}_linux RC=$CUDA_RC"
+    exit $NVIDIA_RC
+  fi
+  
+  sh cuda_${CUDA_VERSION}.1_linux --accept-eula --silent
+
+else # USE_DEB_METHOD
+  ### Ref: https://www.pugetsystems.com/labs/hpc/The-Best-Way-To-Install-Ubuntu-16-04-with-NVIDIA-Drivers-and-CUDA-1097/
+  wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_${CUDA_VERSION}-1_amd64.deb
+  dpkg -i cuda-repo-ubuntu1604_${CUDA_VERSION}-1_amd64.deb
+  rm cuda-repo-ubuntu1604_${CUDA_VERSION}-1_amd64.deb
+  apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
+  apt-get update
+  apt-get -y install cuda-${CUDA_WTF}
+fi
 popd
-apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
-apt-get update
-apt-get -y install cuda-${CUDA_WTF}
+
+cat >> /etc/profile.d/cuda.sh << CUDA_ENV
+CUDA_VERSION=$CUDA_VERSION
+CUDA_VER=$CUDA_VER
+CUDA_SUB=$CUDA_SUB
+CUDA_WTF=$CUDA_WTF
+export PATH=/usr/local/cuda-${CUDA_VER}/bin:\$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-${CUDA_VER}/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+export CUDA_CUDART_LIBRARY=/usr/local/cuda-${CUDA_VER}/lib64
+export INSTALL_CUDA_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+CUDA_ENV
+source /etc/profile.d/cuda.sh
 
 echo "CUDA has been installed. A reboot at this time is highly recommended."
 echo "Hit ctrl-C to abort the reboot."

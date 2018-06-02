@@ -89,6 +89,11 @@ A *--scope <parm>* option will query all of your rigs and produce a report for e
 The *--scope* report is refined down a bit, reporting only the revenue (not profit) dollar amount, and the relative percent of the profit (not revenue). This makes a bit more sense when using these numbers for a heuristic assessment of which coins to mine.
 
 
+Tab Completion
+==============
+*miners* offers command-line tab-completion, which means you type in 'miners ', then "tap tab twice". This pops up a list of operations you may enter. Type in the first one or two characters of an operation, hit tab again, and the rest of the operation's name is filled in for you.
+Many operations offer tab-completion beyond this, as well. "Tap tab twice" to see the options you may add to an operation. Again, type in some leading characters, hit tab again, and the rest of that option is filled in.
+
 More Help
 =========
 These README files help the operator utilize more of the features of this project.
@@ -97,4 +102,3 @@ These README files help the operator utilize more of the features of this projec
 * [Installation Scripts](install/README.md)
 * [Monit](README/monit.md) monitoring
 * [Ansible](README/ansible.md) installation and configuration management
-
