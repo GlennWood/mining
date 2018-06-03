@@ -1,4 +1,4 @@
-_script()
+_miners_script()
 {
   local cur prev
   COMPREPLY=()
@@ -7,4 +7,4 @@ _script()
 
   return 0
 }
-complete -F _script miners
+complete -F _miners_script miners

@@ -1,10 +1,9 @@
-_script()
+_miners_installer_script()
 {
-  local cur prev
+  local cur
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
-  COMPREPLY=( $(compgen -W "$(/opt/mining/install/install_miners.py bash_completion $(printf " %s" "${COMP_WORDS[@]}") )" -- ${cur}) )
-
+  COMPREPLY=( $(compgen -W "$(/opt/mining/install/InstallMiners.py bash_completion $(printf " %s" "${COMP_WORDS[@]}") )" -- ${cur}) )
   return 0
 }
-complete -F _script /opt/mining/install/InstallMiners.py
+complete -F _miners_installer_script InstallMiners.py
