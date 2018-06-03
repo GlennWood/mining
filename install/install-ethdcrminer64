@@ -21,31 +21,8 @@ pushd /opt/ethdcrminer64 >/dev/null
   echo "USAGE: cd /opt/ethdcrminer64 ; ./ethdcrminer64 [ options ... ]"
 popd >/dev/null
 
-[ -d /home/$MINERS_USER/systemd/system ] || mkdir -p /home/$MINERS_USER/systemd/system && chown $MINERS_USER /home/$MINERS_USER/systemd/system
-cat > /home/$MINERS_USER/systemd/system/nicehash-ethash.service << ETHMINER_SERVICE
-[Unit]
-Description=nicehash-ethash miner
-
-[Service]
-Environment=GPU_FORCE_64BIT_PTR=0
-Environment=GPU_MAX_HEAP_SIZE=100
-Environment=GPU_USE_SYNC_OBJECTS=1
-Environment=GPU_MAX_ALLOC_PERCENT=100
-Environment=GPU_SINGLE_ALLOC_PERCENT=100
-Environment=DISPLAY=:0
-Environment=XAUTHORITY=/var/run/lightdm/root/:0
-WorkingDirectory=/home/albokiadt
-
-ExecStart=/usr/local/bin/ethminer --verbosity 3 -SP 2 -U -S daggerhashimoto.usa.nicehash.com:3353 -O 346u4oMvACtZQK9RASzcgYoZwX4JaAd3Pi.NICEHASH-ETHASH-miner:x
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-ETHMINER_SERVICE
-ln -sf /home/$MINERS_USER/systemd/system/nicehash-ethash.service /etc/systemd/system/nicehash-ethash.service
-
 cat >> /etc/profile.d/ethdcrminer64.sh << ETHDCRMINER64_SH
-export INSTALL_ETHDCRMINER64_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+export INSTALL_ETHDCRMINER64_DATE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
 ETHDCRMINER64_SH
 
 

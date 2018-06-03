@@ -11,6 +11,9 @@ NicehashToTicker = {
     'Nicehash-NeoScrypt':'NH-NS',
     'Nicehash-Equihash':'NH-EQ',
     'Nicehash-Ethash':'NH-ET',
+    'Nicehash-Skunkhash': 'NH-SK',
+    'Nicehash-NIST5': 'NH-NI',
+    'Nicehash-CryptoNight': 'NH-CR'
 }
 
 def process(self, config, coin):

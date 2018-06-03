@@ -45,27 +45,6 @@ popd
 #nheqminer -l us.zclmine.pro:9009 -u YOUR_ZCL_T-ADDR.ZCL-miner -p x 
 #ssl://us.zclmine.pro:9999
 
-[ -d /home/$MINERS_USER/systemd/system ] || mkdir -p /home/$MINERS_USER/systemd/system && chown $MINERS_USER /home/$MINERS_USER/systemd/system
-cat > /home/$MINERS_USER/systemd/system/nicehash-equihash.service << ETHMINER_SERVICE
-[Unit]
-Description=nicehash-equihash miner
-
-[Service]
-Environment=GPU_FORCE_64BIT_PTR=0
-Environment=GPU_MAX_HEAP_SIZE=100
-Environment=GPU_USE_SYNC_OBJECTS=1
-Environment=GPU_MAX_ALLOC_PERCENT=100
-Environment=GPU_SINGLE_ALLOC_PERCENT=100
-Environment=DISPLAY=:0
-Environment=XAUTHORITY=/var/run/lightdm/root/:0
-WorkingDirectory=/home/albokiadt/
-
-ExecStart=/usr/local/bin/gatelessgate
-#/usr/local/bin/nheqminer -l equihash.usa.nicehash.com:3357 -u 346u4oMvACtZQK9RASzcgYoZwX4JaAd3Pi.EQUIHASH_miner -t 0 -e 0 
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-ETHMINER_SERVICE
-ln -sf /home/$MINERS_USER/systemd/system/nicehash-equihash.service /etc/systemd/system/nicehash-equihash.service
-# sudo journalctl -f
+cat >> /etc/profile.d/nheqminer.sh << NHEQMINER_SH
+export INSTALL_NHEQMINER_DATE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+NHEQMINER_SH
