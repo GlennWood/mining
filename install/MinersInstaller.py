@@ -20,26 +20,35 @@ class MinersInstaller():
 
         self.NAME = name
         self.SOURCE = source
-        for pkg in pkgs:
-            if pkg.startswith('pip '):
-                MinersInstaller.PKGS[pkg.split(' ')[1]] = 'pip'
-                # TODO install with pip when we see this.
-            else:
-                MinersInstaller.PKGS[pkg] = 'apt'
-        self.COMMANDS = commands
+        if pkgs:
+            for pkg in pkgs:
+                if pkg.startswith('pip '):
+                    MinersInstaller.PKGS[pkg.split(' ')[1]] = 'pip'
+                    # TODO install with pip when we see this.
+                else:
+                    MinersInstaller.PKGS[pkg] = 'apt'
+
+        if isinstance(commands, basestring):
+            self.COMMANDS = [ commands ]
+        else:
+            self.COMMANDS = commands
+          
         MinersInstaller.INSTALLERS.append(self)
 
     @classmethod
     def install_pkgs(slf, config):
+        if  MinersInstaller.PKGS or len(MinersInstaller.PKGS) is 0:
+            return
         # The dict nature of self.PKGS insures each package is installed only once
         if config.DRYRUN:
-            print (MinersInstaller.PKGS)
-            print('apt-get -y install '+' '.join(MinersInstaller.PKGS.keys()))
+            if MinersInstaller.PKGS:
+                print('apt-get -y install '+' '.join(MinersInstaller.PKGS.keys()))
         else:
-            RC = os.system('apt-get -y install '+' '.join(MinersInstaller.PKGS.keys()))
-            if RC:
-                sys.exit(RC)
-        MinersInstaller.PKGS = []
+            if MinersInstaller.PKGS:
+                RC = os.system('apt-get -y install '+' '.join(MinersInstaller.PKGS.keys()))
+                if RC:
+                    sys.exit(RC)
+        MinersInstaller.PKGS = None
 
     @classmethod
     def install_all(slf, config):
@@ -50,17 +59,17 @@ class MinersInstaller():
        
     def install(self, config):
 
-        srcDir = self.SOURCE.split('/')
-        srcDir = srcDir[len(srcDir)-1].replace('.git','')
         if config.DRYRUN:
-            if self.SOURCE.startswith('wget '):
-                print(self.SOURCE)
-            else:
-                print('git clone '+self.SOURCE)
-            print('cd '+srcDir)
+            print('cd /opt')
         else:
-            dirName = self.git_clone(self.SOURCE, srcDir)
-            print("Starting installation of "+self.NAME)
+            os.chdir('/opt')
+
+        if self.SOURCE:
+            srcDir = self.SOURCE.split('/')
+            srcDir = srcDir[-1].replace('.git','')
+            srcDir = self.get_source(config, self.SOURCE, srcDir)
+            if not config.DRYRUN:
+                print("Starting installation of "+self.NAME+' in '+srcDir)
 
         self.RC = 0
         for cmd in self.COMMANDS:
@@ -82,6 +91,12 @@ class MinersInstaller():
                         if os.path.isdir(nDir):
                             shutil.rmtree(nDir)
                         os.mkdir(nDir)
+            elif cmd.startswith('install-'):
+                cmd = os.getenv('MINING_ROOT','/opt/mining')+'/install/'+cmd
+                if config.DRYRUN:
+                    print(cmd)
+                else:
+                    os.system(cmd)
             elif cmd.startswith('ln '):
                 if config.DRYRUN:
                     print(cmd)
@@ -109,7 +124,19 @@ class MinersInstaller():
 
         return 0
 
-    def git_clone(self, git_repo, srcDir):
+    def get_source(self, config, git_repo, srcDir):
+
+        if config.DRYRUN:
+            if self.SOURCE.startswith('wget '):
+                print(self.SOURCE)
+            else:
+                if os.path.isdir(srcDir):
+                    print('cd '+srcDir)
+                    print('git pull '+git_repo+' -C '+srcDir)            
+                else:
+                    print('git clone '+self.SOURCE)
+                    print('cd '+srcDir)
+            return srcDir
 
         dirName = None
         if self.SOURCE.startswith('wget '):
@@ -137,13 +164,12 @@ class MinersInstaller():
             dirName = self.NAME
 
         if os.path.isdir(srcDir):
-            self.RC = os.system('git pull '+git_repo+' -C '+srcDir)            
+            os.chdir(srcDir)
+            self.RC = os.system('git pull')            
         else:
             self.RC = os.system('git clone '+git_repo)
+            os.chdir(srcDir)
         if self.RC:
-            #raise BaseException("FAIL: git clone "+git_repo)
             sys.exit(1)
-        
-        if dirName:
-            os.chdir('/opt/'+dirName)
+       
         return dirName
