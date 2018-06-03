@@ -15,7 +15,8 @@ def write_latest_start_cmd(config, cmd, WORKER_NAME):
         fileName = '/var/local/persist/lastest-start-dryrun.cmd'
     else:
         fileName = '/var/local/persist/lastest-start.cmd'
-    with open(fileName, 'w') as fh:  
+    if os.path.isfile(fileName): os.remove(fileName)
+    with open(fileName, 'w') as fh:
         fh.write(cmd+"\n")
     os.chmod(fileName, stat.S_IXUSR|stat.S_IXGRP | stat.S_IWUSR|stat.S_IWGRP | stat.S_IRUSR|stat.S_IRGRP|stat.S_IROTH)
 
