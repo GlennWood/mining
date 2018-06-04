@@ -119,11 +119,11 @@ def process_scope(self, config, coin):
                     if len(coinStats) > 4:
                         print('%6s %5s %5s '%(coinStats[0],coinStats[1],coinStats[4]),end='')
                         totals[totIdx] += float(coinStats[1])
+                        totIdx += 1
+                        if totIdx > actualMaxRslts: actualMaxRslts = totIdx
                         maxRslts -= 1
                         if maxRslts <= 0:
                             break
-                        totIdx += 1
-                        if totIdx > actualMaxRslts: actualMaxRslts = totIdx
             if err:
                 for ln in out.split('\n'):
                     print(err.rstrip()+';',end='')
