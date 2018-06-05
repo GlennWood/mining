@@ -2,7 +2,6 @@ import os
 import subprocess
 import start
 import status
-import socket
 
 def process(self, config, coin):
     global TAIL_LOG_FILES
@@ -35,8 +34,7 @@ TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(
         if pinfos is None:
             return config.ALL_MEANS_ONCE
         for pinfo in pinfos:
-            hostN = socket.gethostname()
-            WORKER_NAME = pinfo['coin'] + '-miner-' + hostN[len(hostN)-1].upper()
+            WORKER_NAME = config.workerName(pinfo['coin'])
             for ext in ['.log','.err','.out']:
                 logName = '/var/log/mining/'+WORKER_NAME+ext
                 if os.path.isfile(logName):

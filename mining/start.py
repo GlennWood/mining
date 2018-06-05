@@ -1,6 +1,5 @@
 import os
 import sys
-import socket
 import time
 import overclock
 import restart
@@ -71,8 +70,7 @@ def process(self, config, coin):
         return 0
 
     # Replace $VARNAME, and <VARNAME>, variables with configured value(s)
-    hostN = socket.gethostname()
-    WORKER_NAME = config.SHEETS['CoinMiners'][coinKey]['WORKER_NAME'] = coinKey + '-miner-' + hostN[len(hostN)-1].upper()
+    WORKER_NAME = config.SHEETS['CoinMiners'][coinKey]['WORKER_NAME'] = config.workerName(coinKey)
     options = config.substitute(coinKey, options)
     
     # Replace $WALLET and $COIN with configured values
