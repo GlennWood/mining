@@ -6,6 +6,12 @@ import sys
 import jprops
 import subprocess
 import socket
+try:
+    xrange = xrange
+    # We have Python 2
+except:
+    xrange = range
+    # We have Python 3
 
 class Config(object):
 
@@ -87,7 +93,7 @@ class Config(object):
             keys = [sheet.cell(0, col_index).value for col_index in xrange(sheet.ncols)]
             prev_key = None
             for row_index in xrange(1, sheet.nrows):
-                row = {keys[col_index]: sheet.cell(row_index, col_index).value 
+                row = {keys[col_index]: sheet.cell(row_index, col_index).value
                     for col_index in xrange(sheet.ncols)}
 
                 if sheet_name == 'CoinMiners': # CoinMiners' sheet is handled differently
@@ -160,8 +166,8 @@ class Config(object):
         plat = row['PLAT']
         if plat is None or plat == '': plat = 'BTH'
         self.PLAT_COINS[plat][prev_key] = row
-        # This one is deprecated since we want to use the PLATFORM specific version every time ...
-        #   ... but that will have to wait for corrective coding later on where this dict is used.
+        # TODO That one is deprecated since we want to use the PLATFORM specific version every time ...
+        #   ... but this will have to wait for corrective coding later on where yhat dict is used.
         self.SHEETS['CoinMiners'][prev_key] = row
 
         return row, prev_key
@@ -233,7 +239,7 @@ class Config(object):
         rslt = arg
         conf = self.SHEETS['CoinMiners'][row_id]
         # Substitute in reverse sequence of name's length
-        keys = conf.keys() ; keys.sort(key=lambda item: (-len(item), item))
+        keys = conf.keys() ; list(keys).sort(key=lambda item: (-len(item), item))
         for trans in xrange(0,2): # loop thrice to enable transitive substitutions
             if trans>9:
                 print(rslt)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import subprocess
 import start
@@ -63,11 +64,11 @@ def finalize(self, config, coin):
     if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
     if len(TAIL_LOG_FILES) <= 2: return config.ALL_MEANS_ONCE
     if config.DRYRUN:
-        print ' '.join(TAIL_LOG_FILES)
+        print(' '.join(TAIL_LOG_FILES))
     else:
         try:
             subprocess.call(TAIL_LOG_FILES)
         except KeyboardInterrupt:
-            if config.VERBOSE: print 'KeyboardInterrupt: miners logs '+' '.join(config.arguments['COIN'])
+            if config.VERBOSE: print('KeyboardInterrupt: miners logs '+' '.join(config.arguments['COIN']))
 
     return config.ALL_MEANS_ONCE

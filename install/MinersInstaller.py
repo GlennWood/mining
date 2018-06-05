@@ -22,8 +22,9 @@ class MinersInstaller():
         self.SOURCE = source
         if pkgs:
             for pkg in pkgs:
-                if pkg.startswith('pip '):
-                    MinersInstaller.PKGS[pkg.split(' ')[1]] = 'pip'
+                if pkg.startswith('pip ') or pkg.startswith('pip2 ') or pkg.startswith('pip3 '):
+                    pip, pakg = pkg.split(' ')
+                    MinersInstaller.PKGS[pakg] = pip
                     # TODO install with pip when we see this.
                 else:
                     MinersInstaller.PKGS[pkg] = 'apt'

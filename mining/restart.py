@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import time
@@ -36,9 +37,9 @@ def process(self, config, coin):
 
     if config.DRYRUN:
         if cdDir:
-            print 'cd '+cdDir+' ; '+cmd
+            print('cd '+cdDir+' ; '+cmd)
         else:
-            print cmd
+            print(cmd)
         return config.ALL_MEANS_ONCE
 
     # Set overclocking for this coin
@@ -48,7 +49,7 @@ def process(self, config, coin):
         overclock.finalize(self, config, coin)
 
     try:
-        if config.VERBOSE: print cmd
+        if config.VERBOSE: print(cmd)
         # Fork this!
         newpid = os.fork()
         if newpid != 0:
@@ -61,8 +62,8 @@ def process(self, config, coin):
         if cdDir != None and cdDir.strip() != '': 
             try:
                 os.chdir(cdDir)
-            except OSError, ex:
-                print >> sys.stderr, "change directory to '"+cdDir+"' failed: %d (%s)" % (ex.errno, ex.strerror)
+            except OSError as ex:
+                print("change directory to '"+cdDir+"' failed: %d (%s)" % (ex.errno, ex.strerror), file=sys.stderr)
                 sys.exit(ex.errno)
         
         try: os.setsid()
@@ -73,13 +74,13 @@ def process(self, config, coin):
         os.system(cmd)
 
     except SystemExit as ex:
-        print "Exiting"
+        print("Exiting")
     except OSError as ex:
-        print >> sys.stderr, "fork of '"+'miner restart'+"' failed: %d (%s)" % (ex.errno, ex.strerror)
+        print("fork of '"+'miner restart'+"' failed: %d (%s)" % (ex.errno, ex.strerror), file=sys.stderr)
         sys.exit(1)
     except:
         ex = sys.exc_info()[0]
-        print ( ex )
+        print( ex )
     return config.ALL_MEANS_ONCE
 
 

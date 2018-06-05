@@ -1,8 +1,9 @@
-import os
+from __future__ import print_function
 import sys
 import time
 import overclock
 import restart
+import os
 
 ### FIXME: 'start' does not recognize PLATFORM 'BTH' or empty as acceptable for PLATFORM=NVI
 
@@ -38,7 +39,7 @@ def process(self, config, coin):
 
         platform = client['PLATFORM']
         if platform != 'BTH' and platform != os.getenv('PLATFORM','BTH'):
-            print >>sys.stderr, "Mining client "+client['MNEMONIC']+" does not work on this $PLATFORM="+os.getenv('PLATFORM','NONE')
+            print("Mining client "+client['MNEMONIC']+" does not work on this $PLATFORM="+os.getenv('PLATFORM','NONE'), file=sys.stderr)
             sys.exit(3)
 
         miner = client['EXECUTABLE']
@@ -64,7 +65,7 @@ def process(self, config, coin):
         miner = miner.replace('.service','')
         cmd = 'sudo service '+miner+' start'
         if config.DRYRUN:
-            print cmd
+            print(cmd)
         else:
             os.system(cmd)
         return 0
@@ -77,6 +78,7 @@ def process(self, config, coin):
     #options = options.replace('$WALLET', coin['WALLET']).replace('$COIN', coin['COIN'])
 
     # Replace $GPUS, etc., with option (from command line argument) appropriate to mining client
+    gpus = ''
     if arguments['--gpus']:
         gpus = ''
         GPUS_WC = arguments['--gpus']
@@ -94,9 +96,7 @@ def process(self, config, coin):
         elif miner.find('bminer') >= 0:
             # TODO: bminer apparently runs on a max of 4 gpus?
             gpus = '-devices '+ GPUS_WC
-        options = options.replace('$GPUS', gpus)
-    else:
-        options = options.replace('$GPUS', '')
+    options = options.replace('$GPUS', gpus).replace('<GPUS>', gpus)
 
     # TODO: Convert --platform into each miner's format for their parameter
     # FIXME: fix this in config.substitution() ...
@@ -137,7 +137,7 @@ def process(self, config, coin):
     if not config.DRYRUN or config.VERBOSE: cmd += ' >/var/log/mining/'+WORKER_NAME+'.log' + ' 2>/var/log/mining/'+WORKER_NAME+'.err' + ' &'
     if config.DRYRUN:
         restart.write_latest_start_cmd(config, cmd, WORKER_NAME)
-        print cmd
+        print(cmd)
         return 0
 
     # Set overclocking for this coin
@@ -147,7 +147,7 @@ def process(self, config, coin):
         overclock.finalize(self, config, coin)
 
     try:
-        if config.VERBOSE: print cmd
+        if config.VERBOSE: print(cmd)
         # Fork this!
         newpid = os.fork()
         if newpid != 0:
@@ -161,8 +161,8 @@ def process(self, config, coin):
         if cdDir != None and cdDir.strip() != '': 
             try:
                 os.chdir(cdDir)
-            except OSError, ex:
-                print >> sys.stderr, "change directory to '"+cdDir+"' failed: %d (%s)" % (ex.errno, ex.strerror)
+            except OSError as ex:
+                print("change directory to '"+cdDir+"' failed: %d (%s)" % (ex.errno, ex.strerror), file=sys.stderr)
                 sys.exit(ex.errno)
         
         try: os.setsid()
@@ -174,13 +174,13 @@ def process(self, config, coin):
         os.system(cmd)
 
     except SystemExit as ex:
-        print "Exiting"
+        print("Exiting")
     except OSError as ex:
-        print >> sys.stderr, "fork of '"+miner+"' failed: %d (%s)" % (ex.errno, ex.strerror)
+        print("fork of '"+miner+"' failed: %d (%s)" % (ex.errno, ex.strerror), file=sys.stderr)
         sys.exit(1)
     except:
         ex = sys.exc_info()[0]
-        print ( ex )
+        print( ex )
 
 
 def initialize(self, config, coin):

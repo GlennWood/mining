@@ -5,6 +5,12 @@ import time
 import sys
 import os
 from cryptopia_api import Api
+try:
+    xrange = xrange
+    # We have Python 2
+except:
+    xrange = range
+    # We have Python 3
 
 ### Ref: https://github.com/miningpoolhub/php-mpos/wiki/API-Reference
 ###   https://[<coin_name>.]miningpoolhub.com/index.php?page=api&action=<method>&api_key=<user_api_key>[&<argument>=<value>]
@@ -49,7 +55,7 @@ COMMON_TO_SYMBOL = {
 def process(self, config, coin):
 
     if config.ALL_COINS: # meaning there was no command-line parameter following the OP 'balances'
-        Sources = SOURCES.keys()
+        Sources = sorted(SOURCES.keys())
     else:
         Sources = [ source.upper() for source in config.arguments['COIN'] ]
 
@@ -59,16 +65,25 @@ def process(self, config, coin):
     for source in Sources:
         print(source)
         RETRYING_IS_OK = True
+        KEYBOARD_INTERRUPT = False
 
-        while RETRYING_IS_OK:
-            RETRYING_IS_OK=False
+        while RETRYING_IS_OK and not KEYBOARD_INTERRUPT:
+            RETRYING_IS_OK = False
             for ticker in SOURCES[source]:
-        
+                if KEYBOARD_INTERRUPT:
+                    next
+
                 if source == 'UNIMINING' and UNIMINING_THROTTLE:
-                    for t in xrange(0,65):
-                        print('\rPausing to accommodate unimining\'s throttling (use "-q" to bypass this)...'+str(65-t)+' ',end='',file=sys.stderr),;sys.stderr.flush()
-                        time.sleep(1)
-                    print ('\r',file=sys.stderr),;sys.stderr.flush()
+                    try:
+                        for t in xrange(0,65):
+                            print('\rPausing to accommodate unimining\'s throttling (use "-q" to bypass this)...'+str(65-t)+' ',end='',file=sys.stderr),;sys.stderr.flush()
+                            time.sleep(1)
+                    except KeyboardInterrupt:
+                        if config.VERBOSE: print('KeyboardInterrupt: miners balances '+' '.join(config.arguments['COIN']))
+                        KEYBOARD_INTERRUPT = True
+                        RETRYING_IS_OK = False
+                    print ('\r                                                                                 \r',end='',file=sys.stderr),;sys.stderr.flush()
+                    if KEYBOARD_INTERRUPT: print('  '+ticker+' KeyboardInterrupt')
                 UNIMINING_THROTTLE=False
             
                 balanceUrl = SOURCES[source][ticker]
@@ -90,6 +105,7 @@ def process(self, config, coin):
                 if balanceUrl and balanceUrl != 'bitshares':
                     proc = subprocess.Popen(['curl', balanceUrl], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
                     jsonStr, err = proc.communicate(None)
+                    jsonStr = jsonStr.decode()
                     #if err: print(err, sep=' ', end='\n', file=sys.stderr)
                     if err:
                         if config.VERBOSE: print(err, file=sys.stderr)
@@ -156,14 +172,16 @@ def process(self, config, coin):
                     # Ref: https://www.unimining.net/api
                     if jsonStr == '':
                         if config.QUICK:
-                            print('???'+' unimining/api returned nothing; probably their throttling mechanism; quickly bypassing that balance.')
+                            if not KEYBOARD_INTERRUPT:
+                                print('???'+' unimining/api returned nothing; probably their throttling mechanism; quickly bypassing that balance.')
                             UNIMINING_THROTTLE=False
                         else:
-                            print('???'+' unimining/api returned nothing; probably their throttling mechanism; retrying now.')
+                            if not KEYBOARD_INTERRUPT:
+                                print('???'+' unimining/api returned nothing; probably their throttling mechanism; retrying now.')
                             RETRYING_IS_OK=True
                     else:
                         try:
-                            if not config.QUICK:
+                            if not config.QUICK and not KEYBOARD_INTERRUPT:
                                 UNIMINING_THROTTLE=True
             
                             balances = json.loads(jsonStr)
@@ -181,7 +199,7 @@ def process(self, config, coin):
                     else:
                         lines = out.splitlines()
                         # "[0.00001017 BRIDGE.BTC, 162.1362 BRIDGE.RVN]"
-                        line = lines[0].replace('[','').replace(']','')
+                        line = lines[0].decode('utf-8').replace('[','').replace(']','')
                         vals = line.split(", ")
                         for val in vals:
                             val_coin = val.split(' ')

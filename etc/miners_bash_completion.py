@@ -1,8 +1,14 @@
 #!/usr/bin/python
+from __future__ import print_function
 import sys
 from os import walk
-sys.path.insert(0,'/opt/mining/mining')
 import balances
+try:
+    xrange = xrange
+    # We have Python 2
+except:
+    xrange = range
+    # We have Python 3
 
 EXTRA_HELP = {
     'balances': 'BALANCES',
@@ -20,10 +26,9 @@ if len(sys.argv) > 2: # this means user is beyond the 'miners <tab><tab>' stage
         prev = sys.argv[idx]
         if prev in EXTRA_HELP:
             if EXTRA_HELP[prev] == 'COINS':
-                sys.path.insert(0,'/opt/mining/mining')
                 import config
                 config = config.Config(None)
-                print ' '.join(config.arguments['COIN'])
+                print(' '.join(config.arguments['COIN']))
                 sys.exit()
             elif EXTRA_HELP[prev] == 'LOGS':
                 logs = []
@@ -31,13 +36,13 @@ if len(sys.argv) > 2: # this means user is beyond the 'miners <tab><tab>' stage
                     logs.extend(filenames)
                     break
                 logs = [log.split('-')[0] for log in logs]
-                print ' '.join(logs)
+                print(' '.join(logs))
                 sys.exit()  
             elif EXTRA_HELP[prev] == 'BALANCES':
                 balances.bash_completion()
                 sys.exit()
             else:
-                print EXTRA_HELP[prev]
+                print(EXTRA_HELP[prev])
                 sys.exit()
 
 
@@ -49,4 +54,4 @@ operations = [op for op in operations if not op.endswith('.pyc')] # filter out *
 operations = [op.replace('.py','') for op in operations] # strip '.py' from the filenames
 # some "modules" are in /opt/mining/mining that are not operations, and TODO belong somewhere else.
 operations = [op for op in operations if '__init__,cryptopia_api,crypto-bridge,config'.find(op) < 0]
-print ' '.join(operations)
+print(' '.join(operations))

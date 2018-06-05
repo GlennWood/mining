@@ -2,7 +2,6 @@ from __future__ import print_function
 import subprocess
 import re
 import psutil
-import types
 import sys
 
 ### TODO: ls -1stoh /var/log/mining/ETH-miner.*
@@ -14,7 +13,7 @@ def get_status(coin, exclude_pids=[], exclude_cmdlines=[]):
 
     if coin is None:
         names = ['']
-    elif isinstance(coin, types.ListType):
+    elif isinstance(coin, list):
         names = coin
     else:
         names.append(coin['COIN'].upper())
@@ -34,7 +33,7 @@ def get_status(coin, exclude_pids=[], exclude_cmdlines=[]):
         except psutil.NoSuchProcess:
             pass
 
-    if coin is None or isinstance(coin, types.ListType):
+    if coin is None or isinstance(coin, list):
         return result
     elif len(result) > 0:
         return result[0]
