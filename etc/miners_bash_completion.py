@@ -1,8 +1,11 @@
 #!/usr/bin/python
 import sys
 from os import walk
+sys.path.insert(0,'/opt/mining/mining')
+import balances
 
 EXTRA_HELP = {
+    'balances': 'BALANCES',
     'start': 'COINS',
     'stop': 'COINS',
     'logs': 'LOGS',
@@ -30,6 +33,9 @@ if len(sys.argv) > 2: # this means user is beyond the 'miners <tab><tab>' stage
                 logs = [log.split('-')[0] for log in logs]
                 print ' '.join(logs)
                 sys.exit()  
+            elif EXTRA_HELP[prev] == 'BALANCES':
+                balances.bash_completion()
+                sys.exit()
             else:
                 print EXTRA_HELP[prev]
                 sys.exit()

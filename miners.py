@@ -30,7 +30,6 @@ Options:
 
 from __future__ import print_function
 import sys
-import socket
 sys.path.insert(0,'/opt/mining/mining')
 
 import config
@@ -44,13 +43,15 @@ config = config.Config(docopt(__doc__, argv=None, help=True, version=None, optio
 arguments = config.arguments
 
 ### Verify that ticker exists, or that it is in the form "oldCoin:newCoin"
-def tickerInCoinMiners(config, METH, ticker):
+def tickerInCoinMiners(config, METH, ticker, OP):
 
-    # This is a convenient place to generate WORKER_NAME
-    hostN = socket.gethostname()
-    config.WORKER_NAME = ticker + '-miner-' + hostN[len(hostN)-1].upper()
+    if OP in ['balances']:
+        return ''
 
-    coin = config.findTickerInPlatformCoinMiners(ticker)
+    # This is a convenient moment to generate WORKER_NAME
+    config.workerName(ticker)
+
+    coin = config.findTickerInPlatformCoinMiners(ticker,)
     if coin:
         return coin
     
@@ -78,7 +79,7 @@ def exec_operation_method(OP, METH):
         for ticker in arguments['COIN']:
             if config.I_AM_FORK: break
 
-            coin = tickerInCoinMiners(config, METH, ticker.upper())
+            coin = tickerInCoinMiners(config, METH, ticker.upper(), OP)
             if coin is None:
                 return False
             module =  importlib.import_module(OP)
