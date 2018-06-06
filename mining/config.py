@@ -90,11 +90,21 @@ class Config(object):
         for sheet_name in workbook.sheet_names():
             sheet = workbook.sheet_by_name(sheet_name)
             self.SHEETS[sheet_name] = {}
-            keys = [sheet.cell(0, col_index).value for col_index in xrange(sheet.ncols)]
+            sheetNcols = sheet.ncols
+            try:
+                keys = [sheet.cell(0, col_index).value for col_index in xrange(0,sheetNcols)]
+            except IndexError:
+                sheetNcols = len(keys)
+                if self.VERBOSE:
+                    print('IndexError(xlrd): '+sheet_name+'[0]'+'.ncols='+str(sheet.ncols)+' >= '+str(sheetNcols))
             prev_key = None
             for row_index in xrange(1, sheet.nrows):
-                row = {keys[col_index]: sheet.cell(row_index, col_index).value
-                    for col_index in xrange(sheet.ncols)}
+                try:
+                    row = {keys[col_index]: sheet.cell(row_index, col_index).value
+                           for col_index in xrange(sheetNcols)}
+                except IndexError:
+                    if self.VERBOSE:
+                        print('IndexError(xlrd): '+sheet_name+'['+str(row_index)+']'+'.ncols='+str(sheet.ncols)+' >= '+str(len(row)+1))
 
                 if sheet_name == 'CoinMiners': # CoinMiners' sheet is handled differently
                     row, prev_key = self.setup_CoinMiners_dict(row, prev_key)
