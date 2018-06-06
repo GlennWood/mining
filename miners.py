@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 """Usage: miners.py OPERATION [-fghlqrXPv] [--gpus GPUS | --platform typ] [--url-port UL] 
                 [--scope scope] [--force] [--dryrun] [COIN] ...
@@ -60,7 +60,7 @@ def tickerInCoinMiners(config, METH, ticker, OP):
             return None
         if not config.findTickerInPlatformCoinMiners(newCoin, METH == 'initialize'):
             if METH == 'initialize': # We want to print this only once
-                print ("Coin '" + newCoin + "' is unknown.", file=sys.stderr)
+                print("Coin '" + newCoin + "' is unknown.", file=sys.stderr)
             return None
         return [config.SHEETS['CoinMiners'][oldCoin], config.SHEETS['CoinMiners'][newCoin]]
     else:
@@ -90,11 +90,11 @@ def exec_operation_method(OP, METH):
 
     except ImportError as ex:
         if config.VERBOSE: print(ex)
-        print ("Unknown operation '"+OP+"'.", file=sys.stderr)
+        print("Unknown operation '"+OP+"'.", file=sys.stderr)
         sys.exit(1)        
     except KeyboardInterrupt as ex:
         if config.VERBOSE: print(ex)
-        print ("KeyboardInterrupt in '"+OP+":"+METH+"()' method.", file=sys.stderr)
+        print("KeyboardInterrupt in '"+OP+":"+METH+"()' method.", file=sys.stderr)
         sys.exit(1)
     return True
 ##################################################################################

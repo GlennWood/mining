@@ -232,7 +232,7 @@ class Config(object):
             return self.PLAT_COINS[self.PLATFORM][ticker]
         if self.PLATFORM == 'BTH':
             return self.findTickerInCoinMiners(ticker, verbose)
-        if verbose: print ("Coin '" + ticker + "' is not configured for this platform='"+self.PLATFORM+"'.", file=sys.stderr)
+        if verbose: print("Coin '" + ticker + "' is not configured for this platform='"+self.PLATFORM+"'.", file=sys.stderr)
         return None
 
     # Find the given ticker in the CoinMiners table, regardless of PLATFORM
@@ -241,7 +241,7 @@ class Config(object):
     def findTickerInCoinMiners(self, ticker, verbose=False):
         if ticker and ticker in self.SHEETS['CoinMiners']:
             return self.SHEETS['CoinMiners'][ticker]
-        if verbose: print ("Coin '" + ticker + "' is not configured in miners.xslx/CoinMiners.", file=sys.stderr)
+        if verbose: print("Coin '" + ticker + "' is not configured in miners.xslx/CoinMiners.", file=sys.stderr)
         return None
 
 

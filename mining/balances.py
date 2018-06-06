@@ -4,7 +4,6 @@ import json
 import time
 import sys
 import os
-from cryptopia_api import Api
 try:
     xrange = xrange
     # We have Python 2

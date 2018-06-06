@@ -4,6 +4,12 @@ import sys
 import os
 import requests
 import subprocess
+try:
+    xrange = xrange
+    # We have Python 2
+except:
+    xrange = range
+    # We have Python 3
 
 NicehashToTicker = {
     'Nicehash-CNV7':'NH-CN',
@@ -113,7 +119,7 @@ def process_scope(self, config, coin):
             out, err = proc.communicate(None)
             if out:
                 totIdx = 0
-                for ln in out.split('\n'):
+                for ln in out.decode().split('\n'):
                     ln = ln.rstrip()
                     coinStats = ln.split(',')
                     if len(coinStats) > 4:
@@ -125,8 +131,9 @@ def process_scope(self, config, coin):
                         if maxRslts <= 0:
                             break
             if err:
-                for ln in out.split('\n'):
-                    print(err.rstrip()+';',end='')
+                for ln in err.decode().split('\n'):
+                    ln = ln.rstrip()
+                    if ln: print(ln+';',end='')
             print()
 
     print(('%.'+str(maxRigNameLen)+'s')%('TOTALS:                 '),end='')

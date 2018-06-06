@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """Usage: miners.py OPERATION [-fhX] [--platform typ] [--force] [--dryrun] [MINERS] ...
 
 Apply OPERATION to the mining of designated COINs w
@@ -145,6 +145,6 @@ if config.arguments['OPERATION'] == 'install':
         MinersInstaller.install_all(config)
         if not config.DRYRUN: print("All done!")
 elif config.arguments['OPERATION'] == 'status':
-    print ("'install_miners status' is not yet implemented.")
+    print("'install_miners status' is not yet implemented.")
 
 sys.exit(RC)

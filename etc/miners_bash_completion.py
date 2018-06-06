@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from __future__ import print_function
 import sys
 from os import walk
@@ -28,7 +28,8 @@ if len(sys.argv) > 2: # this means user is beyond the 'miners <tab><tab>' stage
             if EXTRA_HELP[prev] == 'COINS':
                 import config
                 config = config.Config(None)
-                print(' '.join(config.arguments['COIN']))
+                coin = [ item.lower() for item in config.arguments['COIN'] ]
+                print(' '.join(coin))
                 sys.exit()
             elif EXTRA_HELP[prev] == 'LOGS':
                 logs = []

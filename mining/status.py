@@ -91,7 +91,7 @@ def process_scope(self, config, coin):
             out, err = proc.communicate(None)
             if out:
                 dunLn = '' # we will try to filter similar lines from this report
-                for ln in out.split('\n'):
+                for ln in out.decode().split('\n'):
                     ln = ln.rstrip()
                     regex = re.compile(r'(.*?)[[][^]]*[]](.*)', re.DOTALL)
                     match = regex.match(ln)
@@ -103,8 +103,8 @@ def process_scope(self, config, coin):
                         print(tabber+ln)
                         tabber = '                      '[0:maxRigNameLen]
             if err:
-                for ln in out.split('\n'):
-                    print(err.rstrip())
+                for ln in err.decode().split('\n'):
+                    print(tabber+ln.rstrip())
                     tabber = '                      '[0:maxRigNameLen]
             if tabber == '': print("No miners are working here, now.")
 

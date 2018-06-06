@@ -71,19 +71,21 @@ ln -sf $MINING_ROOT/etc/bash_completion_install_miners.sh /etc/bash_completion.d
 
 apt-get -y update ; apt-get -y dist-upgrade
 apt-get -y autoremove ; apt-get -y autoclean
-apt-get -y install openssh-server git autoconf curl selinux-utils expect lrzip libffi-dev libssl-dev python-pip mesa-utils systemback
-## TODO: apt-get -y install python3-dev python3-pip
-apt-get -y install python3-psutil python3-xlrd
+add-apt-repository -y ppa:nemh/systemback
+apt-get -y update
+apt-get -y install openssh-server git autoconf autoconf-archive curl selinux-utils libffi-dev \
+                   libssl-dev libcurl4-openssl-dev \
+                   mesa-utils systemback python-pip python3-pip python3-dev python3-xlrd expect lrzip
 
 ### FIXME: need to logout and back in for 'pip install--upgrade pip' to work, now. Why is that?
-pip2 install --upgrade pip
+pip install --upgrade pip
 ### FIXTHEM: You know, I still don't think python development team understands the concept of backward compatibility ... you'd think python2 to python3 would have taught them something ...
 ###     REF: https://github.com/pypa/pip/issues/5240#issuecomment-381673100
 sed -i.bak 's/from pip import main/from pip._internal import main/' /usr/bin/pip
 ## TOTO: sed -i.bak 's/from pip import main/from pip._internal import main/' /usr/bin/pip3
-pip2 install xlrd docopt requests jprops
+pip install xlrd docopt requests jprops
 # go ahead, laugh, but this did fix a problem on one of my rigs one day.
-pip2 install psutil
+pip install psutil
 
 apt-get install python3-setuptools
 easy_install3 pipapt-get -y install python3-pip

@@ -7,7 +7,7 @@
 		exit $?
 	fi
 
-[ -n "$INSTALL_NVIDIA_DONE" ] && echo "Nvidia drivers and support already installed $INSTALL_NVIDIA_DONE." && echo "To restart over from scratch, 'rm /etc/profile.d/nvidia.sh', logout, and retry." && exit 0
+[ -n "$INSTALL_CUDA_DONE" ] && echo "Nvidia drivers and support already installed $INSTALL_CUDA_DONE." && echo "To restart over from scratch, 'rm /etc/profile.d/nvidia.sh', logout, and retry." && exit 0
 
 export CUDA_VERSION=${1:-9.2.88}
 # Nvidia didn't get this quite right, grrrr...
@@ -45,7 +45,7 @@ else # USE_DEB_METHOD
   rm cuda-repo-ubuntu1604_${CUDA_VERSION}-1_amd64.deb
   apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/7fa2af80.pub
   apt-get update
-  apt-get -y install cuda-${CUDA_WTF}
+  apt-get -y install cuda
 fi
 popd
 

@@ -29,7 +29,7 @@ class MinersInstaller():
                 else:
                     MinersInstaller.PKGS[pkg] = 'apt'
 
-        if isinstance(commands, basestring):
+        if isinstance(commands, str):
             self.COMMANDS = [ commands ]
         else:
             self.COMMANDS = commands
@@ -169,8 +169,10 @@ class MinersInstaller():
             self.RC = os.system('git pull')            
         else:
             self.RC = os.system('git clone '+git_repo)
-            os.chdir(srcDir)
+            if self.RC is 0:
+                self.RC = os.chdir(srcDir)
         if self.RC:
+            print("'git clone "+git_repo+"' failed.",file=sys.stderr)
             sys.exit(1)
        
         return dirName

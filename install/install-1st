@@ -55,7 +55,7 @@ chmod 0600 /home/$MINERS_USER/.ssh/miners_user.psw
 ### Ref: https://www.cyberciti.biz/python-tutorials/linux-tutorial-install-ansible-configuration-management-and-it-automation-tool/
 apt-get -y install software-properties-common
 apt-add-repository -y ppa:ansible/ansible
-apt-get update ; apt-get upgrade
+apt-get -y update ; apt-get -y upgrade
 apt-get -y install ansible expect testdisk
 
 HOSTNAME=rig-$RIG_TAG
@@ -122,4 +122,5 @@ ETC_ENVIRONMENT
 
 echo
 echo "Basic OS, accounts, etc., for GlennWood/mining have been prepared."
+echo "Your next step is to execute '/opt/mining/install/install-2nd'"
 echo
