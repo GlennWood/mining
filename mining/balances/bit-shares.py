@@ -13,13 +13,6 @@ import os
 import json
 import sys
 
-try:
-     xrange = xrange
-     # We have Python 2
-except:
-     xrange = range
-     # We have Python 3
-
 from bitshares.account import Account
 
 miners_user_ssh = '/home/'+os.getenv('MINERS_USER')+'/.ssh/'

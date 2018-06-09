@@ -152,7 +152,7 @@ def process(self, config, coin):
         newpid = os.fork()
         if newpid != 0:
             print("Started mining "+coinKey+" with "+minerName+" in the background.")
-            if config.OPS > 1:  # If there are more OPs on the command line, it might be
+            if len(config.OPS) > 1:  # If there are more OPs on the command line, it might be
                 time.sleep(1.0) # prudent to wait a second before proceeding with them.
             return 0 
         config.I_AM_FORK = True # Do not loop to any more OPs in this fork.
@@ -180,7 +180,7 @@ def process(self, config, coin):
         sys.exit(1)
     except:
         ex = sys.exc_info()[0]
-        print( ex )
+        print( "Unknown exception in fork: "+str(ex) )
 
 
 def initialize(self, config, coin):

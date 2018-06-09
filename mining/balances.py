@@ -1,15 +1,12 @@
 from __future__ import print_function
+### Ref: http://python-future.org/compatible_idioms.html
+from builtins import range
 import subprocess
 import json
 import time
 import sys
 import os
-try:
-    xrange = xrange
-    # We have Python 2
-except:
-    xrange = range
-    # We have Python 3
+from cryptopia_api import Api
 
 ### Ref: https://github.com/miningpoolhub/php-mpos/wiki/API-Reference
 ###   https://[<coin_name>.]miningpoolhub.com/index.php?page=api&action=<method>&api_key=<user_api_key>[&<argument>=<value>]
@@ -74,7 +71,7 @@ def process(self, config, coin):
 
                 if source == 'UNIMINING' and UNIMINING_THROTTLE:
                     try:
-                        for t in xrange(0,65):
+                        for t in range(0,65):
                             print('\rPausing to accommodate unimining\'s throttling (use "-q" to bypass this)...'+str(65-t)+' ',end='',file=sys.stderr),;sys.stderr.flush()
                             time.sleep(1)
                     except KeyboardInterrupt:

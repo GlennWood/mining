@@ -70,5 +70,7 @@ def finalize(self, config, coin):
             subprocess.call(TAIL_LOG_FILES)
         except KeyboardInterrupt:
             if config.VERBOSE: print('KeyboardInterrupt: miners logs '+' '.join(config.arguments['COIN']))
+        except:# os.ProcessLookupError: # strangely, subprocess fails this way after Ctrl-C sometimes; squelch annoying message.
+            if config.VERBOSE: print('ProcessLookupError (during KeyboardInterrupt is OK): miners logs '+' '.join(config.arguments['COIN']))
 
     return config.ALL_MEANS_ONCE

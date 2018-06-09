@@ -1,11 +1,9 @@
-#!/usr/bin/python
 from __future__ import print_function
 import sys
 import os
 import re
 import cmd
 import shutil
-sys.path.insert(0,'/opt/mining/mining')
 
 class MinersInstaller():
 
@@ -157,7 +155,7 @@ class MinersInstaller():
                 os.chdir(dirName)
             return dirName
        
-        regex = re.compile(r'.*?/([^/]*)[.]git', re.DOTALL)
+        regex = re.compile(r'.*?/([^/]*)[.]git')
         match = regex.match(git_repo)
         if match != None:
             dirName = match.group(1)

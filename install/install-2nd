@@ -27,6 +27,7 @@ grep 'path = /opt/mining' /etc/samba/smb.conf >/dev/null 2>&1 || /opt/mining/ins
 chmod 0754 /opt/mining/*.py /opt/mining/*/*.py
 ln -sf /opt/mining/miners.py  /usr/local/bin/miners
 ln -sf /opt/mining/monitor.py /usr/local/bin/monitor-miners
+ln -sf /opt/mining/install/InstallMiners.py /usr/local/bin/InstallMiners
 
 RAMDISK_SIZE=10M
 mkdir -p /var/local/ramdisk
@@ -45,7 +46,7 @@ HAS_NVI=$(lspci | grep VGA | grep NVIDIA >/dev/null && echo NVI)
 cat >> /etc/environment << ETC_ENVIRONMENT
 PLATFORM=$PLATFORM
 LOG_DIR=/var/log/mining
-PYTHONPATH=/opt/mining/mining${PYTHONPATH:+:${PYTHONPATH}}
+PYTHONPATH=/opt/mining/mining:/opt/mining/install
 XAUTHORITY=/home/$MINERS_USER/.Xauthority
 ETC_ENVIRONMENT
 source /etc/environment
@@ -82,7 +83,10 @@ pip install --upgrade pip
 ### FIXTHEM: You know, I still don't think python development team understands the concept of backward compatibility ... you'd think python2 to python3 would have taught them something ...
 ###     REF: https://github.com/pypa/pip/issues/5240#issuecomment-381673100
 sed -i.bak 's/from pip import main/from pip._internal import main/' /usr/bin/pip
-## TOTO: sed -i.bak 's/from pip import main/from pip._internal import main/' /usr/bin/pip3
+## TOTO: sed -i.bak 's/from pip import main/from pip._internal import main/' /usr/local/bin/pip3
+
+### Ref: http://python-future.org/compatible_idioms.html
+pip install future builtins past six
 pip install xlrd docopt requests jprops
 # go ahead, laugh, but this did fix a problem on one of my rigs one day.
 pip install psutil
@@ -90,11 +94,14 @@ pip install psutil
 apt-get install python3-setuptools
 easy_install3 pipapt-get -y install python3-pip
 ## TODO: pip3 install --upgrade pip
-pip3 install xlrd docopt requests jprops bitshares
+pip3 install xlrd docopt requests jprops ansible bitshares
 
 # For PyCryptScraper
 apt-get -y install python-lxml
 pip2 install -U marshmallow --pre
+
+### Ref: https://github.com/while-true-do/ansible-role-monit
+# TODO: ansible-galaxy install while-true-do.monit
 
 cat > /etc/update-motd.d/995-miners-status << MOTD_MINERS_STATUS
 #!/bin/bash

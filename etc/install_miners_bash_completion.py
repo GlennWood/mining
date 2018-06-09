@@ -1,30 +1,9 @@
 #!/usr/bin/python3
-"""Usage: miners.py OPERATION [-fhX] [--platform typ] [--force] [--dryrun] [MINERS] ...
-
-Apply OPERATION to the mining of designated COINs w
-
-Arguments:
-  OPERATION  install | status
-               (a comma-separated list of OPERATIONs)
-  MINERS     comma-seperated list of miners to (re)install
-
-Options:
-  --platform typ  AMD, NVI, BTH [default: BTH]
-  -f --force   force execution, ignoring non-critical warnings
-  -h --help
-  -v           verbose mode
-  -q --quick   quick mode
-  -X --dryrun  print the command that would execute, then exit
-"""
 
 from __future__ import print_function
 import sys
 ### Ref: http://python-future.org/compatible_idioms.html
 from builtins import range
-
-from MinersInstaller import MinersInstaller
-from docopt import docopt
-import config
 
 MINERS_INSTALLERS = {
 'bminer': [ 'bminer', None, None, 'install-bminer' ],
@@ -111,40 +90,13 @@ MINERS_INSTALLERS = {
 
 
 ################################################################################################
-def bash_completion(config):
-    for idx in range(len(sys.argv)-1,0,-1):
-        cur = sys.argv[idx]
-        if cur in {'install':1,'status':1}:
-            print('ALL '+' '.join(MINERS_INSTALLERS.keys()))
-            sys.exit(0)
-        print('install status')
+import config
+config = config.Config(None)
 
 ################################################################################################
-config = config.Config(docopt(__doc__, argv=None, help=True, version=None, options_first=False))
-RC = 0
-
-if not config.arguments['OPERATION'] or config.arguments['OPERATION'] not in {'install':1,'status':1,'bash_completion':1}:
-    print("USAGE: "+sys.argv[0]+" [ install | status ] [ miner-name ... ]")
-    sys.exit(1)
-if config.arguments['OPERATION'] == 'bash_completion':
-    bash_completion(config)
-    sys.exit(RC)
-
-if 'ALL' in config.arguments['MINERS']:
-    config.arguments['MINERS'] = MINERS_INSTALLERS.keys()
-
-if config.arguments['OPERATION'] == 'install':
-    for miner in config.arguments['MINERS']:
-        # TODO verify 'miner' is in MINERS_INSTALLERS
-        if miner in MINERS_INSTALLERS:
-            MinersInstaller(MINERS_INSTALLERS[miner])
-        else:
-            print("'"+miner+"' is not configured in InstallMiners.py",file=sys.stderr)
-            RC = 1
-    if RC is 0:
-        MinersInstaller.install_all(config)
-        if not config.DRYRUN: print("All done!")
-elif config.arguments['OPERATION'] == 'status':
-    print("'install_miners status' is not yet implemented.")
-
-sys.exit(RC)
+for idx in range(len(sys.argv)-1,0,-1):
+    cur = sys.argv[idx]
+    if cur in {'install':1,'status':1}:
+        print('ALL '+' '.join(MINERS_INSTALLERS.keys()))
+    else:
+        print('install status')

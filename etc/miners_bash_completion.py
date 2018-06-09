@@ -3,12 +3,8 @@ from __future__ import print_function
 import sys
 from os import walk
 import balances
-try:
-    xrange = xrange
-    # We have Python 2
-except:
-    xrange = range
-    # We have Python 3
+### Ref: http://python-future.org/compatible_idioms.html
+from builtins import range
 
 EXTRA_HELP = {
     'balances': 'BALANCES',
@@ -22,7 +18,7 @@ EXTRA_HELP = {
 
 if len(sys.argv) > 2: # this means user is beyond the 'miners <tab><tab>' stage
     #sys.argv.pop(0)
-    for idx in xrange(len(sys.argv)-1,0,-1):
+    for idx in range(len(sys.argv)-1,0,-1):
         prev = sys.argv[idx]
         if prev in EXTRA_HELP:
             if EXTRA_HELP[prev] == 'COINS':

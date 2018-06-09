@@ -4,12 +4,8 @@ import sys
 import os
 import requests
 import subprocess
-try:
-    xrange = xrange
-    # We have Python 2
-except:
-    xrange = range
-    # We have Python 3
+### Ref: http://python-future.org/compatible_idioms.html
+from builtins import range
 
 NicehashToTicker = {
     'Nicehash-CNV7':'NH-CN',
@@ -138,7 +134,7 @@ def process_scope(self, config, coin):
 
     print(('%.'+str(maxRigNameLen)+'s')%('TOTALS:                 '),end='')
     prev_total = totals[0]
-    for idx in xrange(0,actualMaxRslts):
+    for idx in range(0,actualMaxRslts):
         diff = 1-(prev_total/totals[idx])
         print('       %3.2f  %3i%% '%(totals[idx],int(diff*100)),end='')
         prev_total = totals[idx]

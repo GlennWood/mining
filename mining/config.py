@@ -6,12 +6,6 @@ import sys
 import jprops
 import subprocess
 import socket
-try:
-    xrange = xrange
-    # We have Python 2
-except:
-    xrange = range
-    # We have Python 3
 
 class Config(object):
 
@@ -92,16 +86,16 @@ class Config(object):
             self.SHEETS[sheet_name] = {}
             sheetNcols = sheet.ncols
             try:
-                keys = [sheet.cell(0, col_index).value for col_index in xrange(0,sheetNcols)]
+                keys = [sheet.cell(0, col_index).value for col_index in range(0,sheetNcols)]
             except IndexError:
                 sheetNcols = len(keys)
                 if self.VERBOSE:
                     print('IndexError(xlrd): '+sheet_name+'[0]'+'.ncols='+str(sheet.ncols)+' >= '+str(sheetNcols))
             prev_key = None
-            for row_index in xrange(1, sheet.nrows):
+            for row_index in range(1, sheet.nrows):
                 try:
                     row = {keys[col_index]: sheet.cell(row_index, col_index).value
-                           for col_index in xrange(sheetNcols)}
+                           for col_index in range(sheetNcols)}
                 except IndexError:
                     if self.VERBOSE:
                         print('IndexError(xlrd): '+sheet_name+'['+str(row_index)+']'+'.ncols='+str(sheet.ncols)+' >= '+str(len(row)+1))
@@ -155,7 +149,7 @@ class Config(object):
         if self.URL_PORT:
             row['URL_PORT'] = self.URL_PORT
         # Provision $URL and $PORT as alternatives to $URL_PORT
-        regex = re.compile(r'(.*)[:]([0-9]{4,5})', re.DOTALL)
+        regex = re.compile(r'(.*)[:]([0-9]{4,5})')
         match = regex.match(row['URL_PORT'])
         if match != None:
             row['URL'] = match.group(1)
@@ -194,7 +188,7 @@ class Config(object):
             fo = sectionFilename = None
             sectionFiles = []
             for line in lines:
-                regex = re.compile(r'[[]([^]]*)[]]', re.DOTALL)
+                regex = re.compile(r'[[]([^]]*)[]]')
                 match = regex.match(line)
                 if match:
                     section = match.group(1)
@@ -249,8 +243,10 @@ class Config(object):
         rslt = arg
         conf = self.SHEETS['CoinMiners'][row_id]
         # Substitute in reverse sequence of name's length
-        keys = conf.keys() ; list(keys).sort(key=lambda item: (-len(item), item))
-        for trans in xrange(0,2): # loop thrice to enable transitive substitutions
+        # (I don't know who is in charge of conceptual integrity in the Python language. Anyone?)
+        keys = sorted(conf.keys(), key=len)
+        keys.reverse() # list(keys).sort(key=lambda item: (-len(item), item))
+        for trans in range(0,2): # loop thrice to enable transitive substitutions
             if trans>9:
                 print(rslt)
             for key in keys:
