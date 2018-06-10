@@ -1,0 +1,30 @@
+#!/bin/bash
+
+    if [[ $EUID -ne 0 ]]
+    then
+		echo "$0 requires elevated privileges."
+		sudo -H $0 $*
+		exit;
+	fi
+
+#=================== nVidia, claymore dual gpu miner ===============
+### REF: https://cryptomining-blog.com/tag/cryptonightv7-nicehash/
+### Ref: https://mega.nz/#F!e4JVEAIJ!l1iF4z10fMyJzY5-LnyC2A
+
+NSGPUCNMINER_VERSION=10.0
+
+mkdir /opt/claymore/nsgpucnminer ; chown $MINERS_USER /opt/claymore/nsgpucnminer
+pushd /opt/claymore/nsgpucnminer >/dev/null
+pushd /opt/Downloads
+  tar -xzf Claymore\'s\ CryptoNote\ AMD\ GPU\ Miner\ v11.3\ -\ LINUX.tar.gz
+  mv Claymore\'s\ CryptoNote\ AMD\ GPU\ Miner\ v11.3\ -\ LINUX/* /opt/claymore/cryptonote/
+popd
+  echo "USAGE: cd /opt/claymore/nsgpucnminer ; ./nsgpucnminer [ options ... ]"
+popd >/dev/null
+
+cat >> /etc/profile.d/claymore.sh << NSGPUCNMINER_SH
+export INSTALL_NSGPUCNMINER_DATE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
+NSGPUCNMINER_SH
+
+
+# sudo journalctl -f

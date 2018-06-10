@@ -16,7 +16,7 @@
   ###       and both operate to some extent against (as in opposed to) the
   ###       other, doing it in this sequence works best; do not reverse.
   $MINING_ROOT/install/install-nvidia $NVIDIA_VERSION
-  $MINING_ROOT/install/install-cuda   $CUDA_VERSION $NVIDIA_VERSION
+  $MINING_ROOT/install/install-cuda   $NVIDIA_VERSION $CUDA_VERSION
 
   exit
 

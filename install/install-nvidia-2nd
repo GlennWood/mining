@@ -44,7 +44,7 @@ if [ -n "$USE_RUN_METHOD" ]; then # USE_RUN_METHOD
 
 else # USE_DEB_METHOD
   ### Ref: https://www.pugetsystems.com/labs/hpc/The-Best-Way-To-Install-Ubuntu-16-04-with-NVIDIA-Drivers-and-CUDA-1097/
-  add-apt-repository ppa:graphics-drivers/ppa
+  add-apt-repository -y ppa:graphics-drivers/ppa
   apt-get -y install dkms synaptic build-essential
   apt-get update
   apt-get -y install nvidia-387

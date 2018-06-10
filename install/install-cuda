@@ -11,7 +11,7 @@
 
 export CUDA_VERSION=${1:-9.2.88}
 # Nvidia didn't get this quite right, grrrr...
-CUDA_NVIDIA_VERSION=396.26
+CUDA_NVIDIA_VERSION=${1:-396.26}
 
 export CUDA_VER=$(echo $CUDA_VERSION|cut -f1 -d.).$(echo $CUDA_VERSION|cut -f2 -d.)
 export CUDA_SUB=$(echo $CUDA_VERSION|cut -f3 -d.)

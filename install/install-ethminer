@@ -17,6 +17,7 @@ make install
 
 popd
 
+if [ -n "$INSTALL_AS_SERVICE" ]; then
 [ -d /home/$MINERS_USER/systemd/system ] || mkdir -p /home/$MINERS_USER/systemd/system && chown $MINERS_USER /home/$MINERS_USER/systemd/system
 cat > /home/$MINERS_USER/systemd/system/nicehash-ethmine.service << ETHMINER_SERVICE
 [Unit]
@@ -40,3 +41,5 @@ WantedBy=multi-user.target
 ETHMINER_SERVICE
 ln -sf /home/$MINERS_USER/systemd/system/nicehash-ethmine.service /etc/systemd/system/nicehash-ethmine.service
 # sudo journalctl -f
+fi
+
