@@ -1,5 +1,7 @@
+from __future__ import print_function
 import subprocess
 import re
+import six
 GPUSTAT = True
 try:
     from gpustat import GPUStatCollection
@@ -72,7 +74,7 @@ GPU Load: 100 %
         if err:
             if config.VERBOSE: print("subprocess.Popen(['rocm-smi']) "+err)
         else:
-            lines = out.splitlines()
+            lines = out.decode().splitlines()
             for line in lines:
                 # 'GPU  Temp    AvgPwr   SCLK     MCLK     Fan      Perf    SCLK OD'
                 # ' 3   76.0c   144.222W 1411Mhz  2000Mhz  40.0%    auto      0%'
@@ -89,7 +91,7 @@ GPU Load: 100 %
             if str(ex) and str(ex).find('[Errno 2] No such file or directory') < 0:
                 print(ex)
             else:
-                print("Cannot discover AMD devices, since 'rocm-smi' is not installed.")
+                print("Cannot discover AMD devices, since 'rocm-smi' is not installed. See 'install/install-amd-pro' for instructions.")
 
     ### Scan for Nvidia using gpustats.GPUStatCollection
     gpu_stats = [ ]
@@ -104,6 +106,10 @@ GPU Load: 100 %
                 print(str(ex))
             if config.PLATFORM != 'AMD':
                 print("gpustat for Nvidia GPUs is not installed.")
+    elif config.VERBOSE:
+        pip = 'pip2'
+        if six.PY3: pip = 'pip3'
+        print("Cannot discover Nvidia devices, since 'gpustat' is not installed. Use '"+pip+" install gpustat' to install it.",file=sys.stderr)
 
     idx = 0
     for gpu in gpu_stats:
@@ -123,11 +129,10 @@ GPU Load: 100 %
                 uuid = devices[device].uuid
             watts = devices[device].power_draw 
             if not watts: 
-                strWatts = ' N/A' # Some GPUs (looking a you GTX 750) do not return power level
+                strWatts = ' N/A' # Some GPUs (looking at you GTX 750) do not return power level
             else:
                 strWatts = "%3sW" % (watts)
             print("%s: %2sC %4s %s %s" % (device,devices[device].temperature,strWatts,devices[device].name,uuid))
-                #device, devices[device][0], devices[device][1], devices[device][2]))
             if watts: 
                 total_nvi_watts += int(watts)
             idxNVI += 1
