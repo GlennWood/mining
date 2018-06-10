@@ -109,7 +109,7 @@ def process_scope(self, config, coin):
             print(('%.'+str(maxRigNameLen)+'s')%('['+host['hostname']+']            '),end='')
             sys.stdout.flush()
 
-            cmdLine = ['ssh', '-l', config.SHEETS['Globals']['MINERS_USER']['VALUE'], 
+            cmdLine = ['ssh', '-l', config.GLOBALS['MINERS_USER'], 
                        '-o', 'StrictHostKeyChecking=no', host['ip'], 'miners', 'whattomine']
             proc = subprocess.Popen(cmdLine, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
             out, err = proc.communicate(None)

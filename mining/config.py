@@ -6,6 +6,7 @@ import sys
 import jprops
 import subprocess
 import socket
+from collections import ChainMap
 
 class Config(object):
 
@@ -30,6 +31,8 @@ class Config(object):
         'WhatToMine': None,
         'Overclock': None
         }
+    
+    GLOBALS = {}
 
     def __init__(self, argumentsIn):
         self.arguments = argumentsIn
@@ -100,7 +103,11 @@ class Config(object):
                     if self.VERBOSE:
                         print('IndexError(xlrd): '+sheet_name+'['+str(row_index)+']'+'.ncols='+str(sheet.ncols)+' >= '+str(len(row)+1))
 
-                if sheet_name == 'CoinMiners': # CoinMiners' sheet is handled differently
+                if sheet_name == 'Globals': # Put Globals into substitution context
+                    key = row['KEY']
+                    if key != '' and key.find('-') < 0:
+                        self.GLOBALS[key] = row['VALUE']
+                elif sheet_name == 'CoinMiners': # CoinMiners' sheet is handled differently
                     row, prev_key = self.setup_CoinMiners_dict(row, prev_key)
                 elif sheet_name == 'WhatToMine': # WhatToMine is keyed by column, not row
                     self.SHEETS[sheet_name] = self.pivot_sheet(self.SHEETS[sheet_name], row, keys)
@@ -238,19 +245,18 @@ class Config(object):
         if verbose: print("Coin '" + ticker + "' is not configured in miners.xslx/CoinMiners.", file=sys.stderr)
         return None
 
-
     def substitute(self, row_id, arg):
         rslt = arg
-        conf = self.SHEETS['CoinMiners'][row_id]
+        context = ChainMap({}, self.SHEETS['CoinMiners'][row_id], os.environ, self.GLOBALS)
         # Substitute in reverse sequence of name's length
-        # (I don't know who is in charge of conceptual integrity in the Python language. Anyone?)
-        keys = sorted(conf.keys(), key=len)
+        # (I don't know who is in charge of conceptual integrity of the Python language. Anyone?)
+        keys = sorted(context.keys(), key=len)
         keys.reverse() # list(keys).sort(key=lambda item: (-len(item), item))
         for trans in range(0,2): # loop thrice to enable transitive substitutions
             if trans>9:
                 print(rslt)
             for key in keys:
-                val = conf[key]
+                val = context[key]
                 if val == '': continue
                 # Substitute both '$NAME" and '<NAME>'
                 rslt = rslt.replace('$'+key,val).replace('<'+key+'>',val)

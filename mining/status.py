@@ -61,7 +61,7 @@ def process(self, config, coin):
 
     for pinfo in pinfos:
         cmdline = ' '.join(pinfo['cmdline'])
-        regex = re.compile(r'(.*?)(-[ez]psw[= ]|--pass |-p )\s*(\S*)(.*)\s*', re.DOTALL)
+        regex = re.compile(r'(.*?)(-[ez]psw[= ]|--pass |-p )\s*(\S*)(.*)\s*')
         match = regex.match(cmdline)
         if not match is None and match.lastindex is 4 and not 'c=' in match.group(3):
             cmdline = match.group(1)+match.group(2)+'{x} '+match.group(4)
@@ -86,14 +86,14 @@ def process_scope(self, config, coin):
             print(('%.'+str(maxRigNameLen)+'s')%('['+host['hostname']+']            '),end='')
             sys.stdout.flush()
             tabber = ''
-            proc = subprocess.Popen(['ssh', '-l', config.SHEETS['Globals']['MINERS_USER']['VALUE'], '-o', 'StrictHostKeyChecking=no', 
+            proc = subprocess.Popen(['ssh', '-l', config.GLOBALS['MINERS_USER'], '-o', 'StrictHostKeyChecking=no', 
                         host['ip'], 'miners', 'status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
             out, err = proc.communicate(None)
             if out:
                 dunLn = '' # we will try to filter similar lines from this report
                 for ln in out.decode().split('\n'):
                     ln = ln.rstrip()
-                    regex = re.compile(r'(.*?)[[][^]]*[]](.*)', re.DOTALL)
+                    regex = re.compile(r'(.*?)[[][^]]*[]](.*)')
                     match = regex.match(ln)
                     if match and match.lastindex is 2: ln = match.group(1) + match.group(2)
                     ln = ln.replace('tclsh8.6 /usr/bin/unbuffer ','').replace(' -watchdog=false','')

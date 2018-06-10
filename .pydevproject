@@ -6,5 +6,6 @@
 <path>/${PROJECT_DIR_NAME}</path>
 <path>/${PROJECT_DIR_NAME}/mining</path>
 <path>/${PROJECT_DIR_NAME}/monitor</path>
+<path>/${PROJECT_DIR_NAME}/install</path>
 </pydev_pathproperty>
 </pydev_project>
