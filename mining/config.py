@@ -6,7 +6,12 @@ import sys
 import jprops
 import subprocess
 import socket
-from collections import ChainMap
+try:
+    from collections import ChainMap
+except:
+    # Somebody goofed when they deployed ChainMap for Python2.
+    import importlib
+    importlib.import_module('chainmap')
 
 class Config(object):
 
