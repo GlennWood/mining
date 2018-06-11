@@ -39,7 +39,7 @@ class MinersInstaller():
         if  MinersInstaller.PKGS or len(MinersInstaller.PKGS) is 0:
             return
         # The dict nature of self.PKGS insures each package is installed only once
-        if config.DRYRUN:
+        if config['--dryrun']:
             if MinersInstaller.PKGS:
                 print('apt-get -y install '+' '.join(MinersInstaller.PKGS.keys()))
         else:
@@ -58,7 +58,7 @@ class MinersInstaller():
        
     def install(self, config):
 
-        if config.DRYRUN:
+        if config['--dryrun']:
             print('cd /opt')
         else:
             os.chdir('/opt')
@@ -67,13 +67,13 @@ class MinersInstaller():
             srcDir = self.SOURCE.split('/')
             srcDir = srcDir[-1].replace('.git','')
             srcDir = self.get_source(config, self.SOURCE, srcDir)
-            if not config.DRYRUN:
+            if not config['--dryrun']:
                 print("Starting installation of "+self.NAME+' in '+srcDir)
 
         self.RC = 0
         for cmd in self.COMMANDS:
             if cmd.startswith('cd '):
-                if config.DRYRUN:
+                if config['--dryrun']:
                     print(cmd)
                 else:
                     self.RC = os.chdir(cmd.replace('cd ',''))
@@ -81,7 +81,7 @@ class MinersInstaller():
                         print("FAIL: '"+cmd+"' returned RC="+self.RC)
                         break
             elif cmd.startswith('mkdir '):
-                if config.DRYRUN:
+                if config['--dryrun']:
                     print(cmd)
                 else:
                     dirs = cmd.split(' ')
@@ -92,12 +92,12 @@ class MinersInstaller():
                         os.mkdir(nDir)
             elif cmd.startswith('install-'):
                 cmd = os.getenv('MINING_ROOT','/opt/mining')+'/install/'+cmd
-                if config.DRYRUN:
+                if config['--dryrun']:
                     print(cmd)
                 else:
                     os.system(cmd)
             elif cmd.startswith('ln '):
-                if config.DRYRUN:
+                if config['--dryrun']:
                     print(cmd)
                 else:
                     parms = cmd.split(' ')
@@ -105,7 +105,7 @@ class MinersInstaller():
                         os.remove(parms[3])
                     os.symlink(parms[2], parms[3])
             else:
-                if config.DRYRUN:
+                if config['--dryrun']:
                     print(cmd)
                 else:
                     self.RC = os.system(cmd)
@@ -116,7 +116,7 @@ class MinersInstaller():
         if self.RC != 0:
             with open('/etc/profile.d/'+self.NAME+'.sh','a+') as fh:
                 fh.write("export INSTALL_"+self.NAME.upper().replace('-','_')+"_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`\n")
-            if not config.DRYRUN:
+            if not config['--dryrun']:
                 print("Finished installation of "+self.NAME)
             print("Exiting due to errors, RC="+str(self.RC))
             sys.exit(self.RC)
@@ -125,7 +125,7 @@ class MinersInstaller():
 
     def get_source(self, config, git_repo, srcDir):
 
-        if config.DRYRUN:
+        if config['--dryrun']:
             if self.SOURCE.startswith('wget '):
                 print(self.SOURCE)
             else:

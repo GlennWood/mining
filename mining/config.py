@@ -111,7 +111,7 @@ class Config(object):
                 if sheet_name == 'Globals': # Put Globals into substitution context
                     key = row['KEY']
                     if key != '' and key.find('-') < 0:
-                        self.GLOBALS[key] = row['VALUE']
+                        self.GLOBALS[key] = str(row['VALUE'])
                 elif sheet_name == 'CoinMiners': # CoinMiners' sheet is handled differently
                     row, prev_key = self.setup_CoinMiners_dict(row, prev_key)
                 elif sheet_name == 'WhatToMine': # WhatToMine is keyed by column, not row

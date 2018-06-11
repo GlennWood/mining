@@ -93,8 +93,9 @@ pip install psutil
 
 apt-get install python3-setuptools
 easy_install3 pipapt-get -y install python3-pip
+pip2 install xlrd docopt requests jprops ansible bitshares pyyaml
 ## TODO: pip3 install --upgrade pip
-pip3 install xlrd docopt requests jprops ansible bitshares
+pip3 install xlrd docopt requests jprops ansible bitshares pyyaml
 
 # For PyCryptScraper
 apt-get -y install python-lxml
