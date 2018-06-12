@@ -1,9 +1,12 @@
 
 bminer:
   - bminer
+  - 'wget https://www.bminercontent.com/releases/bminer-v5.4.0-ae18e12-amd64.tar.xz'
   - ''
-  - ''
-  - install-bminer
+  -
+    - 'cd /opt'
+    - 'mv -f /opt/bminer-v5.4.0-ae18e12 /opt/bminer'
+    - 'rm -f bminer-v5.4.0-ae18e12-amd64.tar.xz'
 
 avermore-miner:
   - avermore-miner
@@ -65,15 +68,30 @@ ethdcrminer64:
 
 ethminer:
   - ethminer
-  - ''
-  - ''
-  - [ install-ethminer ]
+  - https://github.com/ethereum-mining/ethminer.git
+  - [ mesa-common-dev, cmake ]
+  -
+    - git submodule update --init --recursive
+    - 'mkdir build'
+    - 'cd build'
+    - 'cmake .. -DETHASHCUDA=ON -DETHASHCL=ON'
+    - 'make install'
 
 ewbf:
   - ewbf
   - ''
   - ''
-  - [ install-ewbf ]
+  -
+    - 'export EWBF_VER=0.3.4b'
+    - 'mkdir /opt/ewbf'
+    - 'cd /opt/ewbf'
+    - 'wget https://github.com/nanopool/ewbf-miner/releases/download/v${EWBF_VER}/Zec.miner.${EWBF_VER}.Linux.Bin.tar.gz'
+    - 'tar xvzf Zec.miner.${EWBF_VER}.Linux.Bin.tar.gz'
+    - 'rm Zec.miner.${EWBF_VER}.Linux.Bin.tar.gz'
+    - 'chmod 0754 *'
+    - 'chown $MINERS_USER *'
+    - 'ln -sf /opt/ewbf/miner /usr/local/bin/ewbf-miner'
+    
 
 ngsminer:
   - ngsminer
@@ -100,7 +118,14 @@ optiminer-equihash:
   - optiminer-equihash
   - ''
   - '' 
-  - [ install-optiminer-equihash ]
+  -
+    - 'export OPTIMINER_EQUIHASH_VERSION=2.1.2'
+    - 'mkdir /opt/optiminer'
+    - 'cd /opt/optiminer'
+    - 'wget http://download.optiminer.pl/optiminer-equihash-${OPTIMINER_EQUIHASH_VERSION}.tar.gz'
+    - 'tar -xzf optiminer-equihash-${OPTIMINER_EQUIHASH_VERSION}.tar.gz'
+    - 'rm optiminer-equihash-${OPTIMINER_EQUIHASH_VERSION}.tar.gz'
+
 
 optiminer-zcash:
   - optiminer-zcash
@@ -151,7 +176,7 @@ suprminer:
 tpruvot:
   - tpruvot
   - https://github.com/tpruvot/ccminer.git
-  - [automake pkg-config, libtool, libcurl4-openssl-dev, libssl-dev, libjansson-dev, automake, autotools-dev, build-essential]
+  - [automake, pkg-config, libtool, libcurl4-openssl-dev, libssl-dev, libjansson-dev, automake, autotools-dev, build-essential]
   - 
     - ./autogen.sh
     - ./configure

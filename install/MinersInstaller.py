@@ -36,15 +36,16 @@ class MinersInstaller():
 
     @classmethod
     def install_pkgs(slf, config):
-        if  MinersInstaller.PKGS or len(MinersInstaller.PKGS) is 0:
+        if  not MinersInstaller.PKGS or len(MinersInstaller.PKGS) is 0:
             return
         # The dict nature of self.PKGS insures each package is installed only once
+        pkgsCmd = 'apt-get -y install '+' '.join(MinersInstaller.PKGS.keys())
         if config['--dryrun']:
             if MinersInstaller.PKGS:
-                print('apt-get -y install '+' '.join(MinersInstaller.PKGS.keys()))
+                print(pkgsCmd)
         else:
             if MinersInstaller.PKGS:
-                RC = os.system('apt-get -y install '+' '.join(MinersInstaller.PKGS.keys()))
+                RC = os.system(pkgsCmd)
                 if RC:
                     sys.exit(RC)
         MinersInstaller.PKGS = None
@@ -90,6 +91,15 @@ class MinersInstaller():
                         if os.path.isdir(nDir):
                             shutil.rmtree(nDir)
                         os.mkdir(nDir)
+            elif cmd.startswith('export '):
+                if config['--dryrun']:
+                    print(cmd)
+                else:
+                    exports = cmd.split(' ')
+                    exports.pop(0)
+                    for export in exports:
+                        key,val = export.split('=')
+                        os.environ[key] = val
             elif cmd.startswith('install-'):
                 cmd = os.getenv('MINING_ROOT','/opt/mining')+'/install/'+cmd
                 if config['--dryrun']:
@@ -143,15 +153,20 @@ class MinersInstaller():
             if self.RC:
                 sys.exit(1)
             archiveName = self.SOURCE.split('/')[-1]
-            if archiveName.ends_with('.tgz') or archiveName.ends_with('.tar.gz'):
+            if archiveName.endswith('.tgz') or archiveName.endswith('.tar.gz'):
                 os.system('tar -xzf '+archiveName)
                 dirName = archiveName.replace('.tgz','').replace('.tar.gz','')
-            elif archiveName.ends_with('.tar.lrz'):
+            if archiveName.endswith('.txz') or archiveName.endswith('.tar.xz'):
+                os.system('tar --xz -xf '+archiveName)
+                dirName = archiveName.replace('.txz','').replace('.tar.xz','')
+            elif archiveName.endswith('.tar.lrz'):
                 os.system('lrunzip '+archiveName)
                 archiveName = archiveName.replace('.lrz','')
                 os.system('lrunzip '+archiveName)
                 dirName = archiveName.replace('.tar','')
             if dirName:
+                if not os.path.isdir(dirName):
+                    dirName = dirName.replace('-amd64','')
                 os.chdir(dirName)
             return dirName
        

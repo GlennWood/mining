@@ -79,22 +79,22 @@ apt-get -y install openssh-server git autoconf autoconf-archive curl selinux-uti
                    mesa-utils systemback python-pip python3-pip python3-dev python3-xlrd expect lrzip
 
 ### FIXME: need to logout and back in for 'pip install--upgrade pip' to work, now. Why is that?
-pip install --upgrade pip
+#pip install --upgrade pip
 ### FIXTHEM: You know, I still don't think python development team understands the concept of backward compatibility ... you'd think python2 to python3 would have taught them something ...
 ###     REF: https://github.com/pypa/pip/issues/5240#issuecomment-381673100
-sed -i.bak 's/from pip import main/from pip._internal import main/' /usr/bin/pip
+#sed -i.bak 's/from pip import main/from pip._internal import main/' /usr/bin/pip
 ## TOTO: sed -i.bak 's/from pip import main/from pip._internal import main/' /usr/local/bin/pip3
 
 ### Ref: http://python-future.org/compatible_idioms.html
 pip install future builtins past six
 pip install xlrd docopt requests jprops
 # go ahead, laugh, but this did fix a problem on one of my rigs one day.
-pip install psutil
+pip2 install psutil
+pip3 install psutil
 
 apt-get install python3-setuptools
 easy_install3 pipapt-get -y install python3-pip
 pip2 install xlrd docopt requests jprops ansible bitshares pyyaml
-## TODO: pip3 install --upgrade pip
 pip3 install xlrd docopt requests jprops ansible bitshares pyyaml
 
 # For PyCryptScraper
