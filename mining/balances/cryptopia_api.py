@@ -115,6 +115,14 @@ class Api(object):
             result = result[0]
         return (result, error)
 
+    def get_balances(self):
+        """ Gets the balances_imp of the currencies (of this user, including all they do not hold) """
+        result, error = self.api_query(feature_requested='GetBalance',
+                                       post_parameters={})
+        #if error is None:
+        #    result = result[0]
+        return (result, error)
+
     def get_openorders(self, market):
         """ Gets the open order for the user in the specified market """
         return self.api_query(feature_requested='GetOpenOrders',
