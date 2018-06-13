@@ -36,10 +36,11 @@ pushd /opt/amdgpu-pro >/dev/null
   ### Ref: http://support.amd.com/en-us/kb-articles/Pages/AMDGPU-PRO-Driver-for-Linux-Release-Notes.aspx	
   apt-get -y install libclc-r600 libclc-amdgcn
   ./amdgpu-pro-install -y --compute
-  # option -px is suppose to do something, but it's not working
+
+  ### BEGIN: "Cannot discover AMD devices, since 'rocm-smi' is not installed. See 'install/install-amd-pro' for instructions."
   apt-get -y install rocm-amdgpu-pro
   echo 'export LLVM_BIN=/opt/amdgpu-pro/bin' >> /etc/profile.d/amdgpu-pro.sh
-
+  ### END "Cannot discover ..."
 popd >/dev/null
 
 ### amdgpu.vm_fragment_size=9 is recommended on latest AMDGPU-PRO version
