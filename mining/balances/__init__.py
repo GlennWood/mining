@@ -7,6 +7,7 @@ import time
 import sys
 import os
 from balances.cryptopia_api import Api
+import gdax
 
 ### Ref: https://github.com/miningpoolhub/php-mpos/wiki/API-Reference
 ###   https://[<coin_name>.]miningpoolhub.com/index.php?page=api&action=<method>&api_key=<user_api_key>[&<argument>=<value>]
@@ -21,6 +22,7 @@ from balances.cryptopia_api import Api
 ###      https://api.nicehash.com/api?method=balance&id=$API_ID&key=4API_KEY
 
 SOURCES = {
+'GDAX': {'all': 'sandbox'},
 'NICEHASH': { 'all': 'https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY' },
 'MININGPOOLHUB': { 'all': 'https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=$API_KEY' },
 'UNIMINING': {
@@ -60,6 +62,9 @@ def process(self, config, coin):
     UNIMINING_THROTTLE=False
 
     for source in Sources:
+        if not source in SOURCES:
+            print("'"+source+"' is an unknown source, expecting one of "+','.join(sorted(SOURCES.keys())),file=sys.stderr)
+            continue
         print(source)
         RETRYING_IS_OK = True
         KEYBOARD_INTERRUPT = False
@@ -150,6 +155,13 @@ def process(self, config, coin):
                             if balance['Total']:
                                 print('  '+balance['Symbol'] + " " + str(balance['Total']))
         
+                elif source == 'GDAX':
+                    auth_client = gdax.AuthenticatedClient(secrets_json['api_key'], secrets_json['api_secret'], secrets_json['api_passphrase'])
+                    accounts = auth_client.get_accounts()
+                    for account in accounts:
+                        balance = float(account['balance'])
+                        
+                        print("  "+account['currency']+" "+str(balance))
                 elif source == 'SUPRNOVA':
                     try:
                         balances = json.loads(jsonStr)

@@ -56,15 +56,15 @@ def process(self, config, coin):
 
     elif statsParser == 'unimining':
         ### This is for https://www.unimining.net/site/wallet_results?address=$WALLET
-        regex = re.compile(r'.*?<td .*?Total Unpaid</b></td><td [^<]*</td><td [^>]*>(<a href=[^>]*>)?([0-9]*[.][0-9]*).*', re.DOTALL)
+        regex = re.compile(r'.*?<td .*?Total Unpaid</b></td><td [^<]*</td><td [^>]*>(<a href=[^>]*>)?([0-9]*[.][0-9]*).*', re.DOTALL) # @UndefinedVariable
         match = regex.match(htmlStr)
         val = match.group(2)
         print(coin['COIN'] + ': ' + val + ': Unpaid')
-        regex = re.compile(r'.*?<td .*?Total Paid</b></td><td [^<]*</td><td [^>]*>(<a href=[^>]*>)?([0-9]*[.][0-9]*).*', re.DOTALL)
+        regex = re.compile(r'.*?<td .*?Total Paid</b></td><td [^<]*</td><td [^>]*>(<a href=[^>]*>)?([0-9]*[.][0-9]*).*', re.DOTALL) # @UndefinedVariable
         match = regex.match(htmlStr)
         val = match.group(2)
         print(coin['COIN'] + ': ' + val + ': Paid')
-        regex = re.compile(r'.*?<td .*?Total Earned</b></td><td [^<]*</td><td [^>]*>(<a href=[^>]*>)?([0-9]*[.][0-9]*).*', re.DOTALL)
+        regex = re.compile(r'.*?<td .*?Total Earned</b></td><td [^<]*</td><td [^>]*>(<a href=[^>]*>)?([0-9]*[.][0-9]*).*', re.DOTALL) # @UndefinedVariable
         match = regex.match(htmlStr)
         val = match.group(2)
         print(coin['COIN'] + ': ' + val+ ': Earned')
