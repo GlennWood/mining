@@ -6,9 +6,18 @@ import json
 import time
 import sys
 import os
+import pycurl
 import yaml
 from balances.cryptopia_api import Api
 import gdax
+from balances.bleutradeapi import Bleutrade
+
+# These sources have their own reader, instead of 'curl' for all others
+OWN_READER = {
+    'bit-shares': 'bit-shares',
+    'cryptopia': 'cryptopia',
+    'gdax': 'gdax'
+}
 
 def process(self, config, coin):
 
@@ -26,15 +35,15 @@ def process(self, config, coin):
         if not source in SOURCES_YML['SOURCES']:
             print("'"+source+"' is an unknown source, expecting one of "+','.join(sorted(SOURCES_YML['SOURCES'].keys())),file=sys.stderr)
             continue
-        print(source)
         RETRYING_IS_OK = True
         KEYBOARD_INTERRUPT = False
 
+        print(source)
         while RETRYING_IS_OK and not KEYBOARD_INTERRUPT:
             RETRYING_IS_OK = False
-            for ticker in SOURCES_YML['SOURCES'][source]:
+            for ticker in sorted(SOURCES_YML['SOURCES'][source]):
                 if KEYBOARD_INTERRUPT:
-                    next
+                    continue
 
                 if source == 'UNIMINING' and UNIMINING_THROTTLE:
                     try:
@@ -48,10 +57,12 @@ def process(self, config, coin):
                     print ('\r                                                                                 \r',end='',file=sys.stderr),;sys.stderr.flush()
                     if KEYBOARD_INTERRUPT:
                         print('  '+ticker+' KeyboardInterrupt')
-                        next
+                        continue
                 UNIMINING_THROTTLE=False
             
-                balanceUrl = SOURCES_YML['SOURCES'][source][ticker]
+                balanceUrls = SOURCES_YML['SOURCES'][source][ticker]
+                if not isinstance(balanceUrls, list):
+                    balanceUrls = [ balanceUrls ]
                 keyFile = miners_user_ssh + source.lower()
                 if ticker != 'all':
                     keyFile += '-' + ticker.lower()
@@ -60,52 +71,36 @@ def process(self, config, coin):
                     with open(keyFile+'.key') as secrets:
                         secrets_json = json.load(secrets)
                         secrets.close()
-                        if 'account' in secrets_json: balanceUrl = balanceUrl.replace('$ACCOUNT',secrets_json['account'])
-                        if 'api_id'  in secrets_json: balanceUrl = balanceUrl.replace('$API_ID',secrets_json['api_id'])
-                        if 'api_key' in secrets_json: balanceUrl = balanceUrl.replace('$API_KEY',secrets_json['api_key'])
+                        for idx in range(len(balanceUrls)):
+                            for key in secrets_json:
+                                if balanceUrls[idx]:
+                                    balanceUrls[idx] = balanceUrls[idx].replace('$'+key.upper(),secrets_json[key])
                 except IOError as ex:
                     print("  "+ticker+" Cannot read key file for "+source+", "+str(ex), file=sys.stderr)
-                    next
-                if config.VERBOSE and balanceUrl != 'bit-shares':  print ('URL: '+balanceUrl)
+                    continue
+                
+                balanceUrl = balanceUrls[0]
+                if config.VERBOSE and balanceUrl and balanceUrl not in OWN_READER:
+                    print ('URL: '+balanceUrl)
 
                 jsonStr = '<NaS>'
-                if balanceUrl and balanceUrl != 'bitshares':
-                    proc = subprocess.Popen(['curl', balanceUrl], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-                    jsonStr, err = proc.communicate(None)
-                    jsonStr = jsonStr.decode()
-                    #if err: print(err, sep=' ', end='\n', file=sys.stderr)
-                    if err:
-                        if config.VERBOSE: print(err, file=sys.stderr)
-                        next
-        
-                    if config.PRINT:
-                        encoding = 'html'
-                        if 'isJson' in balanceUrl or 'miningpoolhub' in balanceUrl: encoding = 'json'
-                        printFilename = miners_user_ssh + source.lower()
-                        if ticker != 'all':
-                            printFilename += '-' + ticker.lower()
-                        printFilename += '-balances.' + encoding
-                        with open(printFilename, 'w') as f: f.write(jsonStr)
-                        print("Data downloaded from : " + balanceUrl + "\n            saved in " + printFilename)
+                if balanceUrl and balanceUrl not in OWN_READER:
+                    jsonObj = getUrlToJsonObj(config, balanceUrl, source, ticker, miners_user_ssh)
             
-                # Parse the downloaded data according to each pool's format
-                if source == 'NICEHASH':
-                    balances = json.loads(jsonStr)
-                    if 'error' in balances['result']:
-                        print("  ERROR: "+balances['result']['error'])
+                ### ####################################################### ###
+                # Parse the downloaded data according to each pool's format.
+                if source == 'BLEUTRADE':
+                    if ticker == 'all':
+                        currencies = ticker;
                     else:
-                        print('  BTC'+' '+balances['result']['balance_confirmed'])
-            
-                elif source == 'MININGPOOLHUB':
-                    try:
-                        balances = json.loads(jsonStr)
-                        for coin in balances['getuserallbalances']['data']:
-                            tot = coin['confirmed'] + coin['unconfirmed']+ coin['ae_confirmed'] + coin['ae_unconfirmed'] + coin['exchange']
-                            print('  '+SOURCES_YML['COMMON_TO_SYMBOL'][coin['coin']]+' '+str(tot))            
-                    except:
-                        print("  ERROR: "+jsonStr)
-          
-                elif source == 'CRYPTOPIA':
+                        currencies = [ ticker ]
+                    jsonRslt = Bleutrade(secrets_json['api_key'], secrets_json['api_secret']).get_balances(currencies)
+                    for coin in jsonRslt['result']:
+                        balance = float(coin['Balance'])
+                        if balance != 0 or ticker != 'all':
+                            print('  '+coin['Currency']+' '+str(balance))
+
+                elif balanceUrl == 'cryptopia':
                     api_wrapper = Api(keyFile+'.key', None)
                     
                     balances, error = api_wrapper.get_balances()
@@ -116,31 +111,45 @@ def process(self, config, coin):
                             if balance['Total']:
                                 print('  '+balance['Symbol'] + " " + str(balance['Total']))
         
+                elif source == 'MININGPOOLHUB':
+                    try:
+                        for coin in jsonObj['getuserallbalances']['data']:
+                            tot = coin['confirmed'] + coin['unconfirmed']+ coin['ae_confirmed'] + coin['ae_unconfirmed'] + coin['exchange']
+                            print('  '+SOURCES_YML['COMMON_TO_SYMBOL'][coin['coin']]+' '+str(tot))            
+                    except:
+                        print("  ERROR: "+str(jsonObj))
+          
+                elif source == 'NICEHASH':
+                    if 'error' in jsonObj['result']:
+                        print('  BTC ERROR: %s'%(jsonObj['result']['error']))
+                    else:
+                        total = float(jsonObj['result']['balance_confirmed'])+float(jsonObj['result']['balance_pending'])
+                        if len(balanceUrls) > 1:
+                            statsObj = getUrlToJsonObj(config, balanceUrls[1], source, ticker, miners_user_ssh)
+                            result = statsObj['result']
+                            if 'error' in result:
+                                print('  BTC stats.provider '+result['error'])
+                            else:
+                                total += float(statsObj['result']['stats'][0]['balance'])
+                        print('  BTC %.8f'%(total))
+            
                 elif source == 'GDAX':
                     auth_client = gdax.AuthenticatedClient(secrets_json['api_key'], secrets_json['api_secret'], secrets_json['api_passphrase'])
                     accounts = auth_client.get_accounts()
                     for account in accounts:
                         balance = float(account['balance'])
-                        
-                        print("  "+account['currency']+" "+str(balance))
+                        print('  '+account['currency']+' '+str(balance))
+
                 elif source == 'SUPRNOVA':
                     try:
-                        balances = json.loads(jsonStr)
-                        coin = balanceUrl.replace('https://','').split('.')[0].upper()
-                        ''' 
-                        {u'confirmed': 0.53601572, u'orphaned': 0, u'unconfirmed': 0.03763759}
-                        print balances{'getuserbalance'}{''}
-                        '''
-                        data = balances['getuserbalance']['data']
-                        print('  '+coin + ' ' + str(data['confirmed']+data['unconfirmed']))
-                        #for coin in balances['getuserallbalance']['data']:
-                        #    print(COMMON_TO_SYMBOL[coin['coin']]+': ='+str(coin['confirmed'])+'+'+str(coin['unconfirmed'])+ '+'+str(coin['ae_unconfirmed']))
+                        data = jsonObj['getuserbalance']['data']
+                        print('  '+ticker + ' ' + str(data['confirmed']+data['unconfirmed']))
                     except:
-                        print("  ERROR: "+jsonStr)
+                        print('  '+ticker+' ERROR: '+str(jsonObj))
         
                 elif source == 'UNIMINING':          
                     # Ref: https://www.unimining.net/api
-                    if jsonStr == '':
+                    if jsonObj is None:
                         if config.QUICK:
                             if not KEYBOARD_INTERRUPT:
                                 print('???'+' unimining/api returned nothing; probably their throttling mechanism; quickly bypassing that balance.')
@@ -153,45 +162,61 @@ def process(self, config, coin):
                         try:
                             if not config.QUICK and not KEYBOARD_INTERRUPT:
                                 UNIMINING_THROTTLE=True
-            
-                            balances = json.loads(jsonStr)
-                            print('  '+balances['currency']+' '+str(balances['total']))
+                            print('  '+jsonObj['currency']+' '+str(jsonObj['total']))
                         except:
                             print("  ERROR: "+jsonStr)
 
                 elif balanceUrl == 'bit-shares':
-                    with open(miners_user_ssh + source.lower()+'.key') as secrets:
-                        secrets_json = json.load(secrets)
-                        secrets.close()
-                    try:
-                        eval('from bitshares.account import Account')
-                        account = eval("Account("+secrets_json['account']+")")
-                        out = "%s"%(account.balances)
-                        print(out)
-                        err = None
-                    except:
-                        proc = subprocess.Popen(['/usr/bin/python3','/opt/mining/mining/balances/bit-shares.py', source], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-                        out, err = proc.communicate(None)
-                    if err:
-                        if config.VERBOSE: print(err,file=sys.stderr)
-                    else:
-                        lines = out.splitlines()
-                        # "[0.00001017 BRIDGE.BTC, 162.1362 BRIDGE.RVN]"
-                        line = lines[0].decode('utf-8').replace('[','').replace(']','')
-                        vals = line.split(", ")
-                        for val in vals:
-                            val_coin = val.split(' ')
-                            value = val_coin[0]
-                            coin = val_coin[1].replace('BRIDGE.','')
-                            print('  '+coin + " " + value)
+                    balances_bit_shares(source)
             
                 else:
                     print("Don't know how to process "+source+'-'+ticker+" = "+balanceUrl)
                     if config.VERBOSE: print(jsonStr)
 
-
     return config.ALL_MEANS_ONCE
 
+### ###########################################################
+# Fetch and print balances from any exchange based on bitshares.
+def balances_bit_shares(source):        
+    proc = subprocess.Popen(['/usr/bin/python3','/opt/mining/mining/balances/bit-shares.py', source], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    out, err = proc.communicate(None)
+    if err:
+        print(err,file=sys.stderr)
+        return
+    out = out.decode('utf-8')
+
+    lines = out.splitlines()
+    # "[0.00001017 BRIDGE.BTC, 162.1362 BRIDGE.RVN]"
+    line = lines[0].replace('[','').replace(']','')
+    vals = line.split(", ")
+    for val in vals:
+        val_coin = val.split(' ')
+        value = val_coin[0]
+        coin = val_coin[1].replace('BRIDGE.','')
+        print('  '+coin + " " + value)
+
+### ###############################################################################
+def getUrlToJsonObj(config, balanceUrl, source, ticker='all', miners_user_ssh=None):
+    jsonStr = '<NaS>'
+    if balanceUrl and balanceUrl not in OWN_READER:
+        proc = subprocess.Popen(['curl', balanceUrl], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        jsonStr, err = proc.communicate(None)
+        jsonStr = jsonStr.decode()
+        if err:
+            if config.VERBOSE: print(err, file=sys.stderr)
+        if config.PRINT:
+            encoding = 'html'
+            if 'isJson' in balanceUrl or 'miningpoolhub' in balanceUrl: encoding = 'json'
+            printFilename = miners_user_ssh + source.lower()
+            if ticker != 'all':
+                printFilename += '-' + ticker.lower()
+            printFilename += '-balances.' + encoding
+            with open(printFilename, 'w') as f: f.write(jsonStr)
+            print("Data downloaded from : " + balanceUrl + "\n            saved in " + printFilename)
+    return json.loads(jsonStr)
+
+
+### ###########################################################
 def load_config():
     with open("/opt/mining/mining/balances/sources.yml", 'r') as stream:
         try:
@@ -201,6 +226,7 @@ def load_config():
             sys.exit(1)
     return SOURCES_X
 
+### ###########################################################
 def bash_completion():
     sources = load_config()
     print(' '.join(source.lower() for source in sources['SOURCES']))

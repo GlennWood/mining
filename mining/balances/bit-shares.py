@@ -15,7 +15,7 @@ import sys
 
 from bitshares.account import Account
 
-miners_user_ssh = '/home/'+os.getenv('MINERS_USER')+'/.ssh/'
+miners_user_ssh = '/home/'+os.getenv('MINERS_USER')+'/.ssh/mining-keys/'
 with open(miners_user_ssh + sys.argv[1].lower()+'.key') as secrets:
     secrets_json = json.load(secrets)
     secrets.close()

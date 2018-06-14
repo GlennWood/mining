@@ -1,20 +1,29 @@
 
 SOURCES:
+  BLEUTRADE:
+    BTG:
+    ETH: 
+    LTC:
+  CRYPTOPIA:
+    all: cryptopia
+  CRYPTO-BRIDGE:
+    all: bit-shares
   GDAX: 
-    all: sandbox
+    all: gdax
   NICEHASH:
-    all: https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY
+    all:
+      - https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY
+      - https://api.nicehash.com/api?method=stats.provider&addr=$API_WALLET
   MININGPOOLHUB:
     all: https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=$API_KEY
   UNIMINING:
     GBX: https://www.unimining.net/api/walletEx?address=$API_ID
     TZC: https://www.unimining.net/api/walletEx?address=$API_ID
   SUPRNOVA:
-    KMD: https://kmd.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID
-  CRYPTOPIA:
-    all: cryptopia
-  CRYPTO-BRIDGE:
-    all: bit-shares
+    HUSH: https://hush.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID,
+    KMD: https://kmd.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID,
+    RVN: https://rvn.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID,
+    ZEN: https://zen.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID
   OPEN-LEDGER:
     all: bit-shares
 

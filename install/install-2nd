@@ -86,7 +86,7 @@ apt-get -y install openssh-server git autoconf autoconf-archive curl selinux-uti
 ## TOTO: sed -i.bak 's/from pip import main/from pip._internal import main/' /usr/local/bin/pip3
 
 ### Ref: http://python-future.org/compatible_idioms.html
-pip install future builtins past six
+pip install future past six
 pip install xlrd docopt requests jprops
 # go ahead, laugh, but this did fix a problem on one of my rigs one day.
 pip2 install psutil

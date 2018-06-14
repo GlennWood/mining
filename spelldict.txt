@@ -1,3 +1,6 @@
+cryptopia
+downloaded
+gdax
 gpustat
 hardcode
 hashrate
