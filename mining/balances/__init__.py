@@ -6,64 +6,25 @@ import json
 import time
 import sys
 import os
+import yaml
 from balances.cryptopia_api import Api
 import gdax
 
-### Ref: https://github.com/miningpoolhub/php-mpos/wiki/API-Reference
-###   https://[<coin_name>.]miningpoolhub.com/index.php?page=api&action=<method>&api_key=<user_api_key>[&<argument>=<value>]
-
-### Ref: https://www.unimining.net/api/currencies
-
-### MiningPoolStats - alternative to other MPH api's
-###    https://miningpoolhubstats.com/USD/$MININGPOOLHUB_APIKEY
-### Ref: https://github.com/miningpoolhub/php-mpos/wiki/API-Reference
-
-### Ref: 
-###      https://api.nicehash.com/api?method=balance&id=$API_ID&key=4API_KEY
-
-SOURCES = {
-'GDAX': {'all': 'sandbox'},
-'NICEHASH': { 'all': 'https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY' },
-'MININGPOOLHUB': { 'all': 'https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=$API_KEY' },
-'UNIMINING': {
-    'GBX': 'https://www.unimining.net/api/walletEx?address=GQfzRW76zJX9DKg3mbmqqZpxRNh25TUUSo',
-    'TZC': 'https://www.unimining.net/api/walletEx?address=TbsMq8Woobty7dbyYFQFDrDZiPja52QDQc',
-},
-'SUPRNOVA': {
-    'KMD': 'https://kmd.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=07909084c493f7761b05556286c5f242e71eb9a266ba00e2127a26f5496b7db7&id=201810265',
-},
-'CRYPTOPIA': {'all': 'cryptopia'},
-'CRYPTO-BRIDGE': {'all': 'bit-shares'},
-'OPEN-LEDGER': {'all': 'bit-shares'},
-}
-
-COMMON_TO_SYMBOL = {
-  'bitcoin-private': 'BTCP',
-  'ethereum-classic': 'ETC',
-  'bitcoin-gold': 'BTG',
-  'ethereum': 'ETH',
-  'expanse': 'EXP',
-  'monero': 'XMR',
-  'zcash': 'ZEC',
-  'musicoin': 'MUSIC',
-  'zclassic': 'ZCL',
-  'zencash': 'ZEN'
-}
-
-
 def process(self, config, coin):
 
-    if config.ALL_COINS: # meaning there was no command-line parameter following the OP 'balances_imp'
-        Sources = sorted(SOURCES.keys())
+    SOURCES_YML = load_config()
+
+    if config.ALL_COINS: # meaning there was no command-line parameter following the OP 'balances'
+        Sources = sorted(SOURCES_YML['SOURCES'].keys())
     else:
         Sources = [ source.upper() for source in config.arguments['COIN'] ]
 
-    miners_user_ssh = '/home/'+os.getenv('MINERS_USER')+'/.ssh/'
+    miners_user_ssh = '/home/'+os.getenv('MINERS_USER')+'/.ssh/mining-keys/'
     UNIMINING_THROTTLE=False
 
     for source in Sources:
-        if not source in SOURCES:
-            print("'"+source+"' is an unknown source, expecting one of "+','.join(sorted(SOURCES.keys())),file=sys.stderr)
+        if not source in SOURCES_YML['SOURCES']:
+            print("'"+source+"' is an unknown source, expecting one of "+','.join(sorted(SOURCES_YML['SOURCES'].keys())),file=sys.stderr)
             continue
         print(source)
         RETRYING_IS_OK = True
@@ -71,7 +32,7 @@ def process(self, config, coin):
 
         while RETRYING_IS_OK and not KEYBOARD_INTERRUPT:
             RETRYING_IS_OK = False
-            for ticker in SOURCES[source]:
+            for ticker in SOURCES_YML['SOURCES'][source]:
                 if KEYBOARD_INTERRUPT:
                     next
 
@@ -81,7 +42,7 @@ def process(self, config, coin):
                             print('\rPausing to accommodate unimining\'s throttling (use "-q" to bypass this)...'+str(65-t)+' ',end='',file=sys.stderr),;sys.stderr.flush()
                             time.sleep(1)
                     except KeyboardInterrupt:
-                        if config.VERBOSE: print('KeyboardInterrupt: miners balances_imp '+' '.join(config.arguments['COIN']))
+                        if config.VERBOSE: print('KeyboardInterrupt: miners balances '+' '.join(config.arguments['COIN']))
                         KEYBOARD_INTERRUPT = True
                         RETRYING_IS_OK = False
                     print ('\r                                                                                 \r',end='',file=sys.stderr),;sys.stderr.flush()
@@ -90,7 +51,7 @@ def process(self, config, coin):
                         next
                 UNIMINING_THROTTLE=False
             
-                balanceUrl = SOURCES[source][ticker]
+                balanceUrl = SOURCES_YML['SOURCES'][source][ticker]
                 keyFile = miners_user_ssh + source.lower()
                 if ticker != 'all':
                     keyFile += '-' + ticker.lower()
@@ -123,7 +84,7 @@ def process(self, config, coin):
                         printFilename = miners_user_ssh + source.lower()
                         if ticker != 'all':
                             printFilename += '-' + ticker.lower()
-                        printFilename += '-balances_imp.' + encoding
+                        printFilename += '-balances.' + encoding
                         with open(printFilename, 'w') as f: f.write(jsonStr)
                         print("Data downloaded from : " + balanceUrl + "\n            saved in " + printFilename)
             
@@ -140,7 +101,7 @@ def process(self, config, coin):
                         balances = json.loads(jsonStr)
                         for coin in balances['getuserallbalances']['data']:
                             tot = coin['confirmed'] + coin['unconfirmed']+ coin['ae_confirmed'] + coin['ae_unconfirmed'] + coin['exchange']
-                            print('  '+COMMON_TO_SYMBOL[coin['coin']]+' '+str(tot))            
+                            print('  '+SOURCES_YML['COMMON_TO_SYMBOL'][coin['coin']]+' '+str(tot))            
                     except:
                         print("  ERROR: "+jsonStr)
           
@@ -168,11 +129,11 @@ def process(self, config, coin):
                         coin = balanceUrl.replace('https://','').split('.')[0].upper()
                         ''' 
                         {u'confirmed': 0.53601572, u'orphaned': 0, u'unconfirmed': 0.03763759}
-                        print balances_imp{'getuserbalance'}{''}
+                        print balances{'getuserbalance'}{''}
                         '''
                         data = balances['getuserbalance']['data']
                         print('  '+coin + ' ' + str(data['confirmed']+data['unconfirmed']))
-                        #for coin in balances_imp['getuserallbalance']['data']:
+                        #for coin in balances['getuserallbalance']['data']:
                         #    print(COMMON_TO_SYMBOL[coin['coin']]+': ='+str(coin['confirmed'])+'+'+str(coin['unconfirmed'])+ '+'+str(coin['ae_unconfirmed']))
                     except:
                         print("  ERROR: "+jsonStr)
@@ -194,15 +155,11 @@ def process(self, config, coin):
                                 UNIMINING_THROTTLE=True
             
                             balances = json.loads(jsonStr)
-                            #unsold  = balances_imp['unsold']
-                            #print(balances_imp['currency']+' total ='+str(total)+' pending ='+str(unsold)+' unpaid ='+str(unpaid)+' balance ='+str(balance))
                             print('  '+balances['currency']+' '+str(balances['total']))
                         except:
                             print("  ERROR: "+jsonStr)
 
                 elif balanceUrl == 'bit-shares':
-
-
                     with open(miners_user_ssh + source.lower()+'.key') as secrets:
                         secrets_json = json.load(secrets)
                         secrets.close()
@@ -235,10 +192,21 @@ def process(self, config, coin):
 
     return config.ALL_MEANS_ONCE
 
+def load_config():
+    with open("/opt/mining/mining/balances/sources.yml", 'r') as stream:
+        try:
+            SOURCES_X = yaml.load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+            sys.exit(1)
+    return SOURCES_X
+
 def bash_completion():
-    print(' '.join(source.lower() for source in SOURCES))
+    sources = load_config()
+    print(' '.join(source.lower() for source in sources['SOURCES']))
 
 def initialize(self, config, coin):
+    load_config()
     return config.ALL_MEANS_ONCE
 
 def finalize(self, config, coin):

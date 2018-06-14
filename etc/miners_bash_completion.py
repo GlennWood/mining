@@ -46,8 +46,9 @@ if len(sys.argv) > 2: # this means user is beyond the 'miners <tab><tab>' stage
 operations = []
 for (dirpath, dirnames, filenames) in walk('/opt/mining/mining'):
     operations.extend(filenames)
+    operations.extend(dirnames)
     break
-operations = [op for op in operations if not op.endswith('.pyc')] # filter out *.pyc compile artifacts
+operations = [op for op in operations if not op.endswith('.pyc') and op != '__pycache__'] # filter out *.pyc compile artifacts
 operations = [op.replace('.py','') for op in operations] # strip '.py' from the filenames
 # some "modules" are in /opt/mining/mining that are not operations, and TODO belong somewhere else.
 operations = [op for op in operations if '__init__,cryptopia_api,crypto-bridge,config'.find(op) < 0]

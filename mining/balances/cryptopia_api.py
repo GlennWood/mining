@@ -116,7 +116,7 @@ class Api(object):
         return (result, error)
 
     def get_balances(self):
-        """ Gets the balances_imp of the currencies (of this user, including all they do not hold) """
+        """ Gets the balances of the currencies (of this user, including all they do not hold) """
         result, error = self.api_query(feature_requested='GetBalance',
                                        post_parameters={})
         #if error is None:

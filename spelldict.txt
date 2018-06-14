@@ -1,4 +1,5 @@
 gpustat
+hardcode
 hashrate
 worksheet
 touchups

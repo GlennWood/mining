@@ -14,8 +14,8 @@ MINERS_FOLDERS='/opt/mining /var/mining /var/log/mining /var/run/miners /var/loc
 mkdir -p $MINERS_FOLDERS 2>/dev/null
 chown -R ${MINERS_USER} $MINERS_FOLDERS
 # Make ~/.ssh folders in root and $MINERS_USER accounts
-mkdir -p ~/.ssh/config.d >/dev/null /home/${MINERS_USER}/.ssh/config.d >/dev/null
-chmod 0700 ~/.ssh/config.d /home/${MINERS_USER}/.ssh/config.d
+mkdir -p ~/.ssh/config.d >/dev/null /home/${MINERS_USER}/.ssh/config.d /home/${MINERS_USER}/.ssh/mining-keys 2>/dev/null
+chmod 0700 ~/.ssh/config.d /home/${MINERS_USER}/.ssh/config.d /home/${MINERS_USER}/.ssh/mining-keys
 chown -R $MINERS_USER:$MINERS_USER /home/${MINERS_USER}/.ssh
 
 pushd /opt/mining/install/

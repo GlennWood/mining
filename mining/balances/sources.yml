@@ -1,0 +1,31 @@
+
+SOURCES:
+  GDAX: 
+    all: sandbox
+  NICEHASH:
+    all: https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY
+  MININGPOOLHUB:
+    all: https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=$API_KEY
+  UNIMINING:
+    GBX: https://www.unimining.net/api/walletEx?address=$API_ID
+    TZC: https://www.unimining.net/api/walletEx?address=$API_ID
+  SUPRNOVA:
+    KMD: https://kmd.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID
+  CRYPTOPIA:
+    all: cryptopia
+  CRYPTO-BRIDGE:
+    all: bit-shares
+  OPEN-LEDGER:
+    all: bit-shares
+
+COMMON_TO_SYMBOL:
+  bitcoin-private: BTCP
+  ethereum-classic: ETC
+  bitcoin-gold: BTG
+  ethereum: ETH
+  expanse: EXP
+  monero: XMR
+  zcash: ZEC
+  musicoin: MUSIC
+  zclassic: ZCL
+  zencash: ZEN
