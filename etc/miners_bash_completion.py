@@ -8,6 +8,7 @@ from builtins import range
 
 EXTRA_HELP = {
     'balances': 'BALANCES',
+    '--scope': 'BALANCES',
     'start': 'COINS',
     'stop': 'COINS',
     'logs': 'LOGS',
@@ -36,7 +37,7 @@ if len(sys.argv) > 2: # this means user is beyond the 'miners <tab><tab>' stage
                 print(' '.join(logs))
                 sys.exit()  
             elif EXTRA_HELP[prev] == 'BALANCES':
-                balances.bash_completion()
+                balances.bash_completion(prev)
                 sys.exit()
             else:
                 print(EXTRA_HELP[prev])

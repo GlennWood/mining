@@ -24,7 +24,15 @@ def process(self, config, coin):
     SOURCES_YML = load_config()
 
     if config.ALL_COINS: # meaning there was no command-line parameter following the OP 'balances'
-        Sources = sorted(SOURCES_YML['SOURCES'].keys())
+        if config.SCOPE:
+            scope = config.SCOPE.upper()
+            if scope in SOURCES_YML['SCOPING']:
+                Sources = (SOURCES_YML['SCOPING'][scope])
+            else:
+                print("'%s' not found in SCOPING of 'balances/sources.yml'."%(scope))
+                return config.ALL_MEANS_ONCE
+        else:
+            Sources = sorted(SOURCES_YML['SOURCES'].keys())
     else:
         Sources = [ source.upper() for source in config.arguments['COIN'] ]
 
@@ -227,9 +235,12 @@ def load_config():
     return SOURCES_X
 
 ### ###########################################################
-def bash_completion():
-    sources = load_config()
-    print(' '.join(source.lower() for source in sources['SOURCES']))
+def bash_completion(prev):
+    SOURCES_YML = load_config()
+    if prev == '--scope':
+        print(' '.join(scope.lower() for scope in SOURCES_YML['SCOPING']))
+    else:
+        print(' '.join(source.lower() for source in SOURCES_YML['SOURCES']))
 
 def initialize(self, config, coin):
     load_config()
