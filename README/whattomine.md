@@ -1,5 +1,5 @@
-whattomine
-==========
+miners whattomine
+=================
 
 
 `miners whattomine` queries [WhatToMine](https://whattomine.com) for profitability of your rig(s) (as configured in *miners.xslx/WhatToMine*). It lists the top five (5) coins to mine, with a percentage difference listed (each percent in relation the next higher profitable coin). A `-v` option will list all coins from [WhatToMine](https://whattomine.com) rather than just the top five.

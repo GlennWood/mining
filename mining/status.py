@@ -83,7 +83,8 @@ def process_scope(self, config, coin):
     for key in sorted(config.ANSIBLE_HOSTS):
         host = config.ANSIBLE_HOSTS[key]
         if config.SCOPE.upper() == 'ALL' or config.SCOPE.upper() in host['hostname'].upper():
-            print(('%.'+str(maxRigNameLen)+'s')%('['+host['hostname']+']            '),end='')
+            prePrinted = ('%.'+str(maxRigNameLen)+'s')%('['+host['hostname']+']            ')
+            print(prePrinted, end='')
             sys.stdout.flush()
             tabber = ''
             proc = subprocess.Popen(['ssh', '-l', config.GLOBALS['MINERS_USER'], '-o', 'StrictHostKeyChecking=no', 
@@ -99,9 +100,12 @@ def process_scope(self, config, coin):
                     ln = ln.replace('tclsh8.6 /usr/bin/unbuffer ','').replace(' -watchdog=false','')
                     if ln and ln != dunLn:
                         dunLn = ln
-                        if not config.WIDE_OUT and len(ln) > sttyColumns: ln = ln[0:sttyColumns-maxRigNameLen-3]+'...'
-                        print(tabber+ln)
+                        ln = tabber+ln
+                        if not config.WIDE_OUT and len(ln)+len(prePrinted) >= sttyColumns:
+                            ln = ln[0:sttyColumns-maxRigNameLen-3]+'...'
+                        print(ln)
                         tabber = '                      '[0:maxRigNameLen]
+                        prePrinted = ''
             if err:
                 for ln in err.decode().split('\n'):
                     print(tabber+ln.rstrip())

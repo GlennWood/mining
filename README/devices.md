@@ -1,5 +1,5 @@
-devices
-=======
+miners devices
+==============
 
 `miners devices` lists the temperature, power consumption and speed of the devices (GPUs) on your rig. 
 
