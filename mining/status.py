@@ -61,6 +61,8 @@ def process(self, config, coin):
 
     for pinfo in pinfos:
         cmdline = ' '.join(pinfo['cmdline'])
+        if config.QUICK and cmdline.find('tclsh8.6 /usr/bin/unbuffer') >= 0:
+            continue
         regex = re.compile(r'(.*?)(-[ez]psw[= ]|--pass |-p )\s*(\S*)(.*)\s*')
         match = regex.match(cmdline)
         if not match is None and match.lastindex is 4 and not 'c=' in match.group(3):

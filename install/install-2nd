@@ -106,6 +106,7 @@ pip2 install -U marshmallow --pre
 
 cat > /etc/update-motd.d/995-miners-status << MOTD_MINERS_STATUS
 #!/bin/bash
+export PYTHONPATH=/opt/mining/mining
 /opt/mining/miners.py status --quick || echo "No miners are working here, now."
 MOTD_MINERS_STATUS
 chmod a+x /etc/update-motd.d/995-miners-status
