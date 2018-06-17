@@ -44,6 +44,7 @@ class Config(object):
 
         # Global Variables
         self.PLAT_COINS = {'AMD': {}, 'NVI': {}, 'BTH': {}}
+        self.RIG = '' # just the first letter, capitalized, of the rig-Name
         self.WORKER_NAME = ''
         self.StatsUrls = {}
         self.ConvertUrls = {}
@@ -252,7 +253,8 @@ class Config(object):
 
     def substitute(self, row_id, arg):
         rslt = arg
-        context = ChainMap({}, self.SHEETS['CoinMiners'][row_id], os.environ, self.GLOBALS)
+        context = ChainMap({'COIN': self.SHEETS['CoinMiners'][row_id]['COIN'].split('-',1)[0]},
+                            self.SHEETS['CoinMiners'][row_id], os.environ, self.GLOBALS)
         # Substitute in reverse sequence of name's length
         # (I don't know who is in charge of conceptual integrity of the Python language. Anyone?)
         keys = sorted(context.keys(), key=len)
@@ -281,7 +283,9 @@ class Config(object):
     # WORKER_NAME varies by the coin we are processing, so this
     #   method is a convenient central point for set/getting it.
     def workerName(self,ticker):
+        if not self.RIG:
+            self.RIG = socket.gethostname().replace('rig-','')[0].upper()
+            os.environ['RIG'] = self.RIG
         if ticker:
-            hostN = socket.gethostname()
-            self.WORKER_NAME = hostN.replace('rig-','')[0].upper() + '-' + ticker + '-miner'
+            self.WORKER_NAME = self.RIG + '-' + ticker + '-miner'
         return self.WORKER_NAME

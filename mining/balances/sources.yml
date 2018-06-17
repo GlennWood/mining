@@ -1,24 +1,23 @@
 
 SOURCES:
+  AIKAPOOL:
+    GBX: https://aikapool.com/gbx/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID
   BLEUTRADE:
     BTG:
-    ETH: 
+    ETH:
     LTC:
   CRYPTOPIA:
     all: cryptopia
-  CRYPTO-BRIDGE:
+  CRYPTOBRIDGE:
     all: bit-shares
   GDAX: 
     all: gdax
   NICEHASH:
-    all:
+    BTC:
       - https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY
       - https://api.nicehash.com/api?method=stats.provider&addr=$API_WALLET
   MININGPOOLHUB:
     all: https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=$API_KEY
-  UNIMINING:
-    GBX: https://www.unimining.net/api/walletEx?address=$API_ID
-    TZC: https://www.unimining.net/api/walletEx?address=$API_ID
   SUPRNOVA:
     HUSH: https://hush.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID,
     KMD: https://kmd.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID,
@@ -26,10 +25,24 @@ SOURCES:
     ZEN: https://zen.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID
   OPEN-LEDGER:
     all: bit-shares
+  UNIMINING:
+    GBX:
+      - https://www.unimining.net/api/walletEx?address=$API_ID
+      - https://www.unimining.net/site/wallet_results?address=$API_ID&showdetails=1
+    TZC:
+      - https://www.unimining.net/api/walletEx?address=$API_ID
+      - https://www.unimining.net/site/wallet_results?address=$API_ID&showdetails=1
+    XMN:
+      - https://www.unimining.net/api/walletEx?address=$API_ID
+      - https://www.unimining.net/site/wallet_results?address=$API_ID&showdetails=1
+  ZPOOL:
+    GBX:
+      - https://www.zpool.ca/api/walletEx?address=$API_KEY
+      - https://www.zpool.ca/site/wallet_results?address=$API_ID&showdetails=1
 
 SCOPING:
-  MINING: [ MININGPOOLHUB, NICEHASH, SUPRNOVA, UNIMINING ]
-  EXCHANGING: [ BLEUTRADE, CRYPTOPIA, CRYPTO-BRIDGE, OPEN-LEDGER ]
+  MINING: [ AIKAPOOL, MININGPOOLHUB, NICEHASH, SUPRNOVA, UNIMINING ]
+  EXCHANGING: [ BLEUTRADE, CRYPTOPIA, CRYPTOBRIDGE, OPEN-LEDGER ]
   BANKING: [ GDAX ]
 
 COMMON_TO_SYMBOL:
@@ -43,3 +56,12 @@ COMMON_TO_SYMBOL:
   musicoin: MUSIC
   zclassic: ZCL
   zencash: ZEN
+
+SYMBOL_TO_COMMON:
+  XMN: MTN
+
+OWN_READER:
+  bit-shares: bit-shares
+  cryptopia: cryptopia
+  gdax: gdax
+  UNIMINING: yiimp

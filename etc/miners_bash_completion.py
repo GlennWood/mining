@@ -17,6 +17,13 @@ EXTRA_HELP = {
     'devices': '-v'
 }
 
+### We print coin symbols a couple of times down here.
+def print_coins():
+    import config
+    config = config.Config(None)
+    coin = [ item.lower() for item in config.arguments['COIN'] ]
+    print(' '.join(coin))
+
 if len(sys.argv) > 2: # this means user is beyond the 'miners <tab><tab>' stage
     #sys.argv.pop(0)
     for idx in range(len(sys.argv)-1,0,-1):
@@ -39,11 +46,16 @@ if len(sys.argv) > 2: # this means user is beyond the 'miners <tab><tab>' stage
             elif EXTRA_HELP[prev] == 'BALANCES':
                 balances.bash_completion(prev)
                 sys.exit()
-            else:
-                print(EXTRA_HELP[prev])
+            print(EXTRA_HELP[prev])
+            sys.exit()
+        else:
+            prev_ = prev.split(':')
+            if prev_[0] in EXTRA_HELP and EXTRA_HELP[prev_[0]] == 'COINS':
+                print_coins()
                 sys.exit()
 
-
+# None of the EXTRA_HELP applies, so just give basic options help,
+#   based on the modules contained in /opt/mining/mining.
 operations = []
 for (dirpath, dirnames, filenames) in walk('/opt/mining/mining'):
     operations.extend(filenames)
@@ -52,5 +64,5 @@ for (dirpath, dirnames, filenames) in walk('/opt/mining/mining'):
 operations = [op for op in operations if not op.endswith('.pyc') and op != '__pycache__'] # filter out *.pyc compile artifacts
 operations = [op.replace('.py','') for op in operations] # strip '.py' from the filenames
 # some "modules" are in /opt/mining/mining that are not operations, and TODO belong somewhere else.
-operations = [op for op in operations if '__init__,cryptopia_api,crypto-bridge,config'.find(op) < 0]
+operations = [op for op in operations if '__init__,cryptopia_api,cryptobridge,config'.find(op) < 0]
 print(' '.join(operations))

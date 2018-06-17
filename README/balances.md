@@ -61,18 +61,6 @@ The sources are configured in the `/opt/mining/mining/balances/sources.yml` file
       OPEN-LEDGER:
         all: bit-shares
 
-    COMMON_TO_SYMBOL:
-      bitcoin-private: BTCP
-      ethereum-classic: ETC
-      bitcoin-gold: BTG
-      ethereum: ETH
-      expanse: EXP
-      monero: XMR
-      zcash: ZEC
-      musicoin: MUSIC
-      zclassic: ZCL
-      zencash: ZEN
-
 The `SOURCES` section has an element for each source, which might be an exchange or a mining pool (somewhere that currencies might be held). Each source element lists the coins held there (`all` might work for some sources to specify any and all coins, while other sources require an explicit list of coins). Each such coin may further designate an URL, or another mechanism, for obtaining the balance(s). The "other mechanisms" are hardcoded into `/opt/mining/mining/balances/__init__.py`
 Note that the URLs listed in this example `sources.yml` include `$API_ID`, `$API_KEY`, etc. These will be substituted from values found *hidden*, by you, in your own `/home/$MINERS_USER/.ssh/mining-keys/<source>-<coin>.key` files. For instance:
 
@@ -92,3 +80,45 @@ or
     
 And yes, the URLs specify the API_<?> parameters in uppercase, and the mining-keys files are named in lowercase and contain all lowercase field names.
 
+Scoping
+-------
+You may limit the scope of the balances report to a subset of the sources, just as you would specify a single source.
+
+* Type of source
+
+The type of sources is configured in the `SCOPING` section of `sources.yml`, where we might see
+
+    SCOPING:
+      MINING: [ MININGPOOLHUB, NICEHASH, SUPRNOVA, UNIMINING ]
+      EXCHANGING: [ BLEUTRADE, CRYPTOPIA, CRYPTO-BRIDGE, OPEN-LEDGER ]
+      BANKING: [ GDAX ]
+
+So, to limit the report to MINING sources.
+
+        rig:~$ miners balances mining
+
+* Type of source and coin(s)
+
+You may also limit the report to just one or more coins within a scope of sources, as in:
+
+        rig:~$ miners balances mining:rvn,eth
+
+which would list the balances of RVN and ETH currencies in each MINING source.
+
+* `COMMON_TO_SYMBOL`
+
+Just FYI, you will also find a `COMMON_TO_SYMBOL` section in `sources.yml`. This is there to help `miners balances` parse common currency names in some result sets from sources into ticker symbols.
+
+    COMMON_TO_SYMBOL:
+      bitcoin-private: BTCP
+      ethereum-classic: ETC
+      bitcoin-gold: BTG
+      ethereum: ETH
+      expanse: EXP
+      monero: XMR
+      zcash: ZEC
+      musicoin: MUSIC
+      zclassic: ZCL
+      zencash: ZEN
+
+These are just a few of them, as used by your author, and you should add to `COMMON_TO_SYMBOL` if you require more.
