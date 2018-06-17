@@ -46,10 +46,10 @@ dstm:
 
 klaust:
   - ccminer-KlausT
-  - https://github.com/KlausT/ccminer.git ccminer-KlausT,
+  - https://github.com/KlausT/ccminer.git ccminer-KlausT
   - [automake, autotools-dev, pkg-config, libtool, libcurl4-openssl-dev, libjansson-dev,
-        libssl-dev, libcurl4-openssl-dev, libssl-dev, libjansson-dev, build-essential, CUDA-9]
-  - ['cd ccminer-KlausT', 'git checkout cuda9', './autogen.sh', './configure',
+        libssl-dev, libcurl4-openssl-dev, libssl-dev, libjansson-dev, build-essential]#, CUDA-9]
+  - ['git checkout cuda9', './autogen.sh', './configure',
        "sed -i.bak 's/SHFL[(]/SHFL_UP(/g' bitslice_transformations_quad.cu groestl_functions_quad.cu lyra2/cuda_lyra2v2.cu x11/cuda_x11_simd512.cu neoscrypt/cuda_neoscrypt_tpruvot.cu",
        './build.sh', './ccminer --ndevs']
 

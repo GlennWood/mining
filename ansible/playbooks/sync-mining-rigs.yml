@@ -13,3 +13,10 @@
     -
       name: "synchronize ansible configs"
       action: synchronize src=/etc/ansible/ dest=/etc/ansible/ archive=yes delete=yes rsync_opts=--exclude=.git,--exclude=*.pyc,--exclude=*.retry
+    -
+      name: "synchronize mining keys"
+      action: synchronize src=/home/albokiadt/.ssh/mining-keys/ dest=/home/albokiadt/.ssh/mining-keys/ archive=yes delete=no
+    -
+      name: "synchronize downloaded files"
+      action: synchronize src=/opt/Downloads/ dest=/opt/Downloads/ archive=yes delete=no
+      

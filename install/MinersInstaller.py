@@ -65,9 +65,18 @@ class MinersInstaller():
             os.chdir('/opt')
 
         if self.SOURCE:
-            srcDir = self.SOURCE.split('/')
-            srcDir = srcDir[-1].replace('.git','')
-            srcDir = self.get_source(config, self.SOURCE, srcDir)
+            source = self.SOURCE
+            if source.find('.git') >= 0:
+                sources = source.split(' ')
+                if len(sources) > 1:
+                    source = sources[0]
+                    srcDir = sources[1]
+                else:
+                    srcDir = source.split('/')
+                    srcDir = srcDir[-1].replace('.git','')
+            else:
+                srcDir = source.split('/')[-1].rsplit('.')[1]
+            srcDir = self.get_source(config, source, srcDir)
             if not config['--dryrun']:
                 print("Starting installation of "+self.NAME+' in '+srcDir)
 

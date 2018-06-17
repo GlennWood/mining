@@ -74,9 +74,9 @@ apt-get -y update ; apt-get -y dist-upgrade
 apt-get -y autoremove ; apt-get -y autoclean
 add-apt-repository -y ppa:nemh/systemback
 apt-get -y update
-apt-get -y install openssh-server git autoconf autoconf-archive curl selinux-utils libffi-dev \
-                   libssl-dev libcurl4-openssl-dev \
-                   mesa-utils systemback python-pip python3-pip python3-dev python3-xlrd expect lrzip
+apt-get -y install openssh-server git autoconf autoconf-archive curl selinux-utils \
+                   libffi-dev libssl-dev libcurl4-openssl-dev libgnutls28-dev mesa-utils \
+                   systemback python-pip python3-pip python3-dev python3-xlrd expect lrzip
 
 ### FIXME: need to logout and back in for 'pip install--upgrade pip' to work, now. Why is that?
 #pip install --upgrade pip

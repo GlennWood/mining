@@ -7,17 +7,26 @@
 		exit;
 	fi
 
+ETHDCRMINER_VERSION=11.8
+
 #=================== nVidia, claymore dual gpu miner ===============
 ### REF: https://steemit.com/ethereum/@virtualcoin/ethereum-claymore-dual-ethereum-gpu-miner-for-linux-geforce-gtx
 ### Ref: https://www.bminer.me/references/
-
-ETHDCRMINER_VERSION=10.0
+### v11.8: https://mega.nz/#F!O4YA2JgD!n2b4iSHQDruEsYUvTQP5_w
 
 mkdir /opt/ethdcrminer64 ; chown $MINERS_USER /opt/ethdcrminer64
 pushd /opt/ethdcrminer64 >/dev/null
+if [  -n "$FETCH_CLAYMORE_VIA_WGET" ]; then
   wget https://github.com/nanopool/Claymore-Dual-Miner/releases/download/v${ETHDCRMINER_VERSION}/Claymore.s.Dual.Ethereum.Decred_Siacoin_Lbry_Pascal.AMD.NVIDIA.GPU.Miner.v${ETHDCRMINER_VERSION}.-.LINUX.tar.gz
   tar -xzf Claymore.s.Dual.Ethereum.Decred_Siacoin_Lbry_Pascal.AMD.NVIDIA.GPU.Miner.v${ETHDCRMINER_VERSION}.-.LINUX.tar.gz
-  rm Claymore.s.Dual.Ethereum.Decred_Siacoin_Lbry_Pascal.AMD.NVIDIA.GPU.Miner.v${ETHDCRMINER_VERSION}.-.LINUX.tar.gz
+  mv Claymore.s.Dual.Ethereum.Decred_Siacoin_Lbry_Pascal.AMD.NVIDIA.GPU.Miner.v${ETHDCRMINER_VERSION}.-.LINUX/* ./
+else
+  CLAYMORE_NAME=Claymore\'s\ Dual\ Ethereum+Decred_Siacoin_Lbry_Pascal_Blake2s_Keccak\ AMD+NVIDIA\ GPU\ Miner\ v${ETHDCRMINER_VERSION}\ -\ LINUX
+  [ ! -f "/opt/Downloads/$CLAYMORE_NAME.tar.gz" ] && echo "Need '/opt/Downloads/$CLAYMORE_NAME.tar.gz'" && exit 1
+  tar -xzf "/opt/Downloads/$CLAYMORE_NAME.tar.gz"
+  mv "$CLAYMORE_NAME/*" ./
+  rm -r "$CLAYMORE_NAME\ -\ LINUX/"
+fi
   echo "USAGE: cd /opt/ethdcrminer64 ; ./ethdcrminer64 [ options ... ]"
 popd >/dev/null
 
