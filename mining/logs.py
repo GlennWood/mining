@@ -1,15 +1,16 @@
 from __future__ import print_function
 import os
+import sys
 import subprocess
 import start
 import status
+import time
 
 def process(self, config, coin):
     global TAIL_LOG_FILES
-    if config.VERBOSE: print(__name__+".process("+coin['COIN']+")")
 
     '''
-TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(s) and its warning, here,
+    TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(s) and its warning, here,
          got incorrect share. If you see this warning often, make sure you did not overclock it too much!
          WATCHDOG: GPU 4 hangs in OpenCL call, exit
          NVML: cannot get current temperature, error 15
@@ -21,8 +22,12 @@ TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(
     
     '''
         
-    # We have this way of handing all this off to SystemD ...
+    if isinstance(coin, list):
+        # This happens with 'miners swap,logs old-coin:new-coin'
+        coin = coin[1]
+        time.sleep(0.1)
     miner = coin['MINER']
+
     client = None
     if miner in config.SHEETS['Clients']:
         client = config.SHEETS['Clients'][miner]
@@ -32,7 +37,8 @@ TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(
     # If no coins on command line, then list only those of currently running miners
     if config.ALL_COINS:
         pinfos = status.get_status(config.arguments['COIN'])
-        if pinfos is None:
+        if pinfos is None or len(pinfos) == 0:
+            print("No processes are mining "+','.config.arguments['COIN']+'.',file=sys.stderr)
             return config.ALL_MEANS_ONCE
         for pinfo in pinfos:
             WORKER_NAME = config.workerName(pinfo['coin'])
@@ -48,21 +54,23 @@ TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(
         # The '--utc' makes len(TAIL_LOG_FILES)>2 so it doesn't get passed over in finalize()
     else:
         for ext in ['.log','.err','.out']:
-            logName = '/var/log/mining/'+config.WORKER_NAME+ext
+            logName = '/var/log/mining/'+config.workerName(coin['COIN'])+ext
             if os.path.isfile(logName):
                 TAIL_LOG_FILES.append(logName)
+            else:
+                if config.VERBOSE:
+                    print("There is no log file named '"+logName+"'")
     return 0
 
 def initialize(self, config, coin):
     global TAIL_LOG_FILES
     TAIL_LOG_FILES = ['/usr/bin/tail', '-f']
-    if config.VERBOSE: print(__name__+".initialize("+coin['COIN']+")")
     return config.ALL_MEANS_ONCE
 
 def finalize(self, config, coin):
     global TAIL_LOG_FILES
-    if config.VERBOSE: print(__name__+".finalize("+coin['COIN']+")")
-    if len(TAIL_LOG_FILES) <= 2: return config.ALL_MEANS_ONCE
+    if len(TAIL_LOG_FILES) <= 2:
+        return config.ALL_MEANS_ONCE
     if config.DRYRUN:
         print(' '.join(TAIL_LOG_FILES))
     else:
