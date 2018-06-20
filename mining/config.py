@@ -24,6 +24,7 @@ class Config(object):
     DRYRUN   = False
     VERBOSE  = False
     QUICK    = False
+    QUERY    = False
     SCOPE    = False
     WIDE_OUT = False
     FORCE    = False
@@ -65,6 +66,7 @@ class Config(object):
             self.PRINT    = '--print'  in self.arguments and self.arguments['--print']
             self.DRYRUN   = '--dryrun' in self.arguments and self.arguments['--dryrun']
             self.QUICK    = '--quick'  in self.arguments and self.arguments['--quick']
+            self.QUERY    = '--query'  in self.arguments and self.arguments['--query']
             self.SCOPE    = '--scope'  in self.arguments and self.arguments['--scope']
             self.WIDE_OUT = '-l'       in self.arguments and self.arguments['-l']
             self.FORCE    = '--force'  in self.arguments and self.arguments['--force']
@@ -75,6 +77,7 @@ class Config(object):
             self.PRINT    = False
             self.DRYRUN   = False
             self.QUICK    = False
+            self.QUERY    = False
             self.SCOPE    = None
             self.WIDE_OUT = False
             self.FORCE    = False
@@ -221,15 +224,15 @@ class Config(object):
                     platform = platform.split('=')[1]
                     self.ANSIBLE_HOSTS[hostname] = {'hostname': hostname, 'platform': platform, 'ip': ip}
 
+            # We don't need these section files anymore.
+            for fn in sectionFiles: os.remove(fn)
+
         except IOError as ex:
             print(str(ex))
         except AttributeError as ex:
             print(ansibleFilename+' format is invalid (for miners).' + str(ex))
         except:
             print ( sys.exc_info()[0] )
-        
-        # We don't need these section files anymore.
-        for fn in sectionFiles: os.remove(fn)
 
     # Find the given ticker in the CoinMiners table for this PLATFORM
     #   Return None if not found

@@ -1,7 +1,12 @@
 
 SOURCES:
+  ANORAK:
+    ETH(coinbase): https://etc.anorak.tech/api/accounts/$API_ID
+    ETC(binance): https://etc.anorak.tech/api/accounts/$API_ID
   AIKAPOOL:
-    GBX: https://aikapool.com/gbx/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID
+    GBX: MPOS:https://aikapool.com/gbx
+  BINANCE:
+    ETC: https://api.binance.com
   BLEUTRADE:
     BTG:
     ETH:
@@ -13,35 +18,26 @@ SOURCES:
   GDAX: 
     all: gdax
   NICEHASH:
-    BTC:
-      - https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY
-      - https://api.nicehash.com/api?method=stats.provider&addr=$API_WALLET
+    BTC: https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY
   MININGPOOLHUB:
     all: https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=$API_KEY
   SUPRNOVA:
-    HUSH: https://hush.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID,
-    KMD: https://kmd.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID,
-    RVN: https://rvn.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID,
-    ZEN: https://zen.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID
+    HUSH: MPOS:https://hush.suprnova.cc
+    KMD: MPOS:https://kmd.suprnova.cc
+    RVN: MPOS:https://rvn.suprnova.cc
+    STAK: MPOS:https://stak.suprnova.cc
+    ZEN: MPOS:https://zen.suprnova.cc
   OPEN-LEDGER:
     all: bit-shares
   UNIMINING:
-    GBX:
-      - https://www.unimining.net/api/walletEx?address=$API_ID
-      - https://www.unimining.net/site/wallet_results?address=$API_ID&showdetails=1
-    TZC:
-      - https://www.unimining.net/api/walletEx?address=$API_ID
-      - https://www.unimining.net/site/wallet_results?address=$API_ID&showdetails=1
-    XMN:
-      - https://www.unimining.net/api/walletEx?address=$API_ID
-      - https://www.unimining.net/site/wallet_results?address=$API_ID&showdetails=1
+    GBX: yiimp:https://www.unimining.net
+    TZC: yiimp:https://www.unimining.net
+    XMN: yiimp:https://www.unimining.net
   ZPOOL:
-    GBX:
-      - https://www.zpool.ca/api/walletEx?address=$API_KEY
-      - https://www.zpool.ca/site/wallet_results?address=$API_ID&showdetails=1
+    GBX: yiimp:https://www.zpool.ca
 
 SCOPING:
-  MINING: [ AIKAPOOL, MININGPOOLHUB, NICEHASH, SUPRNOVA, UNIMINING ]
+  MINING: [ ANORAK, AIKAPOOL, MININGPOOLHUB, NICEHASH, SUPRNOVA, UNIMINING ]
   EXCHANGING: [ BLEUTRADE, CRYPTOPIA, CRYPTOBRIDGE, OPEN-LEDGER ]
   BANKING: [ GDAX ]
 
@@ -65,3 +61,5 @@ OWN_READER:
   cryptopia: cryptopia
   gdax: gdax
   UNIMINING: yiimp
+  yiimp: yiimp
+  MPOS: MPOS

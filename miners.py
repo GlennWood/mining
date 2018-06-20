@@ -1,7 +1,7 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
-"""Usage: miners.py OPERATION [-fghlqrXPv] [--gpus GPUS | --platform typ] [--url-port UL] 
-                [--scope scope] [--force] [--dryrun] [COIN] ...
+"""Usage: miners.py OPERATION [-fghlqrXPQv] [--gpus GPUS | --platform typ] [--url-port UL] 
+                [--query] [--scope scope] [--force] [--dryrun] [COIN] ...
 
 Apply OPERATION to the mining of designated COINs w
 
@@ -23,6 +23,7 @@ Options:
   -h --help
   -v           verbose mode
   -q --quick   quick mode
+  -Q --query   query mode (not 'set' and not 'tail')
   -X --dryrun  print the command, then exit
   -P --print   log the response of anything that is downloaded into
                  a local file (it's name will be listed on console)
