@@ -46,12 +46,12 @@ def initialize(self, config, coin):
         print(coin[1]['COIN']+": There is already a process mining "+coin[1]['COIN'])
         return 1
 
-    stop.initialize(self, config, coin)
-    start.initialize(self, config, coin)
+    stop.initialize(self, config, coin[0])
+    start.initialize(self, config, coin[1])
 
     return 0
 
 def finalize(self, config, coin):
-    start.finalize(self, config, coin)
-    stop.finalize(self, config, coin)
+    start.finalize(self, config, coin[1])
+    stop.finalize(self, config, coin[0])
     return 0

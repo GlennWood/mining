@@ -5,6 +5,7 @@ import subprocess
 import start
 import status
 import time
+import re
 
 def process(self, config, coin):
     global TAIL_LOG_FILES
@@ -71,11 +72,28 @@ def finalize(self, config, coin):
     global TAIL_LOG_FILES
     if len(TAIL_LOG_FILES) <= 2:
         return config.ALL_MEANS_ONCE
+
+    if config.SCOPE is None or config.SCOPE == '':
+        scope = None
+    elif config.SCOPE == 'temp':
+        scope = r' t=([0-9]*)C';
+    else:
+        scope = config.SCOPE
+
     if config.DRYRUN:
         print(' '.join(TAIL_LOG_FILES))
     else:
         try:
-            subprocess.call(TAIL_LOG_FILES)
+            proc = subprocess.Popen(TAIL_LOG_FILES, stdout=subprocess.PIPE)
+            while True:
+                line = proc.stdout.readline().decode()
+                if scope is None:
+                    print(line.rstrip())
+                else:
+                    match = config.SCOPE
+                    match = re.findall(scope, line)
+                    if match is not None and len(match) > 0:
+                        print(','.join(match))
         except KeyboardInterrupt:
             if config.VERBOSE: print('KeyboardInterrupt: miners logs '+' '.join(config.arguments['COIN']))
         except:# os.ProcessLookupError: # strangely, subprocess fails this way after Ctrl-C sometimes; squelch annoying message.
