@@ -1,5 +1,6 @@
 cryptopia
 downloaded
+errant
 gdax
 gpustat
 hardcode

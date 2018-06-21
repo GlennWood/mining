@@ -27,8 +27,9 @@ def process(self, config, coin):
 
     with open('/var/local/persist/lastest-start.cmd', 'r') as fh:  
         cmd = fh.read()
+    cmd = cmd.rstrip()
 
-    regex = re.compile(r'cd (.*?) ; (.*)', re.DOTALL)
+    regex = re.compile(r'cd (.*?) ; (.*)')
     match = regex.match(cmd)
     cdDir = ''
     if match and match.lastindex is 2:
@@ -53,8 +54,6 @@ def process(self, config, coin):
         # Fork this!
         newpid = os.fork()
         if newpid != 0:
-            if config.OPS > 1:  # If there are more OPs on the command line, it might be
-                time.sleep(1.0) # prudent to wait a second before proceeding with them.
             return config.ALL_MEANS_ONCE 
         config.I_AM_FORK = True # Do not loop to any more OPs in this fork.
 
@@ -79,8 +78,7 @@ def process(self, config, coin):
         print("fork of '"+'miner restart'+"' failed: %d (%s)" % (ex.errno, ex.strerror), file=sys.stderr)
         sys.exit(1)
     except:
-        ex = sys.exc_info()[0]
-        print( ex )
+        print(sys.exc_info())
     return config.ALL_MEANS_ONCE
 
 
