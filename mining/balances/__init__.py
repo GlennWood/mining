@@ -12,8 +12,11 @@ import gdax
 from balances.bleutradeapi import Bleutrade
 
 TOTALS = { }
+Config = None
 
 def process(self, config, coin):
+    global Config
+    Config = config
 
     SOURCES_YML = load_config()
     SOURCES = SOURCES_YML['SOURCES']
@@ -285,10 +288,11 @@ def getUrlToStr(config, balanceUrl, source='source', ticker='ticker', encoding='
 ###   source's 'name<LF>  ' or just '  '. printBalance() also
 ###   accumulates the total balance per ticker.
 def printBalance(tabber, ticker, balance):
-    global TOTALS
+    global TOTALS, Config
     if ticker not in TOTALS: TOTALS[ticker] = 0
     TOTALS[ticker] += balance
-    print("%s%s %0.8f"%(tabber, ticker, balance))
+    if not Config.QUICK:
+        print("%s%s %0.8f"%(tabber, ticker, balance))
     
     
 ### ###########################################################
@@ -317,7 +321,9 @@ def initialize(self, config, coin):
 def finalize(self, config, coin):
     global TOTALS
 
-    printSource = "\n**TOTALS**\n  "
+    if not config.QUICK:
+        print("\n")
+    printSource = "**TOTALS**\n  "
     for ticker in sorted(TOTALS):
         if TOTALS[ticker]:
             if TOTALS[ticker] < 10:

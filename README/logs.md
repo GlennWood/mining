@@ -18,7 +18,7 @@ miners logs
 	
 	==> /var/log/mining/A-ETC-miner.err <==
 
-Option `--scope` helps you refine the output a bit. It accepts and regular expression and will print only those lines of the logs that match it. Also, some patterns are preconfigured so you can you a mnemonic, such as '--scope temp':
+Option `--scope` helps you refine the output a bit. It accepts and regular expression and will print only those lines of the logs that match it. Also, some patterns are preconfigured so you can you a mnemonic, such as `--scope temp`:
 
     rig-Nvidia:~$ miners logs --scope temp
     58,66,63,62,64,62,62
@@ -30,3 +30,34 @@ Option `--scope` helps you refine the output a bit. It accepts and regular expre
     69,82,82,66,82,73,71
     69,82,82,67,82,73,71
     ...
+
+Specify `--scope '.*Total Speed.*'` and you will get the lines reporting the total speed.
+
+    rig-AMD:~$ miners logs --scope '.*Total Speed.*'
+    ETH - Total Speed: 201.064 Mh/s, Total Shares: 77, Rejected: 0, Time: 00:28
+    ETH - Total Speed: 201.207 Mh/s, Total Shares: 79, Rejected: 0, Time: 00:28
+    ...
+
+Be creative ...
+
+    rig-AMD:~$ miners logs --scope '.*Total Speed[^,]*'
+    ETH - Total Speed: 191.414 Mh/s
+    ETH - Total Speed: 191.337 Mh/s
+    ...
+
+That one is also provided by `--scope speed`.
+
+Configuration file `logs.yml`
+-----------------------------
+Note that the scopes are configured in `/opt/miners/conf/logs.yml` and you may add your own there:
+
+    rig-NVI:~$ cat /opt/miners/conf/logs.yml
+    SCOPES:
+      speed:
+        - '.*(Total Speed[^,]*)'
+        - 'GPU #[0-9.,]*: [0-9.,]* [GMKgmk][Hh]z'
+        - '.*(GPU #[0-9]*: [^,]*, [0-9.,]* [GMKgmk][Hh]/s)'
+      temp:
+        - ' t=([0-9]*)C'
+
+Each scope has a name, and an array of regular expressions associated with it. If any one (or more) regexes match a line of the log file(s) then they are printed.

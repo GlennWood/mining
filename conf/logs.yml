@@ -1,0 +1,8 @@
+SCOPES:
+  speed:
+    - '.*(Total Speed[^,]*)'
+    - 'GPU #[0-9.,]*: [0-9.,]* [GMKgmk][Hh]z'
+    - '.*(GPU #[0-9]*: [^,]*, [0-9.,]* [GMKgmk][Hh]/s)'
+  temp:
+    - ' t=([0-9]*)C'
+   

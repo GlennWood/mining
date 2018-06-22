@@ -6,6 +6,9 @@ import start
 import status
 import time
 import re
+import yaml
+
+LOGS_CONFIG = {'SCOPES': { } }
 
 def process(self, config, coin):
     global TAIL_LOG_FILES
@@ -21,6 +24,9 @@ def process(self, config, coin):
     FIXME: This is too slow, needs a restart
      m  18:45:25|ethminer|  Speed 319.85 Mh/s    gpu/0 26.58  gpu/1 26.67  gpu/2 26.76  gpu/3 26.67  gpu/4 26.76  gpu/5 26.76  gpu/6 26.49  gpu/7 26.58  gpu/8 26.58  gpu/9 26.67  gpu/10 26.76  gpu/11 26.58  [A203+3:R0+0:F0] Time: 00:40
     
+    FIXME: RVN keeps failing this way
+    rvn.log - [2018-06-22 14:08:59] GPU #2: an illegal memory access was encountered
+    rvn.err - Cuda error in func 'cuda_check_cpu_setTarget' at line 41 : an illegal memory access was encountered.
     '''
         
     if isinstance(coin, list):
@@ -39,7 +45,7 @@ def process(self, config, coin):
     if config.ALL_COINS:
         pinfos = status.get_status(config.arguments['COIN'])
         if pinfos is None or len(pinfos) == 0:
-            print("No processes are mining "+','.config.arguments['COIN']+'.',file=sys.stderr)
+            print("No processes are mining "+','.join(config.arguments['COIN'])+'.',file=sys.stderr)
             return config.ALL_MEANS_ONCE
         for pinfo in pinfos:
             WORKER_NAME = config.workerName(pinfo['coin'])
@@ -63,9 +69,20 @@ def process(self, config, coin):
                     print("There is no log file named '"+logName+"'")
     return 0
 
+def load_logs_config():
+    global LOGS_CONFIG
+    logs_config_filename = "/opt/mining/conf/logs.yml"
+    if os.path.isfile(logs_config_filename):
+        with open(logs_config_filename, 'r') as stream:
+            try:
+                LOGS_CONFIG = yaml.load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+
 def initialize(self, config, coin):
     global TAIL_LOG_FILES
     TAIL_LOG_FILES = ['/usr/bin/tail', '-f']
+    load_logs_config()
     return config.ALL_MEANS_ONCE
 
 def finalize(self, config, coin):
@@ -73,12 +90,20 @@ def finalize(self, config, coin):
     if len(TAIL_LOG_FILES) <= 2:
         return config.ALL_MEANS_ONCE
 
-    if config.SCOPE is None or config.SCOPE == '':
-        scope = None
-    elif config.SCOPE == 'temp':
-        scope = r' t=([0-9]*)C';
-    else:
-        scope = config.SCOPE
+    try:
+        if config.SCOPE is None or config.SCOPE == '':
+            scopes = None
+        elif config.SCOPE in LOGS_CONFIG['SCOPES']:
+            scopes = LOGS_CONFIG['SCOPES'][config.SCOPE]
+        elif config.SCOPE == 'speed':
+            scopes = [ r'.*(Total Speed[^,]*)', r'GPU #[0-9.,]*: [0-9.,]* [GMKgmk][Hh]z' , r'(GPU #[0-9]*: [^,]*, [0-9.,]* [GMKgmk][Hh]/s)' ]
+        #elif config.SCOPE == 'temp':
+        #    scopes = [ r' t=([0-9]*)C' ]
+        else:
+            scopes = [ config.SCOPE ]
+    except:
+        print(sys.exc_info())
+        return config.ALL_MEANS_ONCE
 
     if config.DRYRUN:
         print(' '.join(TAIL_LOG_FILES))
@@ -86,14 +111,14 @@ def finalize(self, config, coin):
         try:
             proc = subprocess.Popen(TAIL_LOG_FILES, stdout=subprocess.PIPE)
             while True:
-                line = proc.stdout.readline().decode()
-                if scope is None:
-                    print(line.rstrip())
+                line = proc.stdout.readline().decode().rstrip()
+                if scopes is None:
+                    print(line)
                 else:
-                    match = config.SCOPE
-                    match = re.findall(scope, line)
-                    if match is not None and len(match) > 0:
-                        print(','.join(match))
+                    for scope in scopes:
+                        match = re.findall(scope, line)
+                        if match and len(match) > 0:
+                            print(','.join(match))
         except KeyboardInterrupt:
             if config.VERBOSE: print('KeyboardInterrupt: miners logs '+' '.join(config.arguments['COIN']))
         except:# os.ProcessLookupError: # strangely, subprocess fails this way after Ctrl-C sometimes; squelch annoying message.
