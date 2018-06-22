@@ -9,7 +9,7 @@
 
 [ -n "$INSTALL_CUDA_DONE" ] && echo "Nvidia drivers and support already installed $INSTALL_CUDA_DONE." && echo "To restart over from scratch, 'rm /etc/profile.d/nvidia.sh', logout, and retry." && exit 0
 
-export CUDA_VERSION=${1:-9.2.88}
+export CUDA_VERSION=${2:-9.2.88}
 # Nvidia didn't get this quite right, grrrr...
 CUDA_NVIDIA_VERSION=${1:-396.26}
 

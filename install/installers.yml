@@ -8,6 +8,15 @@ bminer:
     - 'mv -f /opt/bminer-v5.4.0-ae18e12 /opt/bminer'
     - 'rm -f bminer-v5.4.0-ae18e12-amd64.tar.xz'
 
+barterdex:
+  - BarterDEX
+  - 'https://github.com/KomodoPlatform/BarterDEX.git'
+  - 'nodejs'
+  -
+    - 'git checkout dev'
+    - 'git pull'
+    - 'npm install'
+
 avermore-miner:
   - avermore-miner
   - https://github.com/brian112358/avermore-miner.git
@@ -113,6 +122,14 @@ nevermore-miner:
        'make', '[ -f /usr/local/bin/sgminer ] && mv /usr/local/bin/sgminer /usr/local/bin/sgminer-save',
        'make install', 'mv /usr/local/bin/sgminer /usr/local/bin/sgminer-gm-x16r',
        '[ -f /usr/local/bin/sgminer-save ] && mv /usr/local/bin/sgminer-save /usr/local/bin/sgminer']
+
+nodejs:
+  - 
+  - 
+  -
+  -
+    - 'curl -sL https://deb.nodesource.com/setup_8.x | bash -'
+    - 'apt-get install -y nodejs'
 
 optiminer-equihash:
   - optiminer-equihash

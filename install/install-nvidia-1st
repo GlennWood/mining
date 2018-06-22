@@ -13,7 +13,7 @@ pushd /opt
 
 [ -n "$INSTALL_NVIDIA_DONE" ] && echo "Nvidia drivers and support already installed $INSTALL_NVIDIA_DONE." && echo "To restart over from scratch, 'rm /etc/profile.d/nvidia.sh', logout, and retry." && exit 0
 
-NVIDIA_VERSION=${1:-390.59}
+NVIDIA_VERSION=${1:-396.26}
 NVIDIA_VER_PTC=(${NVIDIA_VERSION//./ })
 NVIDIA_VER=${NVIDIA_VER_PTC[0]}
 NVIDIA_SUB=${NVIDIA_VER_PTC[1]}
@@ -32,8 +32,7 @@ source /etc/profile.d/nvidia.sh
 
 ################################################################################
 ### Phase 1: Remove Nouveau ####################################################
-if [ -z "$NVIDIA_NOUVEAU_REMOVED" ]; then
-  echo "Removing and disabling nouveau"
+echo "Removing and disabling nouveau"
   
 ### Ref: https://github.com/pearsonlab/pearsonlab.github.io/wiki/Things-to-know-when-installing-NVIDIA-drivers
   apt-get -y remove --purge nvidia* nouveau* && apt-get -y autoremove
@@ -69,7 +68,3 @@ BLACKLIST_NOUVEAU
   echo "Hit ctrl-C to abort the reboot."
   sleep 10
   reboot
-
-else
-  echo "$0 has already been done; to force a re-installation, 'unset INSTALL_NVIDIA' and repeat '$0'."
-fi

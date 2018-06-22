@@ -13,7 +13,7 @@ pushd /opt
 
 [ -n "$INSTALL_NVIDIA_DONE" ] && echo "Nvidia drivers and support already installed $INSTALL_NVIDIA_DONE." && echo "To restart over from scratch, 'rm /etc/profile.d/nvidia.sh', logout, and retry." && exit 0
 
-NVIDIA_VERSION=${1:-390.59}
+NVIDIA_VERSION=${1:-396.26}
 NVIDIA_VER_PTC=(${NVIDIA_VERSION//./ })
 NVIDIA_VER=${NVIDIA_VER_PTC[0]}
 NVIDIA_SUB=${NVIDIA_VER_PTC[1]}
@@ -47,7 +47,7 @@ else # USE_DEB_METHOD
   add-apt-repository -y ppa:graphics-drivers/ppa
   apt-get -y install dkms synaptic build-essential
   apt-get update
-  apt-get -y install nvidia-387
+  apt-get -y install nvidia-$NVIDIA_VER
 fi
 
   cat >> /etc/profile.d/nvidia.sh << NVIDIA_DRIVERS_INSTALLED

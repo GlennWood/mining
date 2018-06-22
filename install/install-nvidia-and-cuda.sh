@@ -9,14 +9,18 @@
     exit $?
   fi
 
-  NVIDIA_VERSION=387.26
-  CUDA_VERSION=9.2.88
-  
+cat >> /etc/environment << NVIDIA_CUDA_VERSIONS
+NVIDIA_VERSION=396.26
+CUDA_VERSION=9.2.88
+NVIDIA_CUDA_VERSIONS
+source /etc/environment
+
   ### Note: Must be done in this order; even though both come from Nvidia
   ###       and both operate to some extent against (as in opposed to) the
   ###       other, doing it in this sequence works best; do not reverse.
-  $MINING_ROOT/install/install-nvidia $NVIDIA_VERSION
-  $MINING_ROOT/install/install-cuda   $NVIDIA_VERSION $CUDA_VERSION
+  $MINING_ROOT/install/install-nvidia-1st $NVIDIA_VERSION
+  $MINING_ROOT/install/install-nvidia-2nd $NVIDIA_VERSION
+  $MINING_ROOT/install/install-cuda       $NVIDIA_VERSION $CUDA_VERSION
 
   exit
 

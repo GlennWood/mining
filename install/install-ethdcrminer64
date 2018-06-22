@@ -21,14 +21,23 @@ if [  -n "$FETCH_CLAYMORE_VIA_WGET" ]; then
   tar -xzf Claymore.s.Dual.Ethereum.Decred_Siacoin_Lbry_Pascal.AMD.NVIDIA.GPU.Miner.v${ETHDCRMINER_VERSION}.-.LINUX.tar.gz
   mv Claymore.s.Dual.Ethereum.Decred_Siacoin_Lbry_Pascal.AMD.NVIDIA.GPU.Miner.v${ETHDCRMINER_VERSION}.-.LINUX/* ./
 else
-  CLAYMORE_NAME=Claymore\'s\ Dual\ Ethereum+Decred_Siacoin_Lbry_Pascal_Blake2s_Keccak\ AMD+NVIDIA\ GPU\ Miner\ v${ETHDCRMINER_VERSION}\ -\ LINUX
+  CLAYMORE_NAME="Claymore's Dual Ethereum+Decred_Siacoin_Lbry_Pascal_Blake2s_Keccak AMD+NVIDIA GPU Miner v${ETHDCRMINER_VERSION} - LINUX"
+  #ll "/opt/Downloads/$CLAYMORE_NAME.tar.gz"
+  #mv /opt/Downloads/Claymore?s\ Dual\ Ethereum+Decred_Siacoin_Lbry_Pascal_Blake2s_Keccak\ AMD+NVIDIA\ GPU\ Miner\ v11.8\ -\ LINUX.tar.gz /opt/Downloads/ClaymoresDualEthereum+Decred_Siacoin_Lbry_Pascal_Blake2s_KeccakAMD+NVIDIAGPUMiner-v11.8-LINUX.tar.gz
+  CLAYMORE_NAME=ClaymoresDualEthereum+Decred_Siacoin_Lbry_Pascal_Blake2s_KeccakAMD+NVIDIAGPUMiner-v11.8-LINUX                                                                                                                                                
   [ ! -f "/opt/Downloads/$CLAYMORE_NAME.tar.gz" ] && echo "Need '/opt/Downloads/$CLAYMORE_NAME.tar.gz'" && exit 1
-  tar -xzf "/opt/Downloads/$CLAYMORE_NAME.tar.gz"
-  mv "$CLAYMORE_NAME/*" ./
-  rm -r "$CLAYMORE_NAME\ -\ LINUX/"
+  tar -xzf /opt/Downloads/ClaymoresDualEthereum+Decred_Siacoin_Lbry_Pascal_Blake2s_KeccakAMD+NVIDIAGPUMiner-v${ETHDCRMINER_VERSION}-LINUX.tar.gz 
+  #!!!tar -xzf "/opt/Downloads/$CLAYMORE_NAME.tar.gz"
+  mv Claymore*v11.8*LINUX/* ./
+  rm -r Claymore*v11.8*LINUX/
 fi
   echo "USAGE: cd /opt/ethdcrminer64 ; ./ethdcrminer64 [ options ... ]"
 popd >/dev/null
+
+/opt/Downloads/Claymore?s\ Dual\ Ethereum+Decred_Siacoin_Lbry_Pascal_Blake2s_Keccak\ AMD+NVIDIA\ GPU\ Miner\ v11.8\ -\ LINUX.tar.gz
+/opt/Downloads/Claymore\'s\ Dual\ Ethereum+Decred_Siacoin_Lbry_Pascal_Blake2s_Keccak\ AMD+NVIDIA\ GPU\ Miner\ v11.8\ -\ LINUX.tar.gz 
+                Claymore?s\ Dual\ Ethereum+Decred_Siacoin_Lbry_Pascal_Blake2s_Keccak\ AMD+NVIDIA\ GPU\ Miner\ v11.8\ -\ LINUX
+
 
 cat >> /etc/profile.d/ethdcrminer64.sh << ETHDCRMINER64_SH
 export INSTALL_ETHDCRMINER64_DATE=`date --utc +%Y-%m-%dT%H-%M-%SZ`

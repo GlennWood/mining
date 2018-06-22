@@ -297,7 +297,7 @@ def printBalance(tabber, ticker, balance):
     
 ### ###########################################################
 def load_config():
-    with open("/opt/mining/mining/balances/sources.yml", 'r') as stream:
+    with open("/opt/mining/conf/sources.yml", 'r') as stream:
         try:
             SOURCES_X = yaml.load(stream)
         except yaml.YAMLError as exc:

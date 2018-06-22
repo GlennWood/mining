@@ -10,8 +10,8 @@ touch /etc/X11/xorg.conf.d/20-nvidia.conf
 
 #?nvidia-xconfig --enable-all-gpus
 cp /usr/share/nvidia-$NVIDIA_VER/* /usr/share/nvidia/
-mv /usr/share/nvidia/nvidia-application-profiles-${NVIDIA_VER}.${NVIDIA_PATCH}-key-documentation /usr/share/nvidia/nvidia-application-profiles-key-documentation
-mv /usr/share/nvidia/nvidia-application-profiles-${NVIDIA_VER}.${NVIDIA_PATCH}-rc /usr/share/nvidia/nvidia-application-profiles-rc
+mv /usr/share/nvidia/nvidia-application-profiles-${NVIDIA_VER}.${NVIDIA_SUB}-key-documentation /usr/share/nvidia/nvidia-application-profiles-key-documentation
+mv /usr/share/nvidia/nvidia-application-profiles-${NVIDIA_VER}.${NVIDIA_SUB}-rc /usr/share/nvidia/nvidia-application-profiles-rc
 nvidia-xconfig -a --allow-empty-initial-configuration --cool-bits=28 --use-display-device="DFP-0" --connected-monitor="DFP-0"
 ## reboot
 

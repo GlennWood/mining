@@ -13,7 +13,7 @@ pushd /opt
 
 [ -n "$INSTALL_NVIDIA_DONE" ] && echo "Nvidia drivers and support already installed $INSTALL_NVIDIA_DONE." && echo "To restart over from scratch, 'rm /etc/profile.d/nvidia.sh', logout, and retry." && exit 0
 
-NVIDIA_VERSION=${1:-390.59}
+NVIDIA_VERSION=${1:-396.26}
 NVIDIA_VER_PTC=(${NVIDIA_VERSION//./ })
 NVIDIA_VER=${NVIDIA_VER_PTC[0]}
 NVIDIA_SUB=${NVIDIA_VER_PTC[1]}
