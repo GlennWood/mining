@@ -5,5 +5,6 @@ gdax
 gpustat
 hardcode
 hashrate
+overclock
 worksheet
 touchups
