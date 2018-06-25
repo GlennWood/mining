@@ -8,6 +8,7 @@ try:
 except:
     GPUSTAT = False
 import sys
+from pynvml import *
 
 ### FIXME: sometimes a rig ignores a gpu, and 'miners devices' ought to report that:
 '''
@@ -100,9 +101,12 @@ GPU Load: 100 %
             gpu_stats = GPUStatCollection.new_query()     
             if config.VERBOSE:
                 print(str(len(gpu_stats))+" Nvidia devices found.")
+        #except NVMLError_GpuIsLost as ex:
+        except NVMLError as ex:
+            print ('FAIL: '+str(ex))
         except:
             if config.VERBOSE:
-                ex = sys.exc_info()[0]
+                ex = sys.exc_info()
                 print(str(ex))
             if config.PLATFORM != 'AMD':
                 print("gpustat for Nvidia GPUs is not installed.")
