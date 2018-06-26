@@ -13,22 +13,6 @@ LOGS_CONFIG = {'SCOPES': { } }
 def process(self, config, coin):
     global TAIL_LOG_FILES
 
-    '''
-    TODO Idea - filter special grep's to STDERR, e.g. Claymore's restarting message(s) and its warning, here,
-         got incorrect share. If you see this warning often, make sure you did not overclock it too much!
-         WATCHDOG: GPU 4 hangs in OpenCL call, exit
-         NVML: cannot get current temperature, error 15
-         Miner cannot initialize for 5 minutes, need to restart miner!
-        /opt/suprminer/ccminer RVN: Cuda error in func 'cuda_check_cpu_setTarget' at line 41 : an illegal memory access was encountered.
-
-    FIXME: This is too slow, needs a restart
-     m  18:45:25|ethminer|  Speed 319.85 Mh/s    gpu/0 26.58  gpu/1 26.67  gpu/2 26.76  gpu/3 26.67  gpu/4 26.76  gpu/5 26.76  gpu/6 26.49  gpu/7 26.58  gpu/8 26.58  gpu/9 26.67  gpu/10 26.76  gpu/11 26.58  [A203+3:R0+0:F0] Time: 00:40
-    
-    FIXME: RVN keeps failing this way
-    rvn.log - [2018-06-22 14:08:59] GPU #2: an illegal memory access was encountered
-    rvn.err - Cuda error in func 'cuda_check_cpu_setTarget' at line 41 : an illegal memory access was encountered.
-    '''
-        
     if isinstance(coin, list):
         # This happens with 'miners swap,logs old-coin:new-coin'
         coin = coin[1]
