@@ -10,6 +10,7 @@ import yaml
 from balances.cryptopia_api import Api
 import gdax
 from balances.bleutradeapi import Bleutrade
+from balances.coinbaseapi import Coinbase
 
 TOTALS = { }
 Config = None
@@ -96,7 +97,7 @@ def process(self, config, coin):
                             if balanceUrls[idx]:
                                 balanceUrls[idx] = balanceUrls[idx].replace('$'+key.upper(),secrets_json[key])
             except IOError as ex:
-                print("  "+ticker+" Cannot read key file for "+source+":"+ticker+", "+str(ex), file=sys.stderr)
+                print(printSource+ticker+" Cannot read key file for "+source+":"+ticker+", "+str(ex), file=sys.stderr)
                 continue
 
             balanceUrl = balanceUrls[0]
@@ -146,6 +147,12 @@ def process(self, config, coin):
                     if balance != 0 or ticker != 'all':
                         printBalance(printSource, coin['Currency'], balance)
                         printSource = '  '
+
+            elif source == 'COINBASE':
+                accounts = Coinbase(secrets_json['api_key'], secrets_json['api_secret']).accounts()
+                for data in accounts['data']:
+                    printBalance(printSource, data['balance']['currency'], float(data['balance']['amount']))
+                    printSource = '  '
 
             elif balanceUrl and balanceUrl == 'cryptopia':
                 api_wrapper = Api(keyFile+'.key', None)
@@ -232,8 +239,8 @@ def process(self, config, coin):
                         printSource = '  '
 
             else:
-                print("Don't know how to process "+source+'-'+ticker+" = "+balanceUrl)
-                if config.VERBOSE: print(jsonObj)
+                if not balanceUrl: balanceUrl = '<None>'
+                print("Don't know how to process "+source+':'+ticker+" = "+balanceUrl)
 
     return config.ALL_MEANS_ONCE
 

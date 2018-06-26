@@ -11,6 +11,8 @@ SOURCES:
     BTG:
     ETH:
     LTC:
+  COINBASE:
+    all:
   CRYPTOPIA:
     all: cryptopia
   CRYPTOBRIDGE:
