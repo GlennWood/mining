@@ -40,7 +40,7 @@ def process(self, config, coin):
     response = requests.get(url)
     response.raise_for_status()
     tree = html.fromstring(response.content)
-    wtmList = tree.xpath("/html/body/div[@class='container']/table[@class='table table-hover table-vcenter']/tbody/tr")
+    wtmList = tree.xpath("/html/body/div[@class='container']/table[@class='table table-sm table-hover table-vcenter']/tbody/tr")
     cnt = 0
     prev_revenue = prev_profit = None
     for tr in wtmList:

@@ -6,7 +6,7 @@
   tasks:
     -
       name: "synchronize /opt/mining"
-      action: synchronize src=/opt/mining/ dest=/opt/mining/ archive=yes delete=yes rsync_opts=--exclude=.git,--exclude=*.pyc
+      action: synchronize src=/opt/mining/ dest=/opt/mining/ archive=yes delete=yes rsync_opts=--exclude=.git,--exclude=*.pyc,--exclude=__pycache__,--exclude=*.retry
     -
       name: "synchronize /etc/mining"
       action: synchronize src=/etc/mining/ dest=/etc/mining/ archive=yes rsync_opts=--exclude=.git,--exclude=*.pyc
