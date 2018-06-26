@@ -87,6 +87,10 @@ apt-get -y install openssh-server git autoconf autoconf-archive curl selinux-uti
 
 ### Ref: http://python-future.org/compatible_idioms.html
 pip2 install future six
+### Ref: https://github.com/pypa/pip/issues/3165#issuecomment-146667336
+## here's a useful idiom
+## sudo -H pip install --ignore-installed six
+
 pip3 install past six
 pip install xlrd docopt requests jprops
 # go ahead, laugh, but this did fix a problem on one of my rigs one day.
@@ -95,11 +99,11 @@ pip3 install psutil
 
 apt-get install python3-setuptools
 easy_install3 pipapt-get -y install python3-pip
-pip2 install xlrd docopt requests jprops ansible bitshares pyyaml gdax python-binance
-pip3 install xlrd docopt requests jprops ansible bitshares pyyaml gdax python-binance
+pip2 install xlrd docopt requests jprops ansible bitshares lxml pyyaml gdax python-binance coinbase
+pip3 install xlrd docopt requests jprops ansible bitshares lxml pyyaml gdax python-binance coinbase
 
 # For PyCryptScraper
-apt-get -y install python-lxml
+# pip installed lxlx - apt-get -y install python-lxml
 pip2 install -U marshmallow --pre
 
 ### Ref: https://github.com/while-true-do/ansible-role-monit

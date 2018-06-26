@@ -40,14 +40,14 @@ if [ "$PLATFORM" = "NVI" ] || ["$PLATFORM" = "BTH" ]; then
   # For Nvidia GPUs - these are difficult to script, so manual operation is required
   $MINING_ROOT/install/install-nvidia-and-cuda
   # Mining clients that work with NVI only
-  $MINING_ROOT/install/install-bminer
-  time $MINING_ROOT/install/install-ccminer
-  time $MINING_ROOT/install/install-ccminer-KlausT
-  $MINING_ROOT/install/install-dstm
-  time $MINING_ROOT/install/install-ethminer
-  $MINING_ROOT/install/install-ewbf
-  time $MINING_ROOT/install/install-nheqminer
-  time $MINING_ROOT/install/install-suprminer
+  InstallMiners install bminer
+  time InstallMiners install ccminer
+  time InstallMiners install ccminer-KlausT
+  InstallMiners install dstm
+  time InstallMiners install ethminer
+  InstallMiners install ewbf
+  time InstallMiners install nheqminer
+  time InstallMiners install suprminer
 fi
 
 ### Mining clients that work with both AMD and NVI
