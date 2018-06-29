@@ -12,7 +12,7 @@ Arguments:
                (multiple COINs may be specified)
 
 Options:
-  --platform typ  AMD, NVI, BTH [default: BTH]
+  --platform typ  AMD, NVI, BTH
   --gpus GPUS   Comma separated list of GPU indexes
   --url-port UL replace miners.xslx's URL_PORT value with UL
   --scope scope list of rigs to operate on, or ALL

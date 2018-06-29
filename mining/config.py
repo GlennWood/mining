@@ -6,6 +6,7 @@ import sys
 import jprops
 import subprocess
 import socket
+import six
 try:
     from collections import ChainMap
 except:
@@ -28,6 +29,7 @@ class Config(object):
     SCOPE    = False
     WIDE_OUT = False
     FORCE    = False
+    PIP      = 'pip2'
     arguments = {}
 
     SHEETS = {
@@ -49,11 +51,13 @@ class Config(object):
         self.WORKER_NAME = ''
         self.StatsUrls = {}
         self.ConvertUrls = {}
-    
+        
+        if six.PY3: self.PIP = 'pip3'
+
         if self.arguments:
             # Command line options, values
             self.OPS = self.arguments['OPERATION'].split(',')
-            if '--platform' in self.arguments:
+            if '--platform' in self.arguments and self.arguments['--platform'] is not None:
                 self.PLATFORM = self.arguments['--platform']
             else:
                 self.PLATFORM = os.getenv('PLATFORM','BTH')
@@ -130,8 +134,7 @@ class Config(object):
 
         return [self.SHEETS['Stats'],self.StatsUrls,self.ConvertUrls,self.SHEETS['CoinMiners'],self.SHEETS['Clients']]
 
-    '''
-    The miners.xslx/WhatToMine spreadsheet is mapped from the keys on the first
+    ''' The miners.xslx/WhatToMine spreadsheet is mapped from the keys on the first
     row into the columns under each key, so we do that way here rather than the 
     default of first-column => columns (as above).
     '''
@@ -147,7 +150,6 @@ class Config(object):
         return sheet
 
 
-    #
     # The CoinMiners sheet enables a number of special configurable configurating.
     #   1. The OPTIONS field is configured on a line following the main config (to give more room to spell out the OPTIONS)
     #   2. The MINER can be specified as a key to the Clients spreadsheet to spell out the CoinMiner's options

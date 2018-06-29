@@ -82,9 +82,10 @@ def process_scope(self, config, coin):
     sttyColumns, maxRigNameLen = config.get_sttyColumnsMaxRigNameLen()
     maxRigNameLen += 3
 
-    for key in sorted(config.ANSIBLE_HOSTS):
-        host = config.ANSIBLE_HOSTS[key]
-        if config.SCOPE.upper() == 'ALL' or config.SCOPE.upper() in host['hostname'].upper():
+    scope = config.SCOPE.upper()
+    if scope == 'ALL':
+        for key in sorted(config.ANSIBLE_HOSTS):
+            host = config.ANSIBLE_HOSTS[key]
             prePrinted = ('%.'+str(maxRigNameLen)+'s')%('['+host['hostname']+']            ')
             print(prePrinted, end='')
             sys.stdout.flush()
@@ -114,6 +115,10 @@ def process_scope(self, config, coin):
                     tabber = '                      '[0:maxRigNameLen]
             if tabber == '': print("No miners are working here, now.")
 
+    elif scope == 'DEEP':
+        print("Scope 'deep' is not yet implemented.", file=sys.stderr)
+    else:
+        print("Unrecognized scope='"+config.SCOPE+"'", file=sys.stderr)
 
 def initialize(self, config, coin):
     global COUNT_STATUS

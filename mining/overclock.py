@@ -33,13 +33,13 @@ def process(self, config, coin):
         print("To fix this, do 'pip3 install gpustat'.")
         return config.ALL_MEANS_ONCE
     except:
-        print('Except: Cannot load GPUStatCollection.')
-        ex = sys.exc_info()
-        print(ex)
-        if not config.QUICK:
+        if config.PLATFORM != 'AMD':
+            print('Except: Cannot load GPUStatCollection on platform='+config.PLATFORM)
+            ex = sys.exc_info()
+            print(ex)
+        elif not config.QUICK:
             ### TODO: https://github.com/GPUOpen-Tools/GPA/blob/master/BUILD.md
-            if config.PLATFORM == 'AMD':
-                print("'miners overclock' is not implemented for AMD devices")
+            print("'miners overclock' is not implemented for AMD devices")
         return config.ALL_MEANS_ONCE
 
     idx = 0
