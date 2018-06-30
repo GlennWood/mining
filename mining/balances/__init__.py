@@ -7,14 +7,13 @@ import sys
 import os
 import re
 import yaml
-from balances.cryptopia_api import Api
 import gdax
 from balances.bleutradeapi import Bleutrade
-from balances.coinbaseapi import Coinbase
 
 TOTALS = { }
 Config = None
 
+### ###########################################################
 def process(self, config, coin):
     global Config
     Config = config
@@ -68,6 +67,10 @@ def process(self, config, coin):
             scopeTickers = None
         
         printSource = source+"\n  "
+        if config.VERBOSE:
+            print(printSource,end='')
+            printSource = ''
+
         for tickerKey in sorted(SOURCES_YML['SOURCES'][source]):
             ticker = tickerKey.split('(')
             if len(ticker) > 1:
@@ -130,11 +133,14 @@ def process(self, config, coin):
 
             ### Ref: https://github.com/binance-exchange/binance-official-api-docs
             elif source == 'BINANCE':
-                from binance.client import Client
-                client = Client(secrets_json['api_key'], secrets_json['api_secret'])
-                data = client.get_asset_balance(asset=ticker)
-                printBalance(printSource, data['asset'], float(data['free'])+float(data['locked']))
-                printSource = '  '
+                try:
+                    from binance.client import Client
+                    client = Client(secrets_json['api_key'], secrets_json['api_secret'])
+                    data = client.get_asset_balance(asset=ticker)
+                    printBalance(printSource, data['asset'], float(data['free'])+float(data['locked']))
+                    printSource = '  '
+                except:
+                    print(printSource+"Module binance.client is not installed: do 'sudo pip3 install python-binance'",file=sys.stderr)
 
             elif source == 'BLEUTRADE':
                 if ticker == 'all':
@@ -149,23 +155,36 @@ def process(self, config, coin):
                         printSource = '  '
 
             elif source == 'COINBASE':
-                accounts = Coinbase(secrets_json['api_key'], secrets_json['api_secret']).accounts()
-                for data in accounts['data']:
-                    printBalance(printSource, data['balance']['currency'], float(data['balance']['amount']))
-                    printSource = '  '
+                try:
+                    from balances.coinbaseapi import Coinbase
+                    accounts = Coinbase(secrets_json['api_key'], secrets_json['api_secret']).accounts()
+                    for data in accounts['data']:
+                        tckr = data['balance']['currency']
+                        if scopeTickers and tckr != 'all' and tckr not in scopeTickers:
+                            if config.VERBOSE: print("TICKER:"+tckr+" not in "+str(scopeTickers))
+                        else:
+                            printBalance(printSource, tckr, float(data['balance']['amount']))
+                            printSource = '  '
+                except:
+                    print(printSource+"Module coinbase is not installed: do 'sudo "+config.PIP+" install coinbase'",file=sys.stderr)
 
             elif balanceUrl and balanceUrl == 'cryptopia':
-                api_wrapper = Api(keyFile+'.key', None)
-                
-                balances, error = api_wrapper.get_balances()
-                if error is not None:
-                    print('ERROR: %s' % error, file=sys.stderr)
-                else:
-                    for balance in balances:
-                        if balance['Total']:
-                            if not scopeTickers or balance['Symbol'] in scopeTickers:
-                                printBalance(printSource, balance['Symbol'], balance['Total'])
-                                printSource = '  '
+                try:
+                    from balances.cryptopia_api import Api
+                    api_wrapper = Api(keyFile+'.key', None)
+                    balances, error = api_wrapper.get_balances()
+                    if error is not None:
+                        print('ERROR: %s' % error, file=sys.stderr)
+                    else:
+                        for balance in balances:
+                            if balance['Total']:
+                                if not scopeTickers or balance['Symbol'] in scopeTickers:
+                                    printBalance(printSource, balance['Symbol'], balance['Total'])
+                                    printSource = '  '
+                except:
+                    ex = sys.exc_info()[0]
+                    print( "Unknown exception in balances.cryptopia_api: "+str(ex), file=sys.stderr )
+
 
             elif source == 'MININGPOOLHUB':
                 try:
@@ -214,7 +233,7 @@ def process(self, config, coin):
                             printSource = '  '
 
             elif balanceUrl and balanceUrl == 'bit-shares':
-                balances_bit_shares(source, scopeTickers)
+                balances_bit_shares(config, secrets_json, source, scopeTickers)
         
             elif balanceUrl and balanceUrl.startswith('yiimp:'): # aka UNIMINING, ZPOOL
                 # Ref: https://www.unimining.net/api
@@ -246,8 +265,30 @@ def process(self, config, coin):
 
 ### ###########################################################
 # Fetch and print balances from any exchange based on bitshares.
-def balances_bit_shares(source, scopeTickers):        
-    printSource = source+"\n  "
+# Ref: Ref: https://github.com/bitshares/python-bitshares/blob/master/docs/tutorials.rst
+
+def balances_bit_shares(config, secrets_json, source, scopeTickers):
+    printSource = '' # this is cleaner than passing printSource as a param.
+    if not config.VERBOSE: printSource = source+"\n  " # VERBOSE already printed it.
+    
+    try: # bitshares.account will work under Python3, but throw exception if Python2
+        from bitshares.account import Account
+        #import bitshares as bts
+        #blockchain_instance = BlockchainInstance('num_retries':3)
+        account = Account(secrets_json['account'])#, {'blockchain_instance':blockchain_instance})
+        for val in account.balances:
+            val_coin = str(val).split(' ')
+            value = val_coin[0]
+            ticker = val_coin[1].replace('BRIDGE.','')
+            if not scopeTickers or ticker in scopeTickers:
+                printBalance(printSource, ticker, float(value.replace(',','')))
+                printSource = '  '
+        return ''
+    except KeyboardInterrupt as ex:
+        raise KeyboardInterrupt()
+    except:
+        ex = sys.exc_info()[0]
+        if config.VERBOSE: print( "Exception in balances.balances_bit_shares(): "+str(ex), file=sys.stderr )
 
     proc = subprocess.Popen(['/opt/mining/mining/balances/bit-shares.py', source], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
     out, err = proc.communicate(None)
@@ -269,7 +310,7 @@ def balances_bit_shares(source, scopeTickers):
             printBalance(printSource, ticker, float(value.replace(',','')))
             printSource = '  '
 
-### ###############################################################################
+### ###########################################################
 def getUrlToJsonObj(config, balanceUrl, source, ticker='all'):
     jsonStr = getUrlToStr(config, balanceUrl, source, ticker, 'json')
     return json.loads(jsonStr)
@@ -300,8 +341,7 @@ def printBalance(tabber, ticker, balance):
     TOTALS[ticker] += balance
     if not Config.QUICK:
         print("%s%s %0.8f"%(tabber, ticker, balance))
-    
-    
+  
 ### ###########################################################
 def load_config():
     with open("/opt/mining/conf/sources.yml", 'r') as stream:
@@ -320,11 +360,11 @@ def bash_completion(prev):
     else:
         print(' '.join(source.lower() for source in SOURCES_YML['SOURCES'])+' --scope')
 
+### ###########################################################
 def initialize(self, config, coin):
     load_config()
     config.DRYRUN = True # we're just experimenting for the time being; lot's of testing to be done!
     return config.ALL_MEANS_ONCE
-
 def finalize(self, config, coin):
     global TOTALS
 

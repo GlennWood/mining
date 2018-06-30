@@ -78,7 +78,7 @@ def process(self, config, coin):
     with open(overclock_dryrun, 'w') as fh: 
         if not config.QUERY:
             fh.write("echo '%s %i %s'\n\n"%('Overclocking', len(gpu_stats), 'GPUs.'))
-            fh.write('%s\n'%('nvidia-smi -pm 1'))
+            fh.write('%s\n'%('sudo nvidia-smi -pm 1'))
         for pwr in nvidia_pwrs:
             if not config.QUERY:
                 cmd = "sudo nvidia-smi -i "+','.join(nvidia_pwrs[pwr])+" -pl "+str(pwr)

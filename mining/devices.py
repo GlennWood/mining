@@ -105,10 +105,8 @@ GPU Load: 100 %
         except NVMLError as ex:
             print ('FAIL: '+str(ex))
         except:
-            if config.VERBOSE:
-                ex = sys.exc_info()
-                print(str(ex))
-            if config.PLATFORM != 'AMD':
+            ex = sys.exc_info()
+            if ex.value == None or config.PLATFORM != 'AMD':
                 print("gpustat for Nvidia GPUs is not installed.")
     elif config.VERBOSE:
         pip = 'pip2'
@@ -117,7 +115,7 @@ GPU Load: 100 %
 
     idx = 0
     for gpu in gpu_stats:
-        devices['NVI'+'0123456789ABCDEFGHIJK'[idx]] = gpu
+        devices['NVI'+str(gpu.index)] = gpu
         idx += 1
     
     idxNVI = 0

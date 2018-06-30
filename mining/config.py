@@ -187,7 +187,11 @@ class Config(object):
         # Index each coinMiner under the applicable platform, AMD, NVI or BTH
         plat = row['PLAT']
         if plat is None or plat == '': plat = 'BTH'
-        self.PLAT_COINS[plat][prev_key] = row
+        if plat == 'BTH':
+            for key in self.PLAT_COINS:
+                self.PLAT_COINS[key][prev_key] = row
+        else:
+            self.PLAT_COINS[plat][prev_key] = row
         # TODO That one is deprecated since we want to use the PLATFORM specific version every time ...
         #   ... but this will have to wait for corrective coding later on where yhat dict is used.
         self.SHEETS['CoinMiners'][prev_key] = row
