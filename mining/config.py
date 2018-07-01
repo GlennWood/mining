@@ -13,6 +13,7 @@ except:
     # Somebody goofed when they deployed ChainMap for Python2.
     import importlib
     importlib.import_module('chainmap')
+import yaml
 
 class Config(object):
 
@@ -240,6 +241,17 @@ class Config(object):
         except:
             print ( sys.exc_info()[0] )
 
+    ### ###########################################################
+    @staticmethod
+    def load_sources_yml():
+        with open("/opt/mining/conf/sources.yml", 'r') as stream:
+            try:
+                SOURCES_X = yaml.load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+                sys.exit(1)
+        return SOURCES_X
+    
     # Find the given ticker in the CoinMiners table for this PLATFORM
     #   Return None if not found
     #   If verbose=True: print error message if not found

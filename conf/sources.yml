@@ -13,24 +13,24 @@ SOURCES:
     LTC:
   COINBASE:
     all:
-  CRYPTOPIA:
-    all: cryptopia
   CRYPTOBRIDGE:
     all: bit-shares
+  CRYPTOPIA:
+    all: cryptopia
   GDAX: 
     all: gdax
   NICEHASH:
     BTC: https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY
   MININGPOOLHUB:
     all: https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=$API_KEY
+  OPEN-LEDGER:
+    all: bit-shares
   SUPRNOVA:
     HUSH: MPOS:https://hush.suprnova.cc
     KMD: MPOS:https://kmd.suprnova.cc
     RVN: MPOS:https://rvn.suprnova.cc
     STAK: MPOS:https://stak.suprnova.cc
     ZEN: MPOS:https://zen.suprnova.cc
-  OPEN-LEDGER:
-    all: bit-shares
   UNIMINING:
     GBX: yiimp:https://www.unimining.net
     TZC: yiimp:https://www.unimining.net
@@ -39,7 +39,7 @@ SOURCES:
     GBX: yiimp:https://www.zpool.ca
 
 SCOPING:
-  MINING: [ ANORAK, AIKAPOOL, MININGPOOLHUB, NICEHASH, SUPRNOVA, UNIMINING ]
+  MINING: [ ANORAK, AIKAPOOL, MININGPOOLHUB, NICEHASH, SUPRNOVA, UNIMINING, ZPOOL ]
   EXCHANGING: [ BLEUTRADE, CRYPTOPIA, CRYPTOBRIDGE, OPEN-LEDGER ]
   BANKING: [ GDAX ]
 
@@ -57,6 +57,17 @@ COMMON_TO_SYMBOL:
 
 SYMBOL_TO_COMMON:
   XMN: MTN
+
+NICEHASH_TO_TICKER:
+  Nicehash-CNV7: NH-CN
+  Nicehash-Lyra2REv2: NH-LY
+  Nicehash-NeoScrypt: NH-NS
+  Nicehash-Equihash: NH-EQ
+  Nicehash-Ethash: NH-ET
+  Nicehash-Skunkhash: NH-SK
+  Nicehash-NIST5: NH-NI
+  Nicehash-CryptoNight: NH-CR
+  Nicehash-X16R: NH-XR
 
 OWN_READER:
   bit-shares: bit-shares

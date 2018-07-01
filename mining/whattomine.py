@@ -7,19 +7,12 @@ import subprocess
 ### Ref: http://python-future.org/compatible_idioms.html
 from builtins import range
 
-NicehashToTicker = {
-    'Nicehash-CNV7':'NH-CN',
-    'Nicehash-Lyra2REv2':'NH-LY',
-    'Nicehash-NeoScrypt':'NH-NS',
-    'Nicehash-Equihash':'NH-EQ',
-    'Nicehash-Ethash':'NH-ET',
-    'Nicehash-Skunkhash': 'NH-SK',
-    'Nicehash-NIST5': 'NH-NI',
-    'Nicehash-CryptoNight': 'NH-CR'
-}
+NicehashToTicker = { }
 
 def process(self, config, coin):
     global NicehashToTicker
+    SOURCES_YML = config.load_sources_yml()
+    NicehashToTicker = SOURCES_YML['NICEHASH_TO_TICKER']
 
     hostname = os.getenv('HOSTNAME')
     if not hostname: # So, HOSTNAME was not exported

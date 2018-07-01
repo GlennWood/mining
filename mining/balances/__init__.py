@@ -18,7 +18,7 @@ def process(self, config, coin):
     global Config
     Config = config
 
-    SOURCES_YML = load_config()
+    SOURCES_YML = config.load_sources_yml()
     SOURCES = SOURCES_YML['SOURCES']
     SCOPING = SOURCES_YML['SCOPING']
     OWN_READER = SOURCES_YML['OWN_READER']
@@ -342,19 +342,15 @@ def printBalance(tabber, ticker, balance):
     if not Config.QUICK:
         print("%s%s %0.8f"%(tabber, ticker, balance))
   
-### ###########################################################
-def load_config():
+### ##############################################################
+### Add SCOPING (from sources.yml) as options to 'miners balance'
+def bash_completion(self,prev):
     with open("/opt/mining/conf/sources.yml", 'r') as stream:
         try:
-            SOURCES_X = yaml.load(stream)
+            SOURCES_YML = yaml.load(stream)
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(1)
-    return SOURCES_X
-
-### ###########################################################
-def bash_completion(prev):
-    SOURCES_YML = load_config()
     if prev == '--scope':
         print(' '.join(scope.lower() for scope in SOURCES_YML['SCOPING']))
     else:
@@ -362,7 +358,7 @@ def bash_completion(prev):
 
 ### ###########################################################
 def initialize(self, config, coin):
-    load_config()
+    config.load_sources_yml()
     config.DRYRUN = True # we're just experimenting for the time being; lot's of testing to be done!
     return config.ALL_MEANS_ONCE
 def finalize(self, config, coin):
