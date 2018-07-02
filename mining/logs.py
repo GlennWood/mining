@@ -11,7 +11,7 @@ import yaml
 LOGS_CONFIG = {'SCOPES': { } }
 
 def process(self, config, coin):
-    global TAIL_LOG_FILES
+    global TAIL_LOG_FILES, CMD_LOG_FILES
 
     if isinstance(coin, list):
         # This happens with 'miners swap,logs old-coin:new-coin'
@@ -36,18 +36,17 @@ def process(self, config, coin):
             for ext in ['.log','.err','.out']:
                 logName = '/var/log/mining/'+WORKER_NAME+ext
                 if os.path.isfile(logName):
-                    TAIL_LOG_FILES.append(logName)
+                    TAIL_LOG_FILES[logName] = 1
         return config.ALL_MEANS_ONCE
 
 
     if miner.endswith('.service'):
-        TAIL_LOG_FILES = ['/bin/journalctl',  '-f', '--utc']
-        # The '--utc' makes len(TAIL_LOG_FILES)>2 so it doesn't get passed over in finalize()
+        CMD_LOG_FILES = ['/bin/journalctl',  '-f']
     else:
         for ext in ['.log','.err','.out']:
             logName = '/var/log/mining/'+config.workerName(coin['COIN'])+ext
             if os.path.isfile(logName):
-                TAIL_LOG_FILES.append(logName)
+                TAIL_LOG_FILES[logName] = 1
             else:
                 if config.VERBOSE:
                     print("There is no log file named '"+logName+"'")
@@ -62,16 +61,18 @@ def load_logs_config():
                 LOGS_CONFIG = yaml.load(stream)
             except yaml.YAMLError as exc:
                 print(exc)
+                LOGS_CONFIG = { 'SCOPES': {} }
 
 def initialize(self, config, coin):
-    global TAIL_LOG_FILES
-    TAIL_LOG_FILES = ['/usr/bin/tail', '-f']
+    global TAIL_LOG_FILES, CMD_LOG_FILES
+    CMD_LOG_FILES = ['/usr/bin/tail', '-f']
+    TAIL_LOG_FILES = { }
     load_logs_config()
     return config.ALL_MEANS_ONCE
 
 def finalize(self, config, coin):
-    global TAIL_LOG_FILES
-    if len(TAIL_LOG_FILES) <= 2:
+    global TAIL_LOG_FILES, CMD_LOG_FILES, LOGS_CONFIG
+    if len(TAIL_LOG_FILES) <= 0:
         return config.ALL_MEANS_ONCE
 
     try:
@@ -89,11 +90,12 @@ def finalize(self, config, coin):
         print(sys.exc_info())
         return config.ALL_MEANS_ONCE
 
+    CMD_LOG_FILES.extend(TAIL_LOG_FILES.keys())
     if config.DRYRUN:
-        print(' '.join(TAIL_LOG_FILES))
+        print(' '.join(CMD_LOG_FILES))
     else:
         try:
-            proc = subprocess.Popen(TAIL_LOG_FILES, stdout=subprocess.PIPE)
+            proc = subprocess.Popen(CMD_LOG_FILES, stdout=subprocess.PIPE)
             while True:
                 line = proc.stdout.readline().decode().rstrip()
                 if scopes is None:
