@@ -1,3 +1,4 @@
+coinbase
 cryptopia
 downloaded
 errant
@@ -6,5 +7,6 @@ gpustat
 hardcode
 hashrate
 overclock
+sudo
 worksheet
 touchups

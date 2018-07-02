@@ -19,6 +19,7 @@ Options:
 
 from __future__ import print_function
 import sys
+import os
 ### Ref: http://python-future.org/compatible_idioms.html
 from builtins import range
 
@@ -60,15 +61,28 @@ if 'ALL' in arguments['MINERS']:
 
 if arguments['OPERATION'] == 'install':
     for miner in arguments['MINERS']:
-        # TODO verify 'miner' is in MINERS_INSTALLERS
+        miner = miner.lower()
         if miner in MINERS_INSTALLERS:
             MinersInstaller(MINERS_INSTALLERS[miner])
         else:
             print("'"+miner+"' is not configured in InstallMiners.py",file=sys.stderr)
             RC = 1
+
+    if os.geteuid() != 0:
+        print("You need to have root privileges to run this script ... restarting with 'sudo'.")
+        cmd = ['sudo']
+        cmd.extend(sys.argv)
+        os.system(' '.join(cmd))
     if RC is 0:
-        MinersInstaller.install_all(arguments)
+        try:
+            MinersInstaller.install_all(arguments)
+        except:
+            ex = sys.exc_info()[0]
+            print(str(ex), file=sys.stderr)
+            sys.exit(RC)
+
         if not arguments['--dryrun']: print("All done!")
+
 elif arguments['OPERATION'] == 'status':
     print("'install_miners status' is not yet implemented.")
 

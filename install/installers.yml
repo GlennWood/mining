@@ -53,22 +53,6 @@ dstm:
   - ''
   - [ install-dstm ]
 
-klaust:
-  - ccminer-KlausT
-  - https://github.com/KlausT/ccminer.git ccminer-KlausT
-  - [automake, autotools-dev, pkg-config, libtool, libcurl4-openssl-dev, libjansson-dev,
-        libssl-dev, libcurl4-openssl-dev, libssl-dev, libjansson-dev, build-essential]#, CUDA-9]
-  - ['git checkout cuda9', './autogen.sh', './configure',
-       "sed -i.bak 's/SHFL[(]/SHFL_UP(/g' bitslice_transformations_quad.cu groestl_functions_quad.cu lyra2/cuda_lyra2v2.cu x11/cuda_x11_simd512.cu neoscrypt/cuda_neoscrypt_tpruvot.cu",
-       './build.sh', './ccminer --ndevs']
-
-gatelessgate:
-  - gatelessgate
-  - https://github.com/zawawawa/gatelessgate.git
-  - [libcurl4-openssl, dev pkg-config, libtool, libncurses5-dev]
-  - ['git submodule init', 'git submodule update', 'cd Core', 'autoreconf -i', 'CFLAGS="-O2 -Wall -march=native -std=gnu99 -ggdb" ./configure --without-curses',
-       'make', '.make install', 'gatelessgate --version']
-
 ethdcrminer64:
   - ethdcrminer64
   - ''
@@ -83,7 +67,8 @@ ethminer:
     - git submodule update --init --recursive
     - 'mkdir build'
     - 'cd build'
-    - 'cmake .. -DETHASHCUDA=ON -DETHASHCL=ON'
+    - '[ -d /usr/local/cuda-* ] && cmake .. -DETHASHCUDA=ON  -DETHASHCL=ON'
+    - '[ -d /usr/local/cuda-* ] || cmake .. -DETHASHCUDA=OFF -DETHASHCL=ON'
     - 'make install'
 
 ewbf:
@@ -100,7 +85,22 @@ ewbf:
     - 'chmod 0754 *'
     - 'chown $MINERS_USER *'
     - 'ln -sf /opt/ewbf/miner /usr/local/bin/ewbf-miner'
-    
+
+gatelessgate:
+  - gatelessgate
+  - https://github.com/zawawawa/gatelessgate.git
+  - [libcurl4-openssl, dev pkg-config, libtool, libncurses5-dev]
+  - ['git submodule init', 'git submodule update', 'cd Core', 'autoreconf -i', 'CFLAGS="-O2 -Wall -march=native -std=gnu99 -ggdb" ./configure --without-curses',
+       'make', '.make install', 'gatelessgate --version']
+
+klaust:
+  - ccminer-KlausT
+  - https://github.com/KlausT/ccminer.git ccminer-KlausT
+  - [automake, autotools-dev, pkg-config, libtool, libcurl4-openssl-dev, libjansson-dev,
+        libssl-dev, libcurl4-openssl-dev, libssl-dev, libjansson-dev, build-essential]#, CUDA-9]
+  - ['git checkout cuda9', './autogen.sh', './configure',
+       "sed -i.bak 's/SHFL[(]/SHFL_UP(/g' bitslice_transformations_quad.cu groestl_functions_quad.cu lyra2/cuda_lyra2v2.cu x11/cuda_x11_simd512.cu neoscrypt/cuda_neoscrypt_tpruvot.cu",
+       './build.sh', './ccminer --ndevs']
 
 ngsminer:
   - ngsminer
