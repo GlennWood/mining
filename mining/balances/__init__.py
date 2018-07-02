@@ -7,18 +7,21 @@ import sys
 import os
 import re
 import yaml
-import gdax
-from balances.bleutradeapi import Bleutrade
 
 TOTALS = { }
+ExchangeRates = { }
+SOURCES_YML = None
+COMMON_TO_SYMBOL = { }
+SYMBOL_TO_COMMON = { }
+BTC2USD = None
+
 Config = None
 
 ### ###########################################################
 def process(self, config, coin):
-    global Config
-    Config = config
+    global Config, COMMON_TO_SYMBOL
 
-    SOURCES_YML = config.load_sources_yml()
+    SOURCES_YML = Config.load_sources_yml()
     SOURCES = SOURCES_YML['SOURCES']
     SCOPING = SOURCES_YML['SCOPING']
     OWN_READER = SOURCES_YML['OWN_READER']
@@ -105,7 +108,7 @@ def process(self, config, coin):
 
             balanceUrl = balanceUrls[0]
             if config.VERBOSE and source not in OWN_READER and balanceUrl and balanceUrl not in OWN_READER:
-                print ('URL: '+balanceUrl)
+                print('URL: '+balanceUrl)
         
             ### ####################################################### ###
             # Parse the downloaded data according to each pool's format.
@@ -113,7 +116,7 @@ def process(self, config, coin):
                 try:
                     url = balanceUrl.split(':',1)[1]+'/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID' \
                                 .replace('$API_ID', secrets_json['api_id']).replace('$API_KEY', secrets_json['api_key'])
-                    jsonObj = getUrlToJsonObj(config, url, source, ticker)
+                    jsonObj = getUrlToJsonObj(url, source, ticker)
                     data = jsonObj['getuserbalance']['data']
                     printBalance(printSource, ticker, float(data['confirmed'])+float(data['unconfirmed']))
                     printSource = '  '
@@ -124,11 +127,11 @@ def process(self, config, coin):
             elif source == 'ALHAFEEZ':
                 print("  ALHAFEEZ is NYI")
                 print(balanceUrl)
-                htmlStr = getUrlToStr(config, balanceUrl)
+                htmlStr = getUrlToStr(balanceUrl)
                 print(htmlStr)
                 
             elif source == 'ANORAK':
-                jsonStr = getUrlToStr(config, balanceUrl, source, ticker, 'jsons')
+                jsonStr = getUrlToStr(balanceUrl, source, ticker, 'jsons')
                 if config.VERBOSE: print(jsonStr)
 
             ### Ref: https://github.com/binance-exchange/binance-official-api-docs
@@ -143,6 +146,7 @@ def process(self, config, coin):
                     print(printSource+"Module binance.client is not installed: do 'sudo pip3 install python-binance'",file=sys.stderr)
 
             elif source == 'BLEUTRADE':
+                from balances.bleutradeapi import Bleutrade
                 if ticker == 'all':
                     currencies = ticker;
                 else:
@@ -188,10 +192,10 @@ def process(self, config, coin):
 
             elif source == 'MININGPOOLHUB':
                 try:
-                    jsonObj = getUrlToJsonObj(config, balanceUrl, source, ticker)
+                    jsonObj = getUrlToJsonObj(balanceUrl, source, ticker)
                     for coin in jsonObj['getuserallbalances']['data']:
                         tot = coin['confirmed'] + coin['unconfirmed']+ coin['ae_confirmed'] + coin['ae_unconfirmed'] + coin['exchange']
-                        tckr = SOURCES_YML['COMMON_TO_SYMBOL'][coin['coin']]
+                        tckr = COMMON_TO_SYMBOL[coin['coin']]
                         if not scopeTickers or tckr in scopeTickers:
                             printBalance(printSource,tckr, tot)
                             printSource = '  '
@@ -203,13 +207,13 @@ def process(self, config, coin):
             elif source == 'NICEHASH':
                 if not scopeTickers or 'BTC' in scopeTickers:
                     try:
-                        jsonObj = getUrlToJsonObj(config, balanceUrl, source, ticker)
+                        jsonObj = getUrlToJsonObj(balanceUrl, source, ticker)
                         if 'error' in jsonObj['result']:
                             print('  BTC ERROR: %s'%(jsonObj['result']['error']))
                         else:
                             total = float(jsonObj['result']['balance_confirmed'])+float(jsonObj['result']['balance_pending'])
                             if len(balanceUrls) > 1:
-                                statsObj = getUrlToJsonObj(config, balanceUrls[1], source, ticker)
+                                statsObj = getUrlToJsonObj(balanceUrls[1], source, ticker)
                                 result = statsObj['result']
                                 if 'error' in result:
                                     print('  BTC stats.provider '+result['error'])
@@ -221,6 +225,7 @@ def process(self, config, coin):
                         print(ex,file=sys.stderr)
 
             elif source == 'GDAX':
+                import gdax
                 auth_client = gdax.AuthenticatedClient(secrets_json['api_key'], secrets_json['api_secret'], secrets_json['api_passphrase'])
                 accounts = auth_client.get_accounts()
                 if 'message' in accounts:
@@ -233,21 +238,27 @@ def process(self, config, coin):
                             printSource = '  '
 
             elif balanceUrl and balanceUrl == 'bit-shares':
-                balances_bit_shares(config, secrets_json, source, scopeTickers)
-        
+                #balances_bit_shares(config, secrets_json, source, scopeTickers)
+                from balances.bitsharesapi import BitSharesAccount
+                amounts = BitSharesAccount(secrets_json['account']).amounts
+                for key, value in amounts.items():
+                    if not scopeTickers or key in scopeTickers:
+                        printBalance(printSource, key, value)
+                        printSource = '  '
+
             elif balanceUrl and balanceUrl.startswith('yiimp:'): # aka UNIMINING, ZPOOL
                 # Ref: https://www.unimining.net/api
                 try:
                     url = balanceUrl.split(':',1)[1]+'/api/walletEx?address=$API_ID'.replace("$API_ID", secrets_json['api_id'])
-                    jsonObj = getUrlToJsonObj(config, url, source, ticker)
+                    jsonObj = getUrlToJsonObj(url, source, ticker)
                     printBalance(printSource, ticker, jsonObj['total'])
                     printSource = '  '
                 except json.decoder.JSONDecodeError as ex:
                     # unimining/api returned nothing; probably their throttling mechanism; let's read it from the WebUI
                     url = balanceUrl.split(':',1)[1]+'/site/wallet_results?address=$API_ID&showdetails=1'.replace("$API_ID", secrets_json['api_id'])
-                    webHtml = getUrlToStr(config, url, source, ticker)
-                    if ticker in SOURCES_YML['SYMBOL_TO_COMMON']:
-                        tckr = SOURCES_YML['SYMBOL_TO_COMMON'][ticker]
+                    webHtml = getUrlToStr(url, source, ticker)
+                    if ticker in SYMBOL_TO_COMMON:
+                        tckr = SYMBOL_TO_COMMON[ticker]
                     else:
                         tckr = ticker
                     regex = re.compile('.*?Total Earned.*?([0-9]*[.][0-9]*) '+tckr+'.*')
@@ -270,18 +281,32 @@ def process(self, config, coin):
 def balances_bit_shares(config, secrets_json, source, scopeTickers):
     printSource = '' # this is cleaner than passing printSource as a param.
     if not config.VERBOSE: printSource = source+"\n  " # VERBOSE already printed it.
-    
+
+    from bitshares import BitShares
+    amounts = BitShares(config, secrets_json['account'])
+    for key, value in amounts.items():
+        if not scopeTickers or key in scopeTickers:
+            printBalance(printSource, key, value)
+            printSource = '  '
+
     try: # bitshares.account will work under Python3, but throw exception if Python2
         from bitshares.account import Account
-        #import bitshares as bts
-        #blockchain_instance = BlockchainInstance('num_retries':3)
-        account = Account(secrets_json['account'])#, {'blockchain_instance':blockchain_instance})
-        for val in account.balances:
-            val_coin = str(val).split(' ')
-            value = val_coin[0]
-            ticker = val_coin[1].replace('BRIDGE.','')
-            if not scopeTickers or ticker in scopeTickers:
-                printBalance(printSource, ticker, float(value.replace(',','')))
+        account = Account(secrets_json['account'])
+        print (account.json())
+        # We add the balances and open-orders amounts, since we still own unfilled open-orders
+        amounts = { }
+        for balance in account.balances:
+            ticker = balance.symbol.replace('BRIDGE.','')
+            if ticker not in amounts: amounts[ticker] = 0
+            amounts[ticker] += balance.amount
+        for openorder in account.openorders:
+            order = openorder['base']
+            ticker = order.symbol.replace('BRIDGE.','')
+            if ticker not in amounts: amounts[ticker] = 0
+            amounts[ticker] += order.amount
+        for key, value in amounts.items():
+            if not scopeTickers or key in scopeTickers:
+                printBalance(printSource, key, value)
                 printSource = '  '
         return ''
     except KeyboardInterrupt as ex:
@@ -311,18 +336,23 @@ def balances_bit_shares(config, secrets_json, source, scopeTickers):
             printSource = '  '
 
 ### ###########################################################
-def getUrlToJsonObj(config, balanceUrl, source, ticker='all'):
-    jsonStr = getUrlToStr(config, balanceUrl, source, ticker, 'json')
+def getUrlToJsonObj(balanceUrl, source='source', ticker='all'):
+    jsonStr = getUrlToStr(balanceUrl, source, ticker, encoding='json')
     return json.loads(jsonStr)
 
 ### ###############################################################################
-def getUrlToStr(config, balanceUrl, source='source', ticker='ticker', encoding='html'):
+def getUrlToStr(balanceUrl, source='source', ticker='ticker', encoding='html'):
+    global Config
+
+    cmd = ['curl', '--insecure', '--compressed', balanceUrl]
+    if encoding == 'json': cmd.extend(['-H',  "accept: application/json"])
+
     proc = subprocess.Popen(['curl', '--insecure', '--compressed', balanceUrl], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
     curlStr, err = proc.communicate(None)
     curlStr = curlStr.decode()
     if err:
-        if config.VERBOSE: print(err, file=sys.stderr)
-    if config.PRINT:
+        if Config.VERBOSE: print(err, file=sys.stderr)
+    if Config.PRINT:
         printFilename = '/tmp/' + source.lower()
         if ticker != 'all':
             printFilename += '-' + ticker.lower()
@@ -341,7 +371,28 @@ def printBalance(tabber, ticker, balance):
     TOTALS[ticker] += balance
     if not Config.QUICK:
         print("%s%s %0.8f"%(tabber, ticker, balance))
-  
+
+### ##############################################################
+### Return value of 'val' 'ticker' coins in dollars.
+def value_in_dollars(ticker, val):
+    global ExchangeRates, BTC2USD, SYMBOL_TO_COMMON
+
+    btc_rate = ExchangeRates['rates']
+    if ticker.lower() in btc_rate:    
+        btc_rate = btc_rate[ticker.lower()]['value']
+        if btc_rate == 0: btc_rate = 1
+        return (BTC2USD / btc_rate) * val
+
+    if ticker not in SYMBOL_TO_COMMON:
+        return 'NaN'
+
+    tckr = SYMBOL_TO_COMMON[ticker]
+    rate = getUrlToJsonObj('https://api.coingecko.com/api/v3/coins/'+tckr+'?localization=false')['market_data']['current_price']
+    if 'usd' not in rate:
+        print (rate['market_data']['current_price'])
+        return 'NaN'
+    return rate['usd'] * val
+
 ### ##############################################################
 ### Add SCOPING (from sources.yml) as options to 'miners balance'
 def bash_completion(self,prev):
@@ -358,29 +409,51 @@ def bash_completion(self,prev):
 
 ### ###########################################################
 def initialize(self, config, coin):
-    config.load_sources_yml()
-    config.DRYRUN = True # we're just experimenting for the time being; lot's of testing to be done!
+    global Config, SOURCES_YML, ExchangeRates, BTC2USD, COMMON_TO_SYMBOL, SYMBOL_TO_COMMON
+    Config = config
+    
+    # Ref: https://www.coingecko.com/api/docs/v3#/coins/get_coins_list
+    coingeckoSymbols = getUrlToJsonObj('https://api.coingecko.com/api/v3/coins/list')
+    for symbol in coingeckoSymbols:
+        COMMON_TO_SYMBOL[symbol['id']] = symbol['symbol'].upper()
+        SYMBOL_TO_COMMON[symbol['symbol'].upper()] = symbol['id']
+
+    # Ref: https://www.coingecko.com/api/docs/v3#/exchange_rates/get_exchange_rates
+    ExchangeRates = getUrlToJsonObj("https://api.coingecko.com/api/v3/exchange_rates")
+    BTC2USD = ExchangeRates['rates']['usd']['value']
     return config.ALL_MEANS_ONCE
+
+### ###########################################################
 def finalize(self, config, coin):
-    global TOTALS
+    global TOTALS, ExchangeRates
 
     if not config.QUICK:
         print("\n")
     printSource = "**TOTALS**\n  "
+    total_usd = 0
     for ticker in sorted(TOTALS):
         if TOTALS[ticker]:
-            if TOTALS[ticker] < 10:
-                print("%s%s %0.8f"%(printSource, ticker, TOTALS[ticker]))
-            elif TOTALS[ticker] < 100:
-                print("%s%s %.4f"%(printSource, ticker, TOTALS[ticker]))
-            elif TOTALS[ticker] < 1000:
-                print("%s%s %0.3f"%(printSource, ticker, TOTALS[ticker]))
-            elif TOTALS[ticker] < 10000:
-                print("%s%s %0.2f"%(printSource, ticker, TOTALS[ticker]))
-            elif TOTALS[ticker] < 100000:
-                print("%s%s %0.1f"%(printSource, ticker, TOTALS[ticker]))
+            usd = value_in_dollars(ticker, TOTALS[ticker])
+            if usd == 'NaN':
+                usd = ''
             else:
-                print("%s%s %0.0f"%(printSource, ticker, TOTALS[ticker]))
+                total_usd += usd
+                usd = " $%0.2f"%(usd)
+
+            if TOTALS[ticker] < 10:
+                print("%s%s %0.8f%s"%(printSource, ticker, TOTALS[ticker], usd))
+            elif TOTALS[ticker] < 100:
+                print("%s%s %.4f%s"%(printSource, ticker, TOTALS[ticker], usd))
+            elif TOTALS[ticker] < 1000:
+                print("%s%s %0.3f%s"%(printSource, ticker, TOTALS[ticker], usd))
+            elif TOTALS[ticker] < 10000:
+                print("%s%s %0.2f%s"%(printSource, ticker, TOTALS[ticker], usd))
+            elif TOTALS[ticker] < 100000:
+                print("%s%s %0.1f%s"%(printSource, ticker, TOTALS[ticker], usd))
+            else:
+                print("%s%s %0.0f%s"%(printSource, ticker, TOTALS[ticker], usd))
             printSource = '  '
+
+    print("\n**TOTAL USD**  $%0.2f"%(total_usd))
 
     return config.ALL_MEANS_ONCE

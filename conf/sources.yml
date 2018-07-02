@@ -43,18 +43,6 @@ SCOPING:
   EXCHANGING: [ BLEUTRADE, CRYPTOPIA, CRYPTOBRIDGE, OPEN-LEDGER ]
   BANKING: [ GDAX ]
 
-COMMON_TO_SYMBOL:
-  bitcoin-private: BTCP
-  ethereum-classic: ETC
-  bitcoin-gold: BTG
-  ethereum: ETH
-  expanse: EXP
-  monero: XMR
-  zcash: ZEC
-  musicoin: MUSIC
-  zclassic: ZCL
-  zencash: ZEN
-
 SYMBOL_TO_COMMON:
   XMN: MTN
 
