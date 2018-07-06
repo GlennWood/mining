@@ -46,7 +46,7 @@ The sources are configured in the `/opt/mining/mining/balances/sources.yml` file
       CRYPTOPIA:
         all: cryptopia
       CRYPTO-BRIDGE:
-        all: bit-shares
+        all: bitshares
       GDAX: 
         all: gdax
       NICEHASH:
@@ -59,7 +59,7 @@ The sources are configured in the `/opt/mining/mining/balances/sources.yml` file
       SUPRNOVA:
         KMD: https://kmd.suprnova.cc/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID
       OPEN-LEDGER:
-        all: bit-shares
+        all: bitshares
 
 The `SOURCES` section has an element for each source, which might be an exchange or a mining pool (somewhere that currencies might be held). Each source element lists the coins held there (`all` might work for some sources to specify any and all coins, while other sources require an explicit list of coins). Each such coin may further designate an URL, or another mechanism, for obtaining the balance(s). The "other mechanisms" are hardcoded into `/opt/mining/mining/balances/__init__.py`
 Note that the URLs listed in this example `sources.yml` include `$API_ID`, `$API_KEY`, etc. These will be substituted from values found *hidden*, by you, in your own `/home/$MINERS_USER/.ssh/mining-keys/<source>-<coin>.key` files. For instance:

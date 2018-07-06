@@ -14,7 +14,7 @@ SOURCES:
   COINBASE:
     all:
   CRYPTOBRIDGE:
-    all: bit-shares
+    all: bitshares
   CRYPTOPIA:
     all: cryptopia
   GDAX: 
@@ -24,7 +24,7 @@ SOURCES:
   MININGPOOLHUB:
     all: https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=$API_KEY
   OPEN-LEDGER:
-    all: bit-shares
+    all: bitshares
   SUPRNOVA:
     HUSH: MPOS:https://hush.suprnova.cc
     KMD: MPOS:https://kmd.suprnova.cc
@@ -56,9 +56,12 @@ NICEHASH_TO_TICKER:
   Nicehash-NIST5: NH-NI
   Nicehash-CryptoNight: NH-CR
   Nicehash-X16R: NH-XR
+  Nicehash-Pascal: NH-PA
+  Nicehash-LBRY: NH-LB
+  'Nicehash-Blake (14r)': NH-BL
 
 OWN_READER:
-  bit-shares: bit-shares
+  bitshares: bitshares
   cryptopia: cryptopia
   gdax: gdax
   UNIMINING: yiimp
