@@ -42,6 +42,15 @@ from docopt import docopt
 config = config.Config(docopt(__doc__, argv=None, help=True, version=None, options_first=False))
 arguments = config.arguments
 
+
+### Ref: https://github.com/RadeonOpenCompute/ROC-smi/blob/master/rocm_smi.py
+# To write to sysfs, we need to run this script as root. If the script is not run as
+# root, re-launch it via execvp to give the script sudo privileges.
+def relaunchAsSudo(OPS):
+    import os
+    if 'devices' in OPS and os.geteuid() != 0:
+        os.execvp('sudo', ['sudo'] + sys.argv)
+
 ### Verify that ticker exists, or that it is in the form "oldCoin:newCoin"
 def tickerInCoinMiners(config, METH, ticker, OP):
 
@@ -106,6 +115,8 @@ def exec_operation_method(OP, METH):
 
 ### Execute finalize() on each OPERATION/COIN
 success = True
+relaunchAsSudo(config.OPS)
+
 if success:
     for OP in config.OPS: success &= exec_operation_method(OP, 'initialize')
 ### Loop over all OPERATIONs, applying each to all COINs

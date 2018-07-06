@@ -1,0 +1,59 @@
+DEVICES:
+
+  GeForce-GTX-1070-Ti:
+    Type: GeForce GTX 1070 Ti
+    Cohorts:
+      - GPU-0547b4d4-3354-32a0-eb63-e6013ca68ab8
+      - GPU-d2b65de5-f788-5516-4ce2-4d108f2366c3
+    OverClock:
+      dflt: 1150,150
+      ETH: 1150,150
+      RVN: 1150,150
+      NH-ET: 1150,150
+    Speed:
+      Ethash: 30.5 Mh/s
+      Groestl: 36.5 Mh/s
+      CryptoNightV7: 710 h/s
+      Equihash: 470 h/s
+      TimeTravel10: 19.5 Mh/s
+      X16R: 10 Mh/s
+      Lyra2z: 2 Mh/s
+      NIST5: 50 Mh/s
+      Xevan: 3.6 Mh/s
+
+  GeForce-GTX-1070:
+    Type: GeForce GTX 1070
+    Cohorts:
+      - GPU-701dd1b3-98d5-831d-2c29-631381e7adf3
+      - GPU-ce1df382-1fb6-119e-5048-15c524f28cf8
+      - GPU-3768179a-d438-0c05-de32-7f38e9af63f1
+      - GPU-990059da-5633-1178-e4fe-f1f7fc50ad61
+    OverClock:
+      dflt: 1100,140
+      ETH: 1100,140
+      RVN: 1000,140
+      NH-ET: 1000,160
+    Speed:
+      Ethash: 30.0 Mh/s
+      Groestl: 33.5 Mh/s
+      CryptoNightV7: 690 h/s
+      Equihash: 430 h/s
+      TimeTravel10: 18.5 Mh/s
+      X16R: 8 Mh/s
+      Lyra2z: 1.65 Mh/s
+      NIST5: 44 Mh/s
+      Xevan: 3 Mh/s
+
+RIGS:
+  rig-AMD:
+    sudo-nvidia-settings: False
+  rig-Borg:
+    sudo-nvidia-settings: False
+  rig-Clinic:
+    sudo-nvidia-settings: True
+  rig-Nvidia:
+    sudo-nvidia-settings: True
+  rig-Titan:
+    sudo-nvidia-settings: False
+
+      

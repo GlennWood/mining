@@ -31,6 +31,7 @@ class Config(object):
     WIDE_OUT = False
     FORCE    = False
     PIP      = 'pip2'
+    HOSTNAME = os.getenv('HOSTNAME','').upper()
     arguments = {}
 
     SHEETS = {
@@ -54,6 +55,8 @@ class Config(object):
         self.ConvertUrls = {}
         
         if six.PY3: self.PIP = 'pip3'
+        if not self.HOSTNAME: # So, HOSTNAME was not exported
+            with open('/etc/hostname', 'r') as f: self.HOSTNAME = f.read().strip().upper()
 
         if self.arguments:
             # Command line options, values
@@ -62,6 +65,8 @@ class Config(object):
                 self.PLATFORM = self.arguments['--platform']
             else:
                 self.PLATFORM = os.getenv('PLATFORM','BTH')
+            if not self.PLATFORM:
+                self.PLATFORM = 'BTH'
             if '--url-port' in self.arguments: self.URL_PORT = self.arguments['--url-port']
             self.ALL_COINS = 'COIN' in self.arguments and ( self.arguments['COIN'] is None or len(self.arguments['COIN']) == 0 )
     

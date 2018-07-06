@@ -151,7 +151,7 @@ def process(self, config, coin):
         # Fork this!
         newpid = os.fork()
         if newpid != 0:
-            print("Started mining "+coinKey+" with "+minerName+" in the background.")
+            print("Started mining "+coinKey+" with "+minerName+" at " + config.substitute(coinKey, '$URL_PORT'))
             if len(config.OPS) > 1:  # If there are more OPs on the command line, it might be
                 time.sleep(1.0) # prudent to wait a second before proceeding with them.
             return 0 
@@ -169,7 +169,7 @@ def process(self, config, coin):
         except OSError as ex:# 'fork of './ccminer' failed: 1 (Operation not permitted)' 
             newpid = newpid#  due to python's exception when you are already the group-leader ... 
         os.umask(0)
-             
+        
         restart.write_latest_start_cmd(config, cmd, WORKER_NAME)
         os.system(cmd)
 
