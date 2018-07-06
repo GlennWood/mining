@@ -29,7 +29,7 @@ def process(self, config, coin):
     if config.ALL_COINS:
         pinfos = status.get_status(config.arguments['COIN'])
         if pinfos is None or len(pinfos) == 0:
-            print("No processes are mining "+','.join(config.arguments['COIN'])+'.',file=sys.stderr)
+            print('There are no processes mining anything.',file=sys.stderr)
             return config.ALL_MEANS_ONCE
         for pinfo in pinfos:
             WORKER_NAME = config.workerName(pinfo['coin'])
@@ -65,7 +65,8 @@ def load_logs_config():
 
 def initialize(self, config, coin):
     global TAIL_LOG_FILES, CMD_LOG_FILES
-    CMD_LOG_FILES = ['/usr/bin/tail', '-f']
+    sttyRows = config.get_sttyDims()[0]
+    CMD_LOG_FILES = ['/usr/bin/tail', '-f', '-n'+str(sttyRows-5)]
     TAIL_LOG_FILES = { }
     load_logs_config()
     return config.ALL_MEANS_ONCE
