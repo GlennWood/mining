@@ -53,6 +53,19 @@ Self-explanatary, ain't it?
 
         sudo pip3 install -U cryptography
 
+5. `Xlib:  extension "GLX" missing on display ":0".
+`
+
+You might find this in `/etc/X11/xorg.conf`:
+
+        Undefined Device "intel" referenced by ServerLayout "layout".
+
+Somehow Xorg has registered your internal graphics (i.e.`intel`) into `xorg.conf`, which would be fine except that it has not completed it. This prevents a host of Nvidia operations from executing properly.
+
+Simply remove the errant line and reboot.
+
+        sudo sed -i.bak '/"intel"/d' /etc/X11/xorg.conf
+        sudo reboot
 
 Power connectors, risers, GPUs, PSUs
 ------------------------------------
