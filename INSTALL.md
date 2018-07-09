@@ -1,22 +1,19 @@
 Starting from an Ubuntu server
 ------------------------------
 
-	export MINING_USER=$USER
+	export MINERS_USER=$USER
 	sudo -E su -p -
 	[sudo] password for <MINERS_USER>: 
-	cd /opt
-	mkdir mining
-	chown $MINERS_USER mining/
-	
+		
 Get GlennWood/mining files
 --------------------------
 
 * Clone GlennWood/mining to `/opt/mining`.
 
-        cd /opt/mining
+        cd /opt
 	     apt -y install git
-	     git clone https://github.com/GlennWood/miners.git
-        chmod 0754 mining/install/install-* mining/install/*.{py,sh}
+	     git clone https://github.com/GlennWood/mining.git
+        chown -R $MINERS_USER mining/
 
 * Setup initial miners-user account
 
