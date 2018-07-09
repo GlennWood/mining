@@ -1,7 +1,6 @@
 from __future__ import print_function
 from lxml import html
 import sys
-import os
 import requests
 import subprocess
 ### Ref: http://python-future.org/compatible_idioms.html
@@ -14,20 +13,16 @@ def process(self, config, coin):
     SOURCES_YML = config.load_sources_yml()
     NicehashToTicker = SOURCES_YML['NICEHASH_TO_TICKER']
 
-    hostname = os.getenv('HOSTNAME')
-    if not hostname: # So, HOSTNAME was not exported
-        with open('/etc/hostname', 'r') as f: hostname = f.read().strip().upper()
-
     if config.SCOPE:
         return process_scope(self,config, coin)
 
     url = None
     for key in config.SHEETS['WhatToMine']:
-        if hostname.find(key.upper()) >= 0:
-            url = self.generateUrl(config, hostname, config.SHEETS['WhatToMine'][key])
+        if config.HOSTNAME.find(key.upper()) >= 0:
+            url = self.generateUrl(config, key)
             break
     if not url:
-        print("Cannot match this hostname='"+hostname+"' with any key in miners.xslx/WhatToMine spreadsheet.", file=sys.stderr)
+        print("Cannot match this hostname='"+config.HOSTNAME+"' with any key in miners.xslx/WhatToMine spreadsheet.", file=sys.stderr)
         return 1
     
     response = requests.get(url)
@@ -75,14 +70,26 @@ def process(self, config, coin):
     return config.ALL_MEANS_ONCE
 
 '''
-Generate the WhatToMine url from the URL parameter, else by generating it from the param declaration rows.
+Generate the WhatToMine url from the URL cell, URL_PORT cmdline option, or by generating it from the Param declaration rows.
 '''
-def generateUrl(config, hostname, column):
-    if column['URL']:
-        if config.VERBOSE: print("WhatToMine URL picked by 'url' parameter for hostname='"+hostname+"'", file=sys.stderr)
-        return column['URL']
-    print("WhatToMine URL generation is NYI", file=sys.stderr)    
-    url = "https://whattomine.com/coins?utf8=%E2%9C%93&adapt_q_280x=0&adapt_q_380=0&adapt_q_fury=0&adapt_q_470=0&adapt_q_480=3&adapt_q_570=0&adapt_q_580=0&adapt_q_vega56=0&adapt_q_vega64=0&adapt_q_750Ti=0&adapt_q_1050Ti=0&adapt_q_10606=0&adapt_q_1070=6&adapt_1070=true&adapt_q_1070Ti=2&adapt_1070Ti=true&adapt_q_1080=0&adapt_q_1080Ti=0&adapt_1080Ti=true&eth=true&factor%5Beth_hr%5D=241.0&factor%5Beth_p%5D=990.0&grof=true&factor%5Bgro_hr%5D=274.0&factor%5Bgro_p%5D=1020.0&factor%5Bphi_hr%5D=158.0&factor%5Bphi_p%5D=1040.0&cn=true&factor%5Bcn_hr%5D=5040.0&factor%5Bcn_p%5D=780.0&cn7=true&factor%5Bcn7_hr%5D=5040.0&factor%5Bcn7_p%5D=780.0&eq=true&factor%5Beq_hr%5D=3520.0&factor%5Beq_p%5D=960.0&lre=true&factor%5Blrev2_hr%5D=295000.0&factor%5Blrev2_p%5D=1020.0&ns=true&factor%5Bns_hr%5D=8100.0&factor%5Bns_p%5D=1020.0&tt10=true&factor%5Btt10_hr%5D=150.0&factor%5Btt10_p%5D=960.0&x16r=true&factor%5Bx16r_hr%5D=68.0&factor%5Bx16r_p%5D=1030.0&skh=true&factor%5Bskh_hr%5D=228.0&factor%5Bskh_p%5D=960.0&n5=true&factor%5Bn5_hr%5D=364.0&factor%5Bn5_p%5D=1020.0&xn=true&factor%5Bxn_hr%5D=25.2&factor%5Bxn_p%5D=960.0&factor%5Bcost%5D=0.1&sort=Profitability24&volume=0&revenue=24h&factor%5Bexchanges%5D%5B%5D=&factor%5Bexchanges%5D%5B%5D=binance&factor%5Bexchanges%5D%5B%5D=bitfinex&factor%5Bexchanges%5D%5B%5D=bittrex&factor%5Bexchanges%5D%5B%5D=cryptobridge&factor%5Bexchanges%5D%5B%5D=cryptopia&factor%5Bexchanges%5D%5B%5D=hitbtc&factor%5Bexchanges%5D%5B%5D=poloniex&factor%5Bexchanges%5D%5B%5D=yobit&dataset=NVI&commit=Calculate"
+def generateUrl(config, cKey):
+
+    if config.URL_PORT and config.URL_PORT != 'calc':
+        return config.URL_PORT
+
+    column = config.SHEETS['WhatToMine'][cKey]
+    if column['URL'] and not ( config.URL_PORT and config.URL_PORT == 'calc'):
+        url = column['URL']
+        if config.VERBOSE: print(url, file=sys.stderr)
+    else:
+        # Build query string from paramers in this rig's WhatToMine column
+        query = [ ]
+        for key, value in column.items():
+            if key != 'URL' and key != 'Param' and value:
+                query.append("%s=%s"%(key,value))
+        url = 'https://whattomine.com/coins?utf8=%E2%9C%93&' + ('&'.join(query)) + '&commit=Calculate'
+
+    if config.VERBOSE: print(url, file=sys.stderr)
     return url
 
 # Handle 'whattomine' operation within the given --scope
@@ -102,28 +109,31 @@ def process_scope(self, config, coin):
             print(('%.'+str(maxRigNameLen)+'s')%('['+host['hostname']+']            '),end='')
             sys.stdout.flush()
 
-            cmdLine = ['ssh', '-l', config.GLOBALS['MINERS_USER'], 
-                       '-o', 'StrictHostKeyChecking=no', host['ip'], 'miners', 'whattomine']
-            proc = subprocess.Popen(cmdLine, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-            out, err = proc.communicate(None)
-            if out:
-                totIdx = 0
-                for ln in out.decode().split('\n'):
-                    ln = ln.rstrip()
-                    coinStats = ln.split(',')
-                    if len(coinStats) > 4:
-                        print('%6s %5s %5s '%(coinStats[0],coinStats[1],coinStats[4]),end='')
-                        totals[totIdx] += float(coinStats[1])
-                        totIdx += 1
-                        if totIdx > actualMaxRslts: actualMaxRslts = totIdx
-                        maxRslts -= 1
-                        if maxRslts <= 0:
-                            break
-            if err:
-                for ln in err.decode().split('\n'):
-                    ln = ln.rstrip()
-                    if ln: print(ln+';',end='')
-            print()
+            try:
+                cmdLine = ['ssh', '-l', config.GLOBALS['MINERS_USER'], 
+                           '-o', 'StrictHostKeyChecking=no', host['ip'], 'miners', 'whattomine']
+                proc = subprocess.Popen(cmdLine, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+                out, err = proc.communicate(None)
+                if out:
+                    totIdx = 0
+                    for ln in out.decode().split('\n'):
+                        ln = ln.rstrip()
+                        coinStats = ln.split(',')
+                        if len(coinStats) > 4:
+                            print('%6s %5s %5s '%(coinStats[0],coinStats[1],coinStats[4]),end='')
+                            totals[totIdx] += float(coinStats[1])
+                            totIdx += 1
+                            if totIdx > actualMaxRslts: actualMaxRslts = totIdx
+                            maxRslts -= 1
+                            if maxRslts <= 0:
+                                break
+                if err:
+                    for ln in err.decode().split('\n'):
+                        ln = ln.rstrip()
+                        if ln: print(ln+';',end='')
+                print()
+            except KeyboardInterrupt:
+                print("KeyboardInterrupt")
 
     print(('%.'+str(maxRigNameLen)+'s')%('TOTALS:                 '),end='')
     prev_total = totals[0]

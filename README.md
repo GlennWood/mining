@@ -43,7 +43,7 @@ Stops all processes mining the given coin(s). This is the converse of **start**.
 
 * **restart**
 
-Restarts the latest started mining operation.
+Restarts the most recently started mining operation.
 
 * **swap \<oldCoin>:\<newCoin>**
 
