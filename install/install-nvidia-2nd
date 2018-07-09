@@ -59,21 +59,32 @@ export LD_LIBRARY_PATH=/usr/lib/nvidia-\$NVIDIA_VER\${LD_LIBRARY_PATH:+:\$LD_LIB
 export NVIDIA_DRIVERS_INSTALLED=`date --utc +%Y-%m-%dT%H-%M-%SZ`
 NVIDIA_DRIVERS_INSTALLED
 
-#  pip2 install gpustat
-#  pip3 install gpustat
-sudo pip install git+https://github.com/wookayin/gpustat.git@master
-#sudo ln -s /usr/local/lib/python2.7/dist-packages/gpustat /usr/local/lib/python3.5/dist-packages/gpustat
+pip2 install gpustat
+pip3 install gpustat
+### TODO: pull-request GlennWood improvements to gpustat
+###       until then, clone and symlink the GlennWood version
+cd /opt
+git clone https://github.com/GlennWood/gpustat.git
+ln -s /opt/gpustat /usr/local/lib/python2.7/dist-packages/gpustat
+ln -s              /usr/local/lib/python2.7/dist-packages/gpustat /usr/local/lib/python3.5/dist-packages/gpustat
 
   cat >> /etc/profile.d/nvidia.sh << NVIDIA_SH
 export INSTALL_NVIDIA_DONE=`date --utc +%Y-%m-%dT%H-%M-%SZ`
 NVIDIA_SH
   chmod 0754 /etc/profile.d/nvidia.sh
 
+  /opt/mining/install/install-overclock-1st.sh NO_REBOOT_AT_THIS_TIME
+
   echo "Nvidia drivers have been installed."
   echo "After this reboot, install-nvidia will be complete."
 
   echo "Hit ctrl-C to abort the reboot."
-  sleep 10
+  for cnt in {10..0}
+  do
+    echo -n -e "\rReboot in $cnt "
+    sleep 1
+  done
+  echo -n -e   "\rRebooting ... "
   reboot
 
 fi

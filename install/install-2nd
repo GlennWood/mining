@@ -56,7 +56,7 @@ cat >> /etc/profile.d/alias.sh << PROFILE_ALIAS
 alias status-all='miners status --scope all'
 alias whattomine='miners whattomine'
 alias whattomine-all='miners whattomine --scope all'
-alias sync-mining-rigs='ansible-playbook /opt/mining/ansible/playbooks/sync-mining-rigs.yml'
+alias sync-mining-rigs='PYTHONPATH=/opt/mining/mining:/opt/mining/install ansible-playbook /opt/mining/ansible/playbooks/sync-mining-rigs.yml'
 alias systemback='/usr/lib/systemback/sbsustart systemback'
 PROFILE_ALIAS
 source /etc/profile.d/alias.sh
@@ -99,8 +99,8 @@ pip3 install psutil
 
 apt-get install python3-setuptools
 easy_install3 pipapt-get -y install python3-pip
-pip2 install xlrd docopt requests jprops ansible bitshares lxml pyyaml gdax python-binance coinbase
-pip3 install xlrd docopt requests jprops ansible bitshares lxml pyyaml gdax python-binance coinbase
+pip2 install xlrd docopt requests jprops ansible bitshares lxml pyyaml gdax python-binance coinbase python-exx
+pip3 install xlrd docopt requests jprops ansible bitshares lxml pyyaml gdax python-binance coinbase python-exx
 # On Mac OS, you may need to do this for lxml - Ref: https://lxml.de/installation.html#building-lxml-from-dev-sources
 # STATIC_DEPS=true sudo pip install lxml
 

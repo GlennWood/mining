@@ -22,7 +22,7 @@ if [  -n "$FETCH_CLAYMORE_VIA_WGET" ]; then
   mv Claymore.s.Dual.Ethereum.Decred_Siacoin_Lbry_Pascal.AMD.NVIDIA.GPU.Miner.v${ETHDCRMINER_VERSION}.-.LINUX/* ./
 else
   CLAYMORE_NAME=ClaymoresDualEthereum+Decred_Siacoin_Lbry_Pascal_Blake2s_KeccakAMD+NVIDIAGPUMiner-v${ETHDCRMINER_VERSION}-LINUX                                                                                                                                                
-  [ ! -f "/opt/Downloads/$CLAYMORE_NAME.tar.gz" ] && echo "Need '/opt/Downloads/$CLAYMORE_NAME.tar.gz'" && && echo "Get at least v${ETHDCRMINER_VERSION} from https://mega.nz/#F!O4YA2JgD!n2b4iSHQDruEsYUvTQP5_w and rename it." && exit 1
+  [ ! -f "/opt/Downloads/$CLAYMORE_NAME.tar.gz" ] && echo "Need '/opt/Downloads/$CLAYMORE_NAME.tar.gz'" && echo "Get at least v${ETHDCRMINER_VERSION} from "+'https://mega.nz/#F!O4YA2JgD!n2b4iSHQDruEsYUvTQP5_w'+" and rename it." && exit 1
   tar -xzf "/opt/Downloads/$CLAYMORE_NAME.tar.gz" 
   mv Claymore*v${ETHDCRMINER_VERSION}*LINUX/* ./
   rm -r Claymore*v${ETHDCRMINER_VERSION}*LINUX/

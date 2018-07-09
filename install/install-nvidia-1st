@@ -66,5 +66,10 @@ BLACKLIST_NOUVEAU
   echo "  Your next step will be 'sudo /opt/mining/install/install-nvidia-2nd'."
 
   echo "Hit ctrl-C to abort the reboot."
-  sleep 10
+  for cnt in {10..0}
+  do
+    echo -n -e "\rReboot in $cnt "
+    sleep 1
+  done
+  echo -n -e   "\rRebooting ... "
   reboot
