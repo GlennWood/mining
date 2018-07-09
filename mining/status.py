@@ -27,7 +27,7 @@ def get_status(coin, exclude_pids=[], exclude_cmdlines=[]):
             for cmd in exclude_cmdlines:
                 if cmdline.find(cmd) >= 0: continue
             for name in names:
-                if cmdline.find(name+'-miner') >= 0 or cmdline.find('c='+name) >= 0:
+                if cmdline.find(name+'-miner') >= 0 or cmdline.find(name+'_miner') >= 0 or cmdline.find('c='+name) >= 0:
                     pinfo['coin'] = name
                     result.append(pinfo)
         except psutil.NoSuchProcess:

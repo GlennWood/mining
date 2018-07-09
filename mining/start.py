@@ -143,7 +143,7 @@ def process(self, config, coin):
     # Set overclocking for this coin
     if not config.QUICK:
         overclock.initialize(self, config, coin)
-        overclock.process(self, config, coin)
+        overclock.process(self, config, coin, quiet=True)
         overclock.finalize(self, config, coin)
 
     try:

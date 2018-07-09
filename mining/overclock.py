@@ -15,7 +15,7 @@ import yaml
 global OverclockConfig
 
 ### #############################################################
-def process(self, config, coin):
+def process(self, config, coin, quiet=False):
     global OverclockConfig
     # volatile means this operation make changes in settings
     VOLATILE = not config.DRYRUN and not config.QUERY
@@ -24,7 +24,7 @@ def process(self, config, coin):
     if config.ALL_COINS: postfix = ''
 
     if not config.FORCE and not config.DRYRUN and status.get_status(None) and VOLATILE:
-        if not config.QUICK:
+        if not config.QUICK and not quiet:
             print("A miner is currently running, so we are skipping overclocking (use -f to force).")
         return config.ALL_MEANS_ONCE
 
@@ -40,11 +40,11 @@ def process(self, config, coin):
         
     except:
         if not config.DRYRUN:
-            if config.PLATFORM != 'AMD':
+            if config.PLATFORM != 'AMD' and not quiet:
                 print('Except: Cannot load GPUStatCollection on platform='+config.PLATFORM)
                 ex = sys.exc_info()
                 print(ex)
-            elif not config.QUICK:
+            elif not config.QUICK and not quiet:
                 ### TODO: https://github.com/GPUOpen-Tools/GPA/blob/master/BUILD.md
                 print("'miners overclock' is not implemented for AMD devices")
             return config.ALL_MEANS_ONCE
@@ -66,7 +66,7 @@ def process(self, config, coin):
         if gpu.uuid in normalizedDevices:
             dev = normalizedDevices[gpu.uuid]
             oc = dev.get('OverClock',{})              # default undervolt (e.g. power-limit),
-            oc = oc.get(postfix, oc.get('dflt','0,150')) # unless a coin-specific one is given
+            oc = oc.get(coin['COIN'], oc.get('___','0,150')) # unless a coin-specific one is given
             oc, uv = oc.split(',')
 
         # old-way, deprecated until we've migrated all into conf/overclock.yml, then will be removed
