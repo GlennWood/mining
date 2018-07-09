@@ -32,6 +32,8 @@ if [ "$?" == "1" ]; then
   update-grub
 fi
 
+[ "$1" = "NO_REBOOT_AT_THIS_TIME" ] && exit 0
+
   echo "A reboot is recommended before trying any actual overclocking at this time."
   echo "Hit ctrl-C to abort the reboot."
   for cnt in {10..0}
@@ -41,3 +43,13 @@ fi
   done
   echo -n -e   "\rRebooting ... "
   reboot
+
+
+# For ZCL-bminer - 540.40 Sol/s 288.41 Nonce/s
+# It takes a minute for bminer to start up, and the hashrate gradually increases from there.
+# It might be 10/15 minutes before bminer warms up ZCL to its fastest rate; from 133.77 to 292.95 to 387.76 to 443.16 to 501.74 to 529.74 (and crash)
+# So keep the OC=1300 and it runs longest at a very good hashrate (13% above whattomine's!)
+
+
+### Ref: https://www.reddit.com/r/EtherMining/comments/6wsf7o/new_amd_blockchain_optimized_drivers_availible/
+# "Got 0,7% improved hashrate with expanse DAG file and 7,6% with eth dag file "
