@@ -1,0 +1,49 @@
+#!/bin/bash
+
+echo "WARNING: Repo not maintained any longer!"
+exit 1
+
+INSTALLING CryptoPP-5.6.2 REQUIRES A BUILD FROM SOURCE, 5 (FIVE!) YEARS AFTER IT WAS WRITTEN, AND THIS DEPRECATED, NO-LONGER SUPPORTED MINER IS JUST NOT WORTH THE BOTHER!!!
+
+'''
+root@rig-Power:/opt/cpp-ethereum/build# cmake -DBUNDLE=miner ..                        
+-- ctest path: /usr/bin/ctest
+CMake Error at cmake/FindPackageHandleStandardArgs.cmake:138 (message):
+  Could NOT find CryptoPP: Found unsuitable version "5.6.1", but required is
+  at least "5.6.2" (found /usr/include)
+Call Stack (most recent call first):
+  cmake/FindPackageHandleStandardArgs.cmake:372 (_FPHSA_FAILURE_MESSAGE)
+  cmake/FindCryptoPP.cmake:107 (FIND_PACKAGE_HANDLE_STANDARD_ARGS)
+  cmake/EthDependencies.cmake:44 (find_package)
+  CMakeLists.txt:246 (include)
+
+
+-- Configuring incomplete, errors occurred!
+See also "/opt/cpp-ethereum/build/CMakeFiles/CMakeOutput.log".
+'''
+
+if [[ $EUID -ne 0 ]]
+then
+	echo "$0 requires elevated privileges."
+	sudo -H $0 $*
+	exit;
+fi
+
+### Ref: https://github.com/Genoil/cpp-ethereum/tree/110
+### Ref: https://github.com/ethereum/webthree-umbrella/issues/104#issuecomment-170549198 - 'libjson-rpc-cpp-dev' renamed 'libjsonrpccpp-dev'
+
+apt-get -y install software-properties-common
+add-apt-repository -y ppa:ethereum/ethereum
+apt-get update
+apt-get -y install git cmake libleveldb-dev libjsoncpp-dev libjsonrpccpp-dev libboost-all-dev ocl-icd-libopencl1 opencl-headers build-essential
+apt-get -y install libcrypto++-dev
+
+cd /opt
+  git clone https://github.com/Genoil/cpp-ethereum/
+  cd cpp-ethereum/
+  mkdir build
+  cd build
+    cmake -DBUNDLE=miner ..
+    make
+
+ln /opt/cpp-ethereum/build/ethminer/ethminer /usr/local/bin/genoil
