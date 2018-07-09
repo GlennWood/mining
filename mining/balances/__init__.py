@@ -237,12 +237,15 @@ def process(self, config, coin):
                             else:
                                 total = float(jsonObj['result']['balance_confirmed'])+float(jsonObj['result']['balance_pending'])
                                 if len(balanceUrls) > 1:
+                                    balanceUrl = balanceUrls[1].replace('$API_WALLET',secrets_json['api_wallet'])
                                     statsObj = getUrlToJsonObj(balanceUrls[1], source, ticker)
                                     result = statsObj['result']
                                     if 'error' in result:
                                         print('  BTC stats.provider '+result['error'])
                                     else:
-                                        total += float(statsObj['result']['stats'][0]['balance'])
+                                        for stat in statsObj['result']['stats']:
+                                            total += float(stat['balance'])
+                                
                                 printBalance(printSource, 'BTC', total)
                                 printSource = '  '
                         except json.decoder.JSONDecodeError as ex:

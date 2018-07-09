@@ -22,7 +22,9 @@ SOURCES:
   GDAX: 
     all: gdax-api
   NICEHASH:
-    BTC: https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY
+    BTC: 
+      - https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY
+      - https://api.nicehash.com/api?method=stats.provider&addr=$API_WALLET
   MININGPOOLHUB:
     all: https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=$API_KEY
   OPEN-LEDGER:
