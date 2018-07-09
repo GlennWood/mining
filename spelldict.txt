@@ -8,6 +8,7 @@ gpustat
 hardcode
 hashrate
 overclock
+regex
 sudo
 worksheet
 touchups

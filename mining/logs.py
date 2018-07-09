@@ -66,7 +66,10 @@ def load_logs_config():
 def initialize(self, config, coin):
     global TAIL_LOG_FILES, CMD_LOG_FILES
     sttyRows = config.get_sttyDims()[0]
-    CMD_LOG_FILES = ['/usr/bin/tail', '-f', '-n'+str(sttyRows-5)]
+    if config.QUERY:
+        CMD_LOG_FILES = ['cat']
+    else:
+        CMD_LOG_FILES = ['/usr/bin/tail', '-f', '-n'+str(sttyRows-5)]
     TAIL_LOG_FILES = { }
     load_logs_config()
     return config.ALL_MEANS_ONCE
@@ -81,10 +84,6 @@ def finalize(self, config, coin):
             scopes = None
         elif config.SCOPE in LOGS_CONFIG['SCOPES']:
             scopes = LOGS_CONFIG['SCOPES'][config.SCOPE]
-        elif config.SCOPE == 'speed':
-            scopes = [ r'.*(Total Speed[^,]*)', r'GPU #[0-9.,]*: [0-9.,]* [GMKgmk][Hh]z' , r'(GPU #[0-9]*: [^,]*, [0-9.,]* [GMKgmk][Hh]/s)' ]
-        #elif config.SCOPE == 'temp':
-        #    scopes = [ r' t=([0-9]*)C' ]
         else:
             scopes = [ config.SCOPE ]
     except:
@@ -98,7 +97,10 @@ def finalize(self, config, coin):
         try:
             proc = subprocess.Popen(CMD_LOG_FILES, stdout=subprocess.PIPE)
             while True:
-                line = proc.stdout.readline().decode().rstrip()
+                line = proc.stdout.readline().decode()
+                if not line:
+                    break
+                line = line.rstrip()
                 if scopes is None:
                     print(line)
                 else:
@@ -106,6 +108,7 @@ def finalize(self, config, coin):
                         match = re.findall(scope, line)
                         if match and len(match) > 0:
                             print(','.join(match))
+                            break
         except KeyboardInterrupt:
             if config.VERBOSE: print('KeyboardInterrupt: miners logs '+' '.join(config.arguments['COIN']))
         except:# os.ProcessLookupError: # strangely, subprocess fails this way after Ctrl-C sometimes; squelch annoying message.

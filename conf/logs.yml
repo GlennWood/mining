@@ -1,14 +1,19 @@
 SCOPES:
   speed:
-    - '.* [0-9.,]*[GMKgmk][Hh]/s'
+    - 'GPU .* [0-9.,]* *[GMKgmk][Hh]/s'
+    - 'accepted:.* [0-9.,]* *[GMKgmk][Hh]/s'
     - '.*(Total Speed[^,]*)'
-    - 'GPU #[0-9.,]*: [0-9.,]* [GMKgmk][Hh]z'
-    - '.*(GPU #[0-9]*: [^,]*, [0-9.,]* [GMKgmk][Hh]/s)'
     - '.*Total [0-9.]* Sol/s.*'
     - 'Speed: .*'
   temp:
     - ' t=([0-9]*)C'
+  date:
+    - '[0-9][0-9]/[0-9][0-9]/[0-9][0-9]-[0-9][0-9]:[0-9][0-9]:[0-9][0-9]'
+    - '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]'
   fail:
+    - 'restart miner'
+    - 'WATCHDOG: GPU error'
+    - 'illegal memory access'
     - '.*failure.*'
     - 'NVML: cannot get current temperature, error'
     - 'NVML API: failed to get device handle 1, error'
