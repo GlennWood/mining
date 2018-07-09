@@ -92,6 +92,8 @@ def process(self, config, coin):
                 balanceUrls = SOURCES_YML['SOURCES'][source][tickerKey]
                 if not isinstance(balanceUrls, list):
                     balanceUrls = [ balanceUrls ]
+                elif not balanceUrls:
+                    balanceUrls = ['']
                     
                 # Get the API keys/etc. from this source/ticker's miners_user_keys file
                 keyFile = miners_user_keys + source.lower()
@@ -111,12 +113,13 @@ def process(self, config, coin):
                     continue
     
                 balanceUrl = balanceUrls[0]
-                if config.VERBOSE and source not in OWN_READER and balanceUrl and balanceUrl not in OWN_READER:
+                if balanceUrl is None: balanceUrl = ''
+                if config.VERBOSE and source not in OWN_READER and balanceUrl not in OWN_READER:
                     print('URL: '+balanceUrl)
             
                 ### ####################################################### ###
                 # Parse the downloaded data according to each pool's format.
-                if balanceUrl and balanceUrl.startswith('MPOS:'):# or source == 'AIKAPOOL' or source == 'SUPRNOVA':
+                if balanceUrl.startswith('MPOS:'):# or source == 'AIKAPOOL' or source == 'SUPRNOVA':
                     try:
                         url = balanceUrl.split(':',1)[1]+'/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID' \
                                     .replace('$API_ID', secrets_json['api_id']).replace('$API_KEY', secrets_json['api_key'])
@@ -176,8 +179,25 @@ def process(self, config, coin):
                         ex = sys.exc_info()[0]
                         print(printSource+str(ex), file=sys.stderr)
                         print(printSource+"Is module coinbase installed? Do 'sudo "+config.PIP+" install coinbase'",file=sys.stderr)
-    
-                elif balanceUrl and balanceUrl == 'cryptopia':
+                
+                elif balanceUrl == 'exx-api':
+                    try:
+                        from exx.client import Client
+                        from exx.exceptions import ExxAPIException
+                        client = Client(secrets_json['api_key'], secrets_json['api_secret'], user_agent='')
+                        funds = client.get_balance()
+                        for key, val in funds['funds'].items():
+                            if val['balance'] != '0':
+                                if not scopeTickers or val['propTag'] in scopeTickers:
+                                    printBalance(printSource, val['propTag'], float(val['balance']))
+                                    printSource = '  '
+                    except ExxAPIException as ex:
+                        print(ex)
+                    except:
+                        ex = sys.exc_info()[0]
+                        print( "Unknown exception in EXX: "+str(ex), file=sys.stderr )
+ 
+                elif balanceUrl == 'cryptopia-api':
                     try:
                         from balances.cryptopia_api import Api
                         api_wrapper = Api(keyFile+'.key', None)
@@ -241,7 +261,7 @@ def process(self, config, coin):
                                 printBalance(printSource, account['currency'], balance)
                                 printSource = '  '
     
-                elif balanceUrl and balanceUrl == 'bitshares':
+                elif balanceUrl == 'bitshares-api':
                     #balances_bit_shares(config, secrets_json, source, scopeTickers)
                     from balances.bitsharesapi import BitSharesAccount
                     amounts = BitSharesAccount(secrets_json['account']).amounts
@@ -250,7 +270,7 @@ def process(self, config, coin):
                             printBalance(printSource, key, value)
                             printSource = '  '
     
-                elif balanceUrl and balanceUrl.startswith('yiimp:'): # aka UNIMINING, ZPOOL
+                elif balanceUrl.startswith('yiimp:'): # aka UNIMINING, ZPOOL
                     # Ref: https://www.unimining.net/api
                     try:
                         url = balanceUrl.split(':',1)[1]+'/api/walletEx?address=$API_ID'.replace("$API_ID", secrets_json['api_id'])

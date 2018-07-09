@@ -1,14 +1,8 @@
 from __future__ import print_function
-import subprocess
-import re
 import six
-GPUSTAT = True
-try:
-    from gpustat import GPUStatCollection
-except:
-    GPUSTAT = False
+from pynvml import NVMLError
 import sys
-from pynvml import *
+import importlib
 
 ### FIXME: sometimes a rig ignores a gpu, and 'miners devices' ought to report that:
 '''
@@ -29,89 +23,50 @@ def process(self, config, coin):
 
     devices = {}
 
-    ### Scan AMD debug data
-    '''
-    root@rig-19X:~# cat /sys/kernel/debug/dri/*/amdgpu_pm_info|grep 'GFX Clocks and Power:' -A9
-    GFX Clocks and Power:
-            2000 MHz (MCLK)
-            300 MHz (SCLK)
-            10.238 W (VDDC)
-            16.0 W (VDDCI)
-            39.18 W (max GPU)
-            39.84 W (average GPU)
-    
-    GPU Temperature: 63 C
-    GPU Load: 0 %
-
-root@rig-19X:~# cat /sys/kernel/debug/dri/*/amdgpu_pm_info|grep 'GFX Clocks and Power:' -A9
-GFX Clocks and Power:
-        2000 MHz (MCLK)
-        1411 MHz (SCLK)
-        113.157 W (VDDC)
-        16.0 W (VDDCI)
-        143.58 W (max GPU)
-        142.3 W (average GPU)
-
-GPU Temperature: 70 C
-GPU Load: 100 %
-
-    $> rocm-smi
-====================    ROCm System Management Interface    ====================
-================================================================================
- GPU  Temp    AvgPwr   SCLK     MCLK     Fan      Perf    SCLK OD
-  3   76.0c   144.222W 1411Mhz  2000Mhz  40.0%    auto      0%       
-  1   48.0c   38.209W  300Mhz   2000Mhz  16.86%   auto      0%       
-  4   74.0c   144.104W 1411Mhz  1750Mhz  21.96%   auto      0%       
-  2   74.0c   147.244W 1411Mhz  1750Mhz  23.92%   auto      0%       
-  0   N/A     N/A      N/A      N/A      0.0%     None      N/A      
-================================================================================
-====================           End of ROCm SMI Log          ====================
-    '''
-    
-    # Use rocm-smi to scan for AMD metrics
+    ### scan for AMD metrics using rocm-smi
     try:
-        proc = subprocess.Popen(['rocm-smi'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-        out, err = proc.communicate(None)
-        if err:
-            if config.VERBOSE: print("subprocess.Popen(['rocm-smi']) "+err)
-        else:
-            lines = out.decode().splitlines()
-            for line in lines:
-                # 'GPU  Temp    AvgPwr   SCLK     MCLK     Fan      Perf    SCLK OD'
-                # ' 3   76.0c   144.222W 1411Mhz  2000Mhz  40.0%    auto      0%'
-                regex = re.compile(r'\s*(\d\d*)\s*([0-9]*)[.][0-9]*c\s*([0-9]*)[.][0-9]*W\s*([0-9.]*)Mhz\s*([0-9.]*)Mhz\s*([0-9.]*)%(.*)')
-                #([0-9.]*)c\s*([0-9.]*)W\s*([0-9.]*)Mhz\s*([0-9.]*)Mhz\s*([0-9.]*)%\s*(\S*)\s*([0-9.]*)c%.*', re.DOTALL)
-                #regex = re.compile(r'\s*(\d{1-2})\s*([0-9.]*)c\s*([0-9.]*)W\s*([0-9.]*)Mhz\s*([0-9.]*)Mhz\s*([0-9.]*)%\s*(\S*)\s*([0-9.]*)c%.*', re.DOTALL)
-                match = regex.match(line)
-                if match is not None: 
-                    devices['AMD'+str(match.group(1))] = [match.group(2),match.group(3),match.group(4),match.group(5),match.group(6)]#,match.group(3),match.group(4),match.group(5),match.group(6)]
-            if config.VERBOSE:
-                print(str(len(devices))+" AMD devices found.")
+        sys.path.append('/opt/rocm/bin')
+        rocm_smi = importlib.import_module('rocm_smi')
+        for device in sorted(rocm_smi.listDevices()):
+            clock = rocm_smi.getCurrentClock(device, 'mem', 'freq')
+            if clock is None:
+                continue
+            clock = clock.replace('Mhz','')
+            temp = rocm_smi.getSysfsValue(device, 'temp')
+            power = rocm_smi.getSysfsValue(device, 'power').split('.')[0]
+            vbios = rocm_smi.getSysfsValue(device, 'vbios')
+            gpuid = rocm_smi.getSysfsValue(device, 'id')
+            fanspeed = rocm_smi.getFanSpeed(device)
+            devices['AMD'+device[4:]] = [ str(temp).replace('.0',''), power, clock, vbios, fanspeed, gpuid ]
+    except ImportError as ex:
+        if config.PLATFORM == 'AMD' or config.PLATFORM == 'BTH':
+            print('ImportError: '+str(ex),file=sys.stderr)
+            print("             Try 'sudo apt-get -y install rocm-amdgpu-pro'",file=sys.stderr)
     except OSError as ex:
         if config.VERBOSE:
             if str(ex) and str(ex).find('[Errno 2] No such file or directory') < 0:
-                print(ex)
+                print(ex,file=sys.stderr)
             else:
-                print("Cannot discover AMD devices, since 'rocm-smi' is not installed. See 'install/install-amd-pro' for instructions.")
+                print("Cannot discover AMD devices, since 'rocm-smi' is not installed. See 'install/install-amd-pro' for instructions.",file=sys.stderr)
 
     ### Scan for Nvidia using gpustats.GPUStatCollection
     gpu_stats = [ ]
-    if GPUSTAT:
-        try:
-            gpu_stats = GPUStatCollection.new_query()     
-            if config.VERBOSE:
-                print(str(len(gpu_stats))+" Nvidia devices found.")
-        #except NVMLError_GpuIsLost as ex:
-        except NVMLError as ex:
-            print ('FAIL: '+str(ex))
-        except:
-            ex = sys.exc_info()
-            if ex.value == None or config.PLATFORM != 'AMD':
-                print("gpustat for Nvidia GPUs is not installed.")
-    elif config.VERBOSE:
-        pip = 'pip2'
-        if six.PY3: pip = 'pip3'
-        print("Cannot discover Nvidia devices, since 'gpustat' is not installed. Use '"+pip+" install gpustat' to install it.",file=sys.stderr)
+    try:
+        from gpustat import GPUStatCollection
+        gpu_stats = GPUStatCollection.new_query()
+        if config.VERBOSE:
+            print(str(len(gpu_stats))+" Nvidia devices found.")
+    #except NVMLError_GpuIsLost as ex:
+    except NVMLError as ex:
+        if str(ex) != 'Driver Not Loaded':
+            print('FAIL: '+str(ex), file=sys.stderr)   
+        elif ex.value == None or config.PLATFORM == 'NVI' or config.PLATFORM == 'BTH':
+            pip = 'pip2'
+            if six.PY3: pip = 'pip3'
+            print("gpustat for Nvidia GPUs is not installed.\nUse '"+pip+" install gpustat' to install it.",file=sys.stderr)
+    except:
+        ex = sys.exc_info()
+        print(ex,file=sys.stderr)
 
     idx = 0
     for gpu in gpu_stats:
@@ -123,8 +78,21 @@ GPU Load: 100 %
     total_amd_watts = 0
     for device in sorted(devices):
         if 'AMD' in device:
-            print(device+' '+devices[device][0]+'C '+devices[device][1]+'W '+devices[device][3]+'Mhz')
-            total_amd_watts += int(devices[device][1])
+            dev = devices[device]
+            verbose = ''
+            if dev[1]:
+                power = int(dev[1])
+                total_amd_watts += power
+                power = '%3iW '%(power)
+            else:
+                power = ' N/A '
+            if dev[2]:
+                speed = '%4iMhz'%(int(dev[2]))
+            else:
+                speed = '  N/A '
+            if config.VERBOSE:
+                verbose = ' ' + str(int(dev[4]))+'% ' + dev[3] + ' (' + dev[5] + ') '
+            print(device+' '+dev[0]+'C '+power+speed+verbose)
         else:
             uuid = ''
             if config.VERBOSE:
@@ -138,9 +106,10 @@ GPU Load: 100 %
             if watts: 
                 total_nvi_watts += int(watts)
             idxNVI += 1
-    if total_nvi_watts != 0: print("TOTAL: "+str(total_nvi_watts)+' watts (NVI)')
-    if total_amd_watts != 0: print("TOTAL: "+str(total_amd_watts)+' watts (AMD)')
-    print("TOTAL: "+str(total_nvi_watts+total_amd_watts)+' watts')
+    total_watts = total_nvi_watts + total_amd_watts
+    if total_nvi_watts != 0 and total_nvi_watts != total_watts: print("TOTAL: "+str(total_nvi_watts)+' watts (NVI)')
+    if total_amd_watts != 0 and total_amd_watts != total_watts: print("TOTAL: "+str(total_amd_watts)+' watts (AMD)')
+    print("TOTAL: "+str(total_watts)+' watts')
 
     return config.ALL_MEANS_ONCE
 

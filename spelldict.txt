@@ -2,6 +2,7 @@ coinbase
 cryptopia
 downloaded
 errant
+fanspeed
 gdax
 gpustat
 hardcode

@@ -12,19 +12,21 @@ SOURCES:
     ETH:
     LTC:
   COINBASE:
-    all:
+    all: coinbase-api
   CRYPTOBRIDGE:
-    all: bitshares
+    all: bitshares-api
   CRYPTOPIA:
-    all: cryptopia
+    all: cryptopia-api
+  EXX: 
+    all: exx-api
   GDAX: 
-    all: gdax
+    all: gdax-api
   NICEHASH:
     BTC: https://api.nicehash.com/api?method=balance&id=$API_ID&key=$API_KEY
   MININGPOOLHUB:
     all: https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=$API_KEY
   OPEN-LEDGER:
-    all: bitshares
+    all: bitshares-api
   SUPRNOVA:
     HUSH: MPOS:https://hush.suprnova.cc
     KMD: MPOS:https://kmd.suprnova.cc
@@ -61,9 +63,9 @@ NICEHASH_TO_TICKER:
   'Nicehash-Blake (14r)': NH-BL
 
 OWN_READER:
-  bitshares: bitshares
-  cryptopia: cryptopia
-  gdax: gdax
+  bitshares-api: bitshares-api
+  cryptopia-api: cryptopia-api
+  gdax-api: gdax-api
   UNIMINING: yiimp
   yiimp: yiimp
   MPOS: MPOS
