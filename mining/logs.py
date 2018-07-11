@@ -67,9 +67,9 @@ def initialize(self, config, coin):
     global TAIL_LOG_FILES, CMD_LOG_FILES
     sttyRows = config.get_sttyDims()[0]
     if config.QUERY:
-        CMD_LOG_FILES = ['cat']
+        CMD_LOG_FILES = ['unbuffer', 'cat']
     else:
-        CMD_LOG_FILES = ['/usr/bin/tail', '-f', '-n'+str(sttyRows-5)]
+        CMD_LOG_FILES = ['unbuffer', '/usr/bin/tail', '-f', '-n'+str(sttyRows-5)]
     TAIL_LOG_FILES = { }
     load_logs_config()
     return config.ALL_MEANS_ONCE
@@ -108,6 +108,7 @@ def finalize(self, config, coin):
                         match = re.findall(scope, line)
                         if match and len(match) > 0:
                             print(','.join(match))
+                            sys.stdout.flush()
                             break
         except KeyboardInterrupt:
             if config.VERBOSE: print('KeyboardInterrupt: miners logs '+' '.join(config.arguments['COIN']))
