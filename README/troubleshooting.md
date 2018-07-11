@@ -203,3 +203,41 @@ J. "an illegal memory access was encountered."
     Cuda error in func 'cuda_check_cpu_setTarget' at line 41 : an illegal memory access was encountered.
     Cuda error in func 'cuda_check_cpu_setTarget' at line 41 : driver shutting down.
     Cuda error in func 'cuda_check_cpu_setTarget' at line 41 : driver shutting down.
+
+K. `WARNING: Unable to use the nvidia-cfg library to query NVIDIA hardware.
+`
+Haven't figured this out, so cannot use my new GTX 1080Ti since it won't be recognized by Nvidia drivers when it's plugged in.
+
+[This](https://devtalk.nvidia.com/default/topic/1031824/cuda-setup-and-installation/no-gui-ubuntu-16-04-4-4-0-119-generic-quadro-k5200-tesla-k40c-driver-version-387-26/) might help (probably not).
+
+    root@rig-Power:~# sudo dmesg |grep NVRM
+    [    1.238054] NVRM: loading NVIDIA UNIX x86_64 Kernel Module  396.26  Mon Apr 30 18:01:39 PDT 2018 (using threaded interrupts)
+    [   12.180171] NVRM: Xid (PCI:0000:0c:00): 32, Channel ID 00000000 intr 80040000
+    [   16.185746] NVRM: RmInitAdapter failed! (0x26:0xffff:1123)
+    [   16.197194] NVRM: rm_init_adapter failed for device bearing minor number 1
+    ...
+    and lot's more
+
+`nouveau` is removed.
+
+    root@rig-Power:~# lsmod |grep -i nouv
+    root@rig-Power:~#
+
+`lspci` sees it.
+
+	root@rig-Power:~# lspci | grep VGA
+	01:00.0 VGA compatible controller: NVIDIA Corporation Device 1b81 (rev a1)
+	0c:00.0 VGA compatible controller: NVIDIA Corporation Device 1b06 (rev a1)
+	0d:00.0 VGA compatible controller: NVIDIA Corporation Device 1b81 (rev a1)
+	0e:00.0 VGA compatible controller: NVIDIA Corporation Device 1b82 (rev a1)
+	0f:00.0 VGA compatible controller: NVIDIA Corporation Device 1b82 (rev a1)
+	root@rig-Power:~# 
+
+`nvidia-smi -L` does not see it (and takes a long time to not see it).
+
+	root@rig-Power:~# nvidia-smi -L
+	GPU 0: GeForce GTX 1070 (UUID: GPU-ce1df382-1fb6-119e-5048-15c524f28cf8)
+	GPU 1: GeForce GTX 1070 (UUID: GPU-701dd1b3-98d5-831d-2c29-631381e7adf3)
+	GPU 2: GeForce GTX 1070 Ti (UUID: GPU-d2b65de5-f788-5516-4ce2-4d108f2366c3)
+	GPU 3: GeForce GTX 1070 Ti (UUID: GPU-0547b4d4-3354-32a0-eb63-e6013ca68ab8)
+	root@rig-Power:~# 

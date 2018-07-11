@@ -5,8 +5,8 @@ DEVICES:
     Cohorts:
       - GPU-0547b4d4-3354-32a0-eb63-e6013ca68ab8
       - GPU-d2b65de5-f788-5516-4ce2-4d108f2366c3
-      - GPU-048ac11c-24be-8e3f-059e-2028689fb9cb,rig-Nvidia
-      - GPU-7cac86c5-b598-6294-149c-a53e0df86019,rig-Nvidia
+      - GPU-048ac11c-24be-8e3f-059e-2028689fb9cb
+      - GPU-7cac86c5-b598-6294-149c-a53e0df86019
     OverClock:
       ___: 1150,150
       ETH: 1150,150
@@ -23,7 +23,7 @@ DEVICES:
       NIST5: 50 Mh/s
       Xevan: 3.6 Mh/s
 
-  GeForce-GTX-1070:
+  GeForce GTX 1070:
     Type: GeForce GTX 1070
     Cohorts:
       - GPU-701dd1b3-98d5-831d-2c29-631381e7adf3
@@ -32,10 +32,10 @@ DEVICES:
       - GPU-990059da-5633-1178-e4fe-f1f7fc50ad61
       - GPU-34789a5a-7c07-aab5-8e6f-871daf9438f0
       - GPU-ef2d1844-ef45-8b5c-e0a8-e8ed8533284f
-      - GPU-3fbd9994-bdfc-dc17-45ec-e691f3ad4a17,rig-Nvidia
+      - GPU-3fbd9994-bdfc-dc17-45ec-e691f3ad4a17
     OverClock:
       ___: 1100,140
-      ETH: 1100,140
+      ETH: 1000,160
       RVN: 1000,140
       NH-ET: 1000,160
     Speed:
@@ -49,7 +49,7 @@ DEVICES:
       NIST5: 44 Mh/s
       Xevan: 3 Mh/s
 
-  GeForce-GTX-1070:
+  GPU-6e63cead-1fa3-845c-0740-a6b6e47baaf7:
     Type: GeForce GTX 1070
     Cohorts:
       - GPU-6e63cead-1fa3-845c-0740-a6b6e47baaf7
@@ -99,8 +99,6 @@ RIGS:
   rig-Nvidia:
     sudo-nvidia-settings: True
   rig-Power:
-    sudo-nvidia-settings: True
+    sudo-nvidia-settings: False
   rig-Titan:
     sudo-nvidia-settings: False
-
-      

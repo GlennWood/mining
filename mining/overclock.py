@@ -52,7 +52,8 @@ def process(self, config, coin, quiet=False):
     normalizedDevices = read_overclock_yml()
     sudo_nvidia_settings = get_sudo_nvidia_settings(config)
 
-    xauthority = '/var/lib/lightdm/.Xauthority'
+    xauthority = '~/.Xauthority'
+    if sudo_nvidia_settings: xauthority = '/var/lib/lightdm/.Xauthority'
     settings = 'DISPLAY=:0 XAUTHORITY='+xauthority+' '+sudo_nvidia_settings+'nvidia-settings -c :0'
     nvidia_pwrs = { }
     oper = '-a'
@@ -115,15 +116,15 @@ def process(self, config, coin, quiet=False):
     else:
         overclock_filename = os.getenv('LOG_RAMDISK','/var/local/ramdisk')+'/overclock.sh'
         if VOLATILE and not config.FORCE and os.path.isfile(overclock_filename) and filecmp.cmp(overclock_dryrun, overclock_filename):
-            timestamp = time.ctime(os.path.getctime(overclock_filename))
             if not config.QUICK and not config.QUERY:
+                timestamp = time.ctime(os.path.getctime(overclock_filename))
                 print("Overclock settings are identical to those already set at '"+timestamp+"', so we are keeping them (use -f to force).")
         else:
             os.rename(overclock_dryrun, overclock_filename)
-            if config.VERBOSE:
-                with open(overclock_filename, 'r') as fh:
-                    print(fh.read())
             os.system("/bin/bash "+overclock_filename)
+        if config.VERBOSE:
+            with open(overclock_dryrun, 'r') as fh:
+                print(fh.read())
 
     if os.path.isfile(overclock_dryrun): os.remove(overclock_dryrun)
     return config.ALL_MEANS_ONCE
