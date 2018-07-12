@@ -1,5 +1,7 @@
 
 SOURCES:
+  2MINERS:
+    ETP: OEP:https://etp.2miners.com
   ANORAK:
     ETH(coinbase): https://etc.anorak.tech/api/accounts/$API_ID
     ETC(binance): https://etc.anorak.tech/api/accounts/$API_ID
@@ -29,6 +31,8 @@ SOURCES:
     all: https://miningpoolhub.com/index.php?page=api&action=getuserallbalances&api_key=$API_KEY
   OPEN-LEDGER:
     all: bitshares-api
+  SANDPOOL:
+    ETP: OEP:http://etp.sandpool.org
   SUPRNOVA:
     HUSH: MPOS:https://hush.suprnova.cc
     KMD: MPOS:https://kmd.suprnova.cc
@@ -43,7 +47,7 @@ SOURCES:
     GBX: yiimp:https://www.zpool.ca
 
 SCOPING:
-  MINING: [ ANORAK, AIKAPOOL, MININGPOOLHUB, NICEHASH, SUPRNOVA, UNIMINING, ZPOOL ]
+  MINING: [ 2MINERS, ANORAK, AIKAPOOL, MININGPOOLHUB, NICEHASH, SANDPOOL, SUPRNOVA, UNIMINING, ZPOOL ]
   EXCHANGING: [ BLEUTRADE, CRYPTOPIA, CRYPTOBRIDGE, OPEN-LEDGER ]
   BANKING: [ GDAX ]
 

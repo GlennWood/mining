@@ -50,9 +50,9 @@ def process(self, config, coin):
                 sourcesToDo.append(src+':'+srcs[1])
         elif src not in SOURCES_YML['SOURCES']:
             if src not in SCOPING:
-                print("'"+src+"' is an unknown source, expecting one of "+
-                      ','.join(sorted(SOURCES.keys())) + ' or ' +
-                      ','.join(sorted(SCOPING.keys())),
+                print("'"+src+"' is an unknown source, expecting one or more of "+
+                      ' '.join(sorted(SOURCES.keys())) + ' or ' +
+                      ' '.join(sorted(SCOPING.keys())),
                       file=sys.stderr)
             else:
                 for src_ in SCOPING[src]:
@@ -117,9 +117,33 @@ def process(self, config, coin):
                 if config.VERBOSE and source not in OWN_READER and balanceUrl not in OWN_READER:
                     print('URL: '+balanceUrl)
             
-                ### ####################################################### ###
-                # Parse the downloaded data according to each pool's format.
-                if balanceUrl.startswith('MPOS:'):# or source == 'AIKAPOOL' or source == 'SUPRNOVA':
+                ### ######################################################### ###
+                ## Parse the downloaded data according to each pool's format. ###
+                ### # # # # # # # # # # # # # # # # # # # # # # # # # # # # # ###
+                
+                if balanceUrl.startswith('OEP:'):# Powered by "open-ethereum-pool"
+                    try:
+                        url = balanceUrl.split(':',1)[1]+'/api/accounts/$API_WALLET' \
+                                    .replace('$API_WALLET', secrets_json['api_wallet'])
+                        jsonObj = getUrlToJsonObj(url, source, ticker)
+                        total = 0
+                        if 'sumrewards' in jsonObj: # 2miners version
+                            total = jsonObj['sumrewards'][-1]['reward'] / 100000000
+                        elif 'stats' in jsonObj: # sandpool version
+                            stats = jsonObj['stats']
+                            unpaid_balance = stats['balance']
+                            pending_balance = stats['pending']
+                            paid = stats['paid']
+                            immature = stats['immature']
+                            total = (unpaid_balance+pending_balance+paid+immature) / 100000000
+                        printBalance(printSource, ticker, float(total))
+                        printSource = '  '
+                    except Exception as ex:
+                        print (ex)
+                        print(printSource+ticker+' ERROR: '+str(jsonObj))
+                        printSource = '  '
+        
+                elif balanceUrl.startswith('MPOS:'):# or source == 'AIKAPOOL' or source == 'SUPRNOVA':
                     try:
                         url = balanceUrl.split(':',1)[1]+'/index.php?page=api&action=getuserbalance&api_key=$API_KEY&id=$API_ID' \
                                     .replace('$API_ID', secrets_json['api_id']).replace('$API_KEY', secrets_json['api_key'])
@@ -236,6 +260,10 @@ def process(self, config, coin):
                                 print('  BTC ERROR: %s'%(jsonObj['result']['error']))
                             else:
                                 total = float(jsonObj['result']['balance_confirmed'])+float(jsonObj['result']['balance_pending'])
+                                if True:
+                                    printBalance(printSource, 'BTC', total)
+                                    printSource = '  '
+                                    total = 0
                                 if len(balanceUrls) > 1:
                                     balanceUrl = balanceUrls[1].replace('$API_WALLET',secrets_json['api_wallet'])
                                     statsObj = getUrlToJsonObj(balanceUrls[1], source, ticker)
@@ -375,8 +403,12 @@ def balances_bit_shares(config, secrets_json, source, scopeTickers):
 
 ### ###########################################################
 def getUrlToJsonObj(balanceUrl, source='source', ticker='all'):
-    jsonStr = getUrlToStr(balanceUrl, source, ticker, encoding='json')
-    return json.loads(jsonStr)
+    try:
+        jsonStr = getUrlToStr(balanceUrl, source, ticker, encoding='json')
+        return json.loads(jsonStr)
+    except Exception as ex:
+        print (ex)
+        return None
 
 ### ###############################################################################
 def getUrlToStr(balanceUrl, source='source', ticker='ticker', encoding='html'):
