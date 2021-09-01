@@ -1,5 +1,4 @@
 from __future__ import print_function
-import xlrd
 import re
 import os
 import sys
@@ -7,13 +6,16 @@ import jprops
 import subprocess
 import socket
 import six
+import yaml
+import warnings
+from openpyxl import load_workbook
+
 try:
     from collections import ChainMap
 except:
     # Somebody goofed when they deployed ChainMap for Python2.
     import importlib
     importlib.import_module('chainmap')
-import yaml
 
 class Config(object):
 
@@ -31,7 +33,7 @@ class Config(object):
     WIDE_OUT = False
     FORCE    = False
     PIP      = 'pip2'
-    HOSTNAME = os.getenv('HOSTNAME','').upper()
+    HOSTNAME = None#os.getenv('HOSTNAME','').upper()
     arguments = {}
 
     SHEETS = {
@@ -102,29 +104,32 @@ class Config(object):
     def setup_config_dicts(self):
 
         # Put Stats sheet into stats_dict
-        workbook = xlrd.open_workbook(self.MINERS_XLSX)
-        for sheet_name in workbook.sheet_names():
-            sheet = workbook.sheet_by_name(sheet_name)
+        warnings.simplefilter("ignore")
+        workbook = load_workbook(filename = self.MINERS_XLSX)#, read_only=True)
+        warnings.resetwarnings()
+
+        for sheet_name in workbook.sheetnames:
+            sheet = workbook[sheet_name]
             self.SHEETS[sheet_name] = {}
-            sheetNcols = sheet.ncols
+            sheetNcols = sheet.max_column
             try:
-                keys = [sheet.cell(0, col_index).value for col_index in range(0,sheetNcols)]
+                keys = [sheet.cell(1, col_index).value for col_index in range(1,sheetNcols)]
             except IndexError:
                 sheetNcols = len(keys)
                 if self.VERBOSE:
                     print('IndexError(xlrd): '+sheet_name+'[0]'+'.ncols='+str(sheet.ncols)+' >= '+str(sheetNcols))
             prev_key = None
-            for row_index in range(1, sheet.nrows):
+            for row_index in range(2, sheet.max_row):
                 try:
-                    row = {keys[col_index]: sheet.cell(row_index, col_index).value
-                           for col_index in range(sheetNcols)}
+                    row = {}
+                    for col_index in range(1,sheetNcols):
+                        row[keys[col_index-1]]=sheet.cell(row_index,col_index)
                 except IndexError:
                     if self.VERBOSE:
                         print('IndexError(xlrd): '+sheet_name+'['+str(row_index)+']'+'.ncols='+str(sheet.ncols)+' >= '+str(len(row)+1))
-
                 if sheet_name == 'Globals': # Put Globals into substitution context
                     key = row['KEY']
-                    if key != '' and key.find('-') < 0:
+                    if key and key.value and key.value.find('-') < 0:
                         self.GLOBALS[key] = str(row['VALUE'])
                 elif sheet_name == 'CoinMiners': # CoinMiners' sheet is handled differently
                     row, prev_key = self.setup_CoinMiners_dict(row, prev_key)
@@ -132,8 +137,8 @@ class Config(object):
                     self.SHEETS[sheet_name] = self.pivot_sheet(self.SHEETS[sheet_name], row, keys)
                 else:
                     key = row[keys[0]]
-                    if key:
-                        self.SHEETS[sheet_name][key.upper()] = row
+                    if key and key.value:
+                        self.SHEETS[sheet_name][key.value.upper()] = row
 
         if self.ALL_COINS: 
             self.arguments['COIN'] = [x.upper() for x in sorted(list(self.SHEETS['CoinMiners'].keys()))]   
@@ -162,11 +167,11 @@ class Config(object):
     #   2a. (this MNEMONICS capability is actually facilitated in the start option-module)
     #
     def setup_CoinMiners_dict(self, row, prev_key):
-        if prev_key is None and row['COIN'].strip():
-            prev_key = row['COIN'].upper()
+        if prev_key is None and row['COIN'] and row['COIN'].value.strip():
+            prev_key = row['COIN'].value.upper()
         # The CoinMiners sheet has a special way of enabling a wider OPTIONS cell
         row['OPTIONS']='' # There is no OPTIONS column native to the CoinMiners sheet
-        if not row['COIN'].strip():
+        if row['COIN'].value and not row['COIN'].value.strip():
             self.SHEETS['CoinMiners'][prev_key]['OPTIONS'] = row['MINER']
             return row, prev_key
         # Apply the '--url-port' command-line option, if exists.
@@ -174,12 +179,13 @@ class Config(object):
             row['URL_PORT'] = self.URL_PORT
         # Provision $URL and $PORT as alternatives to $URL_PORT
         regex = re.compile(r'(.*)[:]([0-9]{4,5})')
-        match = regex.match(row['URL_PORT'])
+        match = regex.match(row['URL_PORT'].value) if row['URL_PORT'].value else None
         if match != None:
             row['URL'] = match.group(1)
             row['PORT'] = match.group(2)
         # Replace $USER_PSW, and/or $USER and $PSW, with configured value(s)
-        USER_PSW = row['USER_PSW'].split(':')
+        user_psw = row['USER_PSW'].value if  row['USER_PSW'].value else ""
+        USER_PSW = user_psw.split(':')
         if len(USER_PSW) > 1:
             row['USER'] = USER_PSW[0]
             row['PSW']  = USER_PSW[1]
@@ -187,11 +193,11 @@ class Config(object):
             row['USER'] = row['USER_PSW']
             row['PSW']  = ''
 
-        prev_key = row['COIN'].upper()
+        prev_key = row['COIN'].value.upper() if row['COIN'].value else ""
 
         #if prev_key: 
         # Index each coinMiner under the applicable platform, AMD, NVI or BTH
-        plat = row['PLAT']
+        plat = row['PLAT'].value
         if plat is None or plat == '': plat = 'BTH'
         if plat == 'BTH':
             for key in self.PLAT_COINS:
@@ -251,7 +257,7 @@ class Config(object):
     def load_sources_yml():
         with open("/opt/mining/conf/sources.yml", 'r') as stream:
             try:
-                SOURCES_X = yaml.load(stream)
+                SOURCES_X = yaml.load(stream, Loader=yaml.FullLoader)
             except yaml.YAMLError as exc:
                 print(exc)
                 sys.exit(1)

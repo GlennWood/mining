@@ -1,9 +1,9 @@
 from __future__ import print_function
-from lxml import html
 import sys
 import requests
 import subprocess
-### Ref: http://python-future.org/compatible_idioms.html
+from lxml import html
+### REF: http://python-future.org/compatible_idioms.html
 from builtins import range
 
 NicehashToTicker = { }
@@ -43,7 +43,7 @@ def process(self, config, coin):
                 continue
         else:
             coinName = tr.xpath("td[1]/div[2]/a/text()")
-            if len(coinName) is 0:
+            if len(coinName) == 0:
                 continue
             coinName, ticker = coinName[0].split('(')
             ticker = ticker.replace(')','')
@@ -78,7 +78,7 @@ def generateUrl(config, cKey):
         return config.URL_PORT
 
     column = config.SHEETS['WhatToMine'][cKey]
-    if column['URL'] and not ( config.URL_PORT and config.URL_PORT == 'calc'):
+    if column['URL'] and not ( config.URL_PORT and config.URL_PORT == 'calc' ):
         url = column['URL']
         if config.VERBOSE: print(url, file=sys.stderr)
     else:
@@ -94,9 +94,9 @@ def generateUrl(config, cKey):
 
 # Handle 'whattomine' operation within the given --scope
 def process_scope(self, config, coin):
-    sttyColumns, maxRigNameLen = config.get_sttyColumnsMaxRigNameLen()
+    sttyRows, maxRigNameLen = config.get_sttyColumnsMaxRigNameLen()
     maxRigNameLen += 3
-    totals = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    totals = [0]*sttyRows #[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
     actualMaxRslts = 0
     for key in sorted(config.ANSIBLE_HOSTS):

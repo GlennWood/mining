@@ -3,7 +3,7 @@
 """Usage: miners.py OPERATION [-fghlqrXPQv] [--gpus GPUS | --platform typ] [--url-port UL] 
                 [--query] [--scope scope] [--force] [--dryrun] [COIN] ...
 
-Apply OPERATION to the mining of designated COINs w
+Apply OPERATION to the mining of designated COINs
 
 Arguments:
   OPERATION  start | stop | swap | status | list | logs | et.al.
@@ -34,7 +34,6 @@ import sys
 
 import config
 import importlib
-
 ### Ref: http://docopt.org/
 ### Ref: https://github.com/docopt/docopt
 from docopt import docopt
@@ -88,9 +87,12 @@ def exec_operation_method(OP, METH):
         for ticker in arguments['COIN']:
             if config.I_AM_FORK: break
 
-            coin = tickerInCoinMiners(config, METH, ticker.upper(), OP)
-            if coin is None:
-                return False
+            if OP != 'whattomine':
+                coin = tickerInCoinMiners(config, METH, ticker.upper(), OP)
+                if coin is None:
+                    return False
+            else:
+                coin = None
             module =  importlib.import_module(OP)
             method = getattr(module, METH)
             RC = method(module, config, coin)
