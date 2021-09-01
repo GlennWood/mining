@@ -1,3 +1,4 @@
+ansible
 coinbase
 cryptopia
 downloaded
@@ -12,3 +13,4 @@ regex
 sudo
 worksheet
 touchups
+whattomine

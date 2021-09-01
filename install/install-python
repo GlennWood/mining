@@ -7,9 +7,12 @@
 		exit;
 	fi
 
+python -m ensurepip --upgrade
+
 ### Ref: https://www.saltycrane.com/blog/2010/02/how-install-pip-ubuntu/
 apt-get -y install python-pip python-dev build-essential 
 pip install --upgrade pip 
+fi
 
 pip install docopt
 #does not work reliably pip install openpyxl

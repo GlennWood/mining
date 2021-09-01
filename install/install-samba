@@ -13,7 +13,7 @@ apt-get update
 apt-get -y install samba
 
 samba_password=$(cat /home/$MINERS_USER/.ssh/miners_user.psw)
-smbpasswd -s -a albokiadt << PSW
+smbpasswd -s -a $MINING_USER << PSW
 $samba_password
 $samba_password
 PSW
@@ -22,7 +22,7 @@ cat >> /etc/samba/smb.conf << SMB_CONF
 [mining-${RIG_TAG}]
 path = /opt/mining
 available = yes
-valid users = albokiadt
+valid users = $MINING_USER
 read only = no
 browseable = yes
 public = yes

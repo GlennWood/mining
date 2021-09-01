@@ -127,10 +127,10 @@ Ctrl-C ->  '16:54:03|ethminer|  Shutting down miners...'
 def process(self, config, arguments):
     cmd = '/usr/bin/tail -f /var/log/mining/monitor.log'
     if arguments.get('-X'):
-        print cmd
+        print(cmd)
     else:
         try:
             subprocess.call(['tail', '-f', '/var/log/mining/monitor.log'])
         except KeyboardInterrupt:
-            if config.VERBOSE: print 'exit: monitor-miners logs /var/log/mining/monitor.log'
+            if config.VERBOSE: print('exit: monitor-miners logs /var/log/mining/monitor.log')
     return 0

@@ -10,10 +10,10 @@ Get GlennWood/mining files
 
 * Clone GlennWood/mining to `/opt/mining`.
 
-        cd /opt
-	     apt -y install git
-	     git clone https://github.com/GlennWood/mining.git
-        chown -R $MINERS_USER mining/
+	cd /opt
+	apt -y install git
+	git clone https://github.com/GlennWood/mining.git
+	chown -R $MINERS_USER mining/
 
 * Setup initial miners-user account
 
@@ -36,26 +36,27 @@ If you are using Nvidia GPUs ...
 
 1. Do the first phase of Nvidia driver install:
 
-        cat >> /etc/environment << NVIDIA_CUDA_VERSIONS
-        NVIDIA_VERSION=396.26
-        CUDA_VERSION=9.2.88
-        NVIDIA_CUDA_VERSIONS
-        source /etc/environment
-        
-        $MINING_ROOT/install/install-nvidia-1st $NVIDIA_VERSION
+    cat >> /etc/environment << NVIDIA_CUDA_VERSIONS
+    NVIDIA_VERSION=396.26
+    CUDA_VERSION=9.2.88
+    NVIDIA_CUDA_VERSIONS
+    source /etc/environment
+    
+    $MINING_ROOT/install/install-nvidia-1st $NVIDIA_VERSION
 
 2. `install-nvidia-1st` will reboot the rig. Follow that up with the second phase:
 
-        $MINING_ROOT/install/install-nvidia-2nd
+    $MINING_ROOT/install/install-nvidia-2nd
     which also reboots your rig when it is done.
 
 3. Install CUDA 9.2.88
 
-        $MINING_ROOT/install/install-cuda
+    $MINING_ROOT/install/install-cuda
 
 4. Setup overclocking capability:
 
-        $MINING_ROOT/install/overclock-1st
+    $MINING_ROOT/install/overclock-1st
+
    This will reboot your rig when it is done (which is quick).
 
 Install AMD Pro

@@ -20,11 +20,10 @@ Options:
 from __future__ import print_function
 import sys
 import os
-### Ref: http://python-future.org/compatible_idioms.html
+### REF: http://python-future.org/compatible_idioms.html
 from builtins import range
-
-from MinersInstaller import MinersInstaller
 from docopt import docopt
+from MinersInstaller import MinersInstaller
 import yaml
 
 RC = 0

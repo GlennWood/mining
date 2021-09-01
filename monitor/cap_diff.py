@@ -1,7 +1,4 @@
-#!/usr/bin/python
-
-### Ref: https://docs.python.org/2/howto/urllib2.html
-import urllib2
+#!/usr/bin/env python3
 
 try:
     import xml.etree.cElementTree as ET
@@ -13,6 +10,7 @@ import datetime
 import os
 import sys
 import subprocess
+import urllib
 DATA_DIR='../data/'
 
 ## This method is for invocation by monitor-miners.py
@@ -39,8 +37,8 @@ yesterday = yesterday.strftime("%Y%m%d")
 # Get today's CoinMarketCap report (or reuse one already downloaded)
 todaysCoinmarketcapHtmlname = DATA_DIR+'coinmarketcap-'+today+'.html'
 if not os.path.isfile(todaysCoinmarketcapHtmlname):
-    print "Fetching " + todaysCoinmarketcapHtmlname
-    response = urllib2.urlopen('https://coinmarketcap.com/all/views/all/')
+    print("Fetching " + todaysCoinmarketcapHtmlname)
+    response = urllib.request.urlopen('https://coinmarketcap.com/all/views/all/')
     coinmarketcap = response.read()
     with open(todaysCoinmarketcapHtmlname, 'w') as f: f.write(coinmarketcap)
 
@@ -48,7 +46,7 @@ if not os.path.isfile(todaysCoinmarketcapHtmlname):
 ### Read today's XML file, or generate it if not done already
 todaysCoinmarketcapXmlname = DATA_DIR+'coinmarketcap-'+today+'.xml'
 if not os.path.isfile(todaysCoinmarketcapXmlname):
-    print "Generating " + todaysCoinmarketcapXmlname
+    print("Generating " + todaysCoinmarketcapXmlname)
     with open(todaysCoinmarketcapHtmlname, 'r') as f: xmlStr = f.read()
     # Do some regex match and substitues to make the coinmarketcap HTML into valid XML
     regex = re.compile(r'.*?<table class="table js-summary-table" id="currencies-all".*?(<tbody>.*</tbody>)', re.DOTALL)
@@ -59,10 +57,10 @@ if not os.path.isfile(todaysCoinmarketcapXmlname):
 else:
     with open(todaysCoinmarketcapXmlname, 'r') as f: xmlStr = f.read()
 
-print "Parsing " + todaysCoinmarketcapXmlname
+print("Parsing " + todaysCoinmarketcapXmlname)
 xml = ET.fromstring(xmlStr)
 
-print "Calculating difference between " + today + "'s and " + yesterday + "'s capitalization sequence."
+print("Calculating difference between " + today + "'s and " + yesterday + "'s capitalization sequence.")
 todaysList = []
 capsMap = {}
 minableCount = 0
@@ -91,8 +89,8 @@ try:
     with open(DATA_DIR+'results-'+yesterday+'.lst', 'r') as f:
         yesterdaysList = f.read().splitlines()
 except IOError as ex:
-    print ex
-    print "Run cap-diff again tomorrow, then we can calculate a difference."
+    print(ex)
+    print("Run cap-diff again tomorrow, then we can calculate a difference.")
     sys.exit(1)
 
 
@@ -121,10 +119,14 @@ while tIdx < len(todaysList) and yIdx < len(yesterdaysList):
 
 ###
 # Print our results as a CSV file
+# take the second element for sort
+def take_value(elem):
+    return elem[1]
+
 resultFilename = DATA_DIR+'diffs-'+today+'-'+yesterday+'.csv' 
-print 'Printing ' + resultFilename
+print('Printing ' + resultFilename)
 with open(resultFilename, 'w') as f:
-    for key, value in sorted(diffs.iteritems(), key=lambda(k,v): (-v,k)):
+    for key, value in (sorted(diffs.iteritems(), key=take_value, reverse=True)):#key=lambda(k,v): (-v,k)):
         f.write("%s,%s\n" % (key, value))
 
-print("%i minable coins, %i have moved up more than %i\n" % (minableCount, len(diffs), threshold))
+print("Out of %i coins, %i have moved up more than %i\n" % (minableCount, len(diffs), threshold))

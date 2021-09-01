@@ -30,7 +30,7 @@ def send(self, config, message):
     jsonStr, err = proc.communicate(None)
 
     if jsonStr is '': return 1
-    if config.VERBOSE: print jsonStr
-    if not err is None: print 'ERR: '+err
+    if config.VERBOSE: print(jsonStr)
+    if not err is None: print('ERR: '+err)
     
     return 0

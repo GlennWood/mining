@@ -8,7 +8,7 @@ def process(self, config, arguments):
     if os.path.exists(config.PIDFILE+'.lock'):
         with open(config.PIDFILE,'r') as fh: pid = fh.readline()
         if arguments.get('-X'):
-            print "kill "+str(pid)
+            print("kill "+str(pid))
         else:
             os.kill(int(pid), signal.SIGTERM)
         sys.exit(0)
