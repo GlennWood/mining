@@ -152,9 +152,9 @@ class Config(object):
     def pivot_sheet(self, sheet, row, keys):
         for key in keys:
             if key == 'Param':
-                param = row[key]
+                param = row[key].value
             else:
-                row_val = row[key]
+                row_val = row[key].value
                 if key not in sheet:
                     sheet[key] = { }
                 sheet[key][param] = row_val
